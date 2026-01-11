@@ -12,16 +12,19 @@ AI suggested to use a combination of inflixDB and grafana. And I added some scri
 
 - influxDB and grafana are run as docker containers, storing the collected and configured data in corresponding bind mounted directories
 - an MQTT broker is queried to collect smart meter data (tasmota sends data by MQTT)
-- fruther data is collected by sensorrs doing queries against REST APIs
+- fruther data is collected by sensors doing queries against REST APIs
 - all collected data is forwarded to an influxDB bucket called "smarthome"
 - derived data is created by influxDB tasks and stored in an influxDB bucket called "smarthomederived"
-- visualizations are done in grafana dashbaords
+- visualizations are done in grafana dashboards
 
 ## setup
 
-1. create your own env.sh from env.sh.template
-2. run the setup tool: `bin/setup-once.sh`
-3. start servers: `start-servers.sh`
-4. start sensors: `start-sensors.sh`
+1. `cp env.sh.template env.sh`
+2. adjust env.sh
+3. run the setup tool once: `bin/setup-once.sh`
+4. start servers: `start-servers.sh`
+5. start sensors: `start-sensors.sh`
+6. add tasks in influxdb by importing from files in doc/influx-tasks
+7. add dashboards in grafana by importing from files in doc/grafana-dashboards
 
  
