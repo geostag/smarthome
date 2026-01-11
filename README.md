@@ -8,6 +8,24 @@ I prefer a stable, to-the-point-I-want-it setup.
 
 AI suggested to use a combination of inflixDB and grafana. And I added some scripts to query sensors.
 
+## list of sensors
+
+* Fritz Box
+ - status of devices (online?)
+ - network throughput
+ - smarthome devices
+* Tasmota smart meter sensor
+ - read grid meter
+* myStrom switch
+ - power 
+ - temperature
+* Zendure Powerflox
+ - electric properties like solar panel power, battery charging, power delivered, ... 
+* Smartthings sensors
+ - temperature and humidity sensors
+* weather.com
+ - climate data of a destinct location
+
 ## architecture
 
 - influxDB and grafana are run as docker containers, storing the collected and configured data in corresponding bind mounted directories
