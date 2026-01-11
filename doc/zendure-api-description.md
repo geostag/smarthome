@@ -4,6 +4,8 @@
 
 # Zendure API
 
+official Zendure API doc: (https://github.com/Zendure/zenSDK)
+
 ## HTTP RESTful API
 
 Each device hosts an internal HTTP server.
