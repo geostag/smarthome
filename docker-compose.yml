@@ -1,0 +1,36 @@
+
+services:
+  influxdb:
+    image: influxdb:2
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./influxdb-data:/var/lib/influxdb2
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: shomeos
+      DOCKER_INFLUXDB_INIT_PASSWORD: shomeos123
+      DOCKER_INFLUXDB_INIT_ORG: smarthome
+      DOCKER_INFLUXDB_INIT_BUCKET: smarthome
+      DOCKER_INFLUXDB_INIT_RETENTION: 1y
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: 89d10ec95f33d75ed37009e69a386155
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    user: $USERID
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+    environment:
+      #GF_AUTH_ANONYMOUS_ENABLED: true
+      #GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_FEATURE_TOGGLES_PUBLICDASHBOARDS: true
+      GF_PUBLIC_DASHBOARDS_ENABLED: true
+      GF_SECURITY_ALLOW_EMBEDDING: true
+      GF_TIME_PICKER_QUICK_RANGES: '[ {"from":"now-3h","to":"now","display":"Last 3 hours"}, {"from":"now-6h","to":"now","display":"Last 6 hours"}, {"from":"now-12h","to":"now","display":"Last 12 hours"}, {"from":"now-24h","to":"now","display":"Last 24 hours"}, {"from":"now-3d","to":"now","display":"Last 3 days"}, {"from":"now-7d","to":"now","display":"Last 7 days"}, {"from":"now-31d","to":"now","display":"Last month"}, {"from":"now-3y","to":"now","display":"Last 3 years"} ]'
+    restart: unless-stopped
+

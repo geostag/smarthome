@@ -1,0 +1,301 @@
+openapi: 3.0.0
+info:
+  title: Device API
+  description: API for managing device properties and HA MQTT integration.
+  version: 1.0.1
+
+servers:
+  - url: http://<server-ip>
+    description: The server IP where the API is hosted.
+
+paths:
+  /properties/report:
+    get:
+      summary: Get device properties report
+      operationId: getPropertiesReport
+      responses:
+        '200':
+          description: A list of properties for the device.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timestamp:
+                    type: integer
+                    description: Timestamp of the report.
+                  messageId:
+                    type: integer
+                    description: Message identifier.
+                  sn:
+                    type: string
+                    description: Serial number of the device.
+                  version:
+                    type: integer
+                    description: Version of the report.
+                  product:
+                    type: string
+                    description: Product name.
+                  properties:
+                    type: object
+                    description: Device runtime properties.
+                    properties:
+                      heatState:
+                        type: integer
+                        description: '0: Not heating, 1: Heating.'
+                      packInputPower:
+                        type: integer
+                      outputPackPower:
+                        type: integer
+                      outputHomePower:
+                        type: integer
+                      remainOutTime:
+                        type: integer
+                      packState:
+                        type: integer
+                        description: '0: Standby, 1: Charging, 2: Discharging.'
+                      electricLevel:
+                        type: integer
+                      gridInputPower:
+                        type: integer
+                      solarInputPower:
+                        type: integer
+                      solarPower1:
+                        type: integer
+                      solarPower2:
+                        type: integer
+                      pass:
+                        type: integer
+                      reverseState:
+                        type: integer
+                      socStatus:
+                        type: integer
+                      hyperTmp:
+                        type: integer
+                      dcStatus:
+                        type: integer
+                      pvStatus:
+                        type: integer
+                      acStatus:
+                        type: integer
+                      dataReady:
+                        type: integer
+                      gridState:
+                        type: integer
+                      BatVolt:
+                        type: integer
+                      socLimit:
+                        type: integer
+                      writeRsp:
+                        type: integer
+                      acMode:
+                        type: integer
+                      inputLimit:
+                        type: integer
+                      outputLimit:
+                        type: integer
+                      socSet:
+                        type: integer
+                      minSoc:
+                        type: integer
+                      gridStandard:
+                        type: integer
+                      gridReverse:
+                        type: integer
+                      inverseMaxPower:
+                        type: integer
+                      lampSwitch:
+                        type: integer
+                      IOTState:
+                        type: integer
+                      factoryModeState:
+                        type: integer
+                      OTAState:
+                        type: integer
+                      LCNState:
+                        type: integer
+                      oldMode:
+                        type: integer
+                      VoltWakeup:
+                        type: integer
+                      ts:
+                        type: integer
+                      bindstate:
+                        type: integer
+                      tsZone:
+                        type: integer
+                      chargeMaxLimit:
+                        type: integer
+                      smartMode:
+                        type: integer
+                      rssi:
+                        type: integer
+                      is_error:
+                        type: integer
+                  packData:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        sn:
+                          type: string
+                        packType:
+                          type: integer
+                        socLevel:
+                          type: integer
+                        state:
+                          type: integer
+                        power:
+                          type: integer
+                        maxTemp:
+                          type: integer
+                        totalVol:
+                          type: integer
+                        batcur:
+                          type: integer
+                        maxVol:
+                          type: integer
+                        minVol:
+                          type: integer
+                        softVersion:
+                          type: integer
+                        heatState:
+                          type: integer
+
+  /properties/write:
+    post:
+      summary: Write device properties
+      operationId: writeProperties
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sn:
+                  type: string
+                  description: Serial number of the device.
+                properties:
+                  type: object
+                  description: The properties to write to the device.
+                  properties:
+                    acMode:
+                      type: integer
+                      description: AC mode value for the device.
+      responses:
+        '200':
+          description: Property successfully written to the device.
+        '400':
+          description: Bad request, invalid parameters or format.
+        '401':
+          description: Unauthorized, authentication failed.
+
+  /rpc:
+    get:
+      summary: Get HA MQTT config or connection status
+      description: |
+        Use the `method` query parameter:
+        - `HA.Mqtt.GetConfig`: Get MQTT configuration
+        - `HA.Mqtt.GetStatus`: Get connection status
+      operationId: getHaMqttInfo
+      parameters:
+        - name: method
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [HA.Mqtt.GetConfig, HA.Mqtt.GetStatus]
+            example: HA.Mqtt.GetConfig
+          description: Method to execute
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    description: Response from HA.Mqtt.GetConfig
+                    properties:
+                      result:
+                        type: boolean
+                        example: true
+                      data:
+                        type: object
+                        properties:
+                          enable:
+                            type: boolean
+                            example: true
+                          server:
+                            type: string
+                            example: mqtt://192.168.50.48:1883
+                  - type: object
+                    description: Response from HA.Mqtt.GetStatus
+                    properties:
+                      connected:
+                        type: boolean
+                        example: true
+
+    post:
+      summary: Set HA MQTT configuration
+      operationId: setHaMqttConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sn, method, params]
+              properties:
+                sn:
+                  type: string
+                  example: WOB1NHMAMXXXXX3
+                method:
+                  type: string
+                  enum: [HA.Mqtt.SetConfig]
+                  example: HA.Mqtt.SetConfig
+                params:
+                  type: object
+                  required: [config]
+                  properties:
+                    config:
+                      type: object
+                      required: [enable, server]
+                      properties:
+                        enable:
+                          type: boolean
+                          example: true
+                        server:
+                          type: string
+                          example: mqtt://192.168.50.48:1883
+                        username:
+                          type: string
+                          example: zendure
+                        password:
+                          type: string
+                          example: zendure
+      responses:
+        '200':
+          description: Successfully updated MQTT configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timestamp:
+                    type: integer
+                    format: int64
+                    example: 1749110672
+                  messageId:
+                    type: integer
+                    example: 1
+                  success:
+                    type: boolean
+                    example: true
+                  code:
+                    type: integer
+                    example: 200
+                  sn:
+                    type: string
+                    example: WOB1NHMAMXXXXX3
