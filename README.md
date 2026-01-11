@@ -10,10 +10,10 @@ AI suggested to use a combination of inflixDB and grafana. And I added some scri
 
 ## architecture
 
-- influxDB and grafana are run as docker containers, storing the collected and configured data in a bind mounted directory
-- an MQTT broker is queried for the smart grid-meter
-- the rest of the data is collected by sensorrs doing queries against REST APIs
-- data is stored in an influxDB bucket called "smarthome"
+- influxDB and grafana are run as docker containers, storing the collected and configured data in corresponging bind mounted directories
+- an MQTT broker is queried to collect smart meter data (tasmota sends data by MQTT)
+- fruther data is collected by sensorrs doing queries against REST APIs
+- all collected data is forwarded to an influxDB bucket called "smarthome"
 - derived data is created by influxDB tasks and stored in an influxDB bucket called "smarthomederived"
 - visualizations are done in grafana dashbaords
 
