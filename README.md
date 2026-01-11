@@ -45,4 +45,8 @@ AI suggested to use a combination of influxDB and grafana. And I added some scri
 6. add tasks in influxdb by importing from files in doc/influx-tasks
 7. add dashboards in grafana by importing from files in doc/grafana-dashboards
 
- 
+## result
+
+![screenshot of a dashboard](/doc/screenshot.png "screenshot")
+
+
