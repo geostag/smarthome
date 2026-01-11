@@ -3,27 +3,27 @@
 ## whats the purpose?
 
 I want to have an overview over all of my smarthome devices. I don't like HA, because there is so much fiddling around
-to get things up and running - it leaves me with a feeling of "this might brake unforseen and I will have to fddle around again".
+to get things up and running - it leaves me with a feeling of "this might brake unforseen and I will have to fiddle around again".
 I prefer a stable, to-the-point-I-want-it setup.
 
-AI suggested to use a combination of inflixDB and grafana. And I added some scripts to query sensors.
+AI suggested to use a combination of influxDB and grafana. And I added some scripts to query sensors.
 
 ## list of sensors
 
-* Fritz Box
+- Fritz Box
  - status of devices (online?)
  - network throughput
  - smarthome devices
-* Tasmota smart meter sensor
+- Tasmota smart meter sensor
  - read grid meter
-* myStrom switch
+- myStrom switch
  - power 
  - temperature
-* Zendure Powerflox
+- Zendure Powerflox
  - electric properties like solar panel power, battery charging, power delivered, ... 
-* Smartthings sensors
+- Smartthings sensors
  - temperature and humidity sensors
-* weather.com
+- weather.com
  - climate data of a destinct location
 
 ## architecture
