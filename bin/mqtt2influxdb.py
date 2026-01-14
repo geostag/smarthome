@@ -18,11 +18,13 @@ PASSWORD = os.getenv("MQTT_PASSWORD")
 ZENDURE_HOST   = os.getenv("ZENDURE_HOST")
 ZENDURE_SN     = os.getenv("ZENDURE_SN")
 
-QUERY_ZENDURE_INTERVAL = 143
-INJECTION_MAX = 800
+QUERY_ZENDURE_INTERVAL = 97
+INJECTION_MAX = 850
+BATT_MIN = 10
+BATT_MAX = 95
 
 # hysterese swm lookback items (tasmota sends every minute, thus 5 minutes)
-LOOKBACK_ITEMS = 5
+LOOKBACK_ITEMS = 4
 
 class Zendure:
     def __init__(self,host,sn):
@@ -101,31 +103,25 @@ class ZendureManager:
         i_old = int(i)
         
         # values ready, lets do logic
-        if b <= 10:
+        if b <= BATT_MIN:
             # first load battery
             i = 0
             
-        elif s > 5 and s < 70 and b > 20:
-            # low but active solar power, battery good --> inject solar and at bit more
-            i = s + 20
+        elif b >= BATT_MAX:
+            # discharge
+            i = INJECTION_MAX
             
-        elif s > 5 and s < 70 and b <= 20:
-            # low but active solar power, battery ok but low --> inject full solar
-            i = s - 2
+        elif s > p:
+            # inject only needed power
+            i = p
             
-        elif p > 50 and i < INJECTION_MAX:
-            # we use swm energy and have still green energy to give
-            i = min(INJECTION_MAX,i + (p - 30))
+        else:
+            # use battery
+            ontop_needed = p - s
+            ratio = (b  - BATT_MIN) / (BATT_MAX - BATT_MIN)
+            i = s + ontop_needed * ratio
             
-        elif p < 0 and i > 0 and b < 96:
-            # we give energy to swm, battery still not full, reduce injection
-            i = max(0,i+p)
-            
-        elif p < 0 and b >= 96:
-            # battery full, inject full solar
-            i = s
-            
-        i = int(i)
+        i = int(min(INJECTION_MAX,i))
         if i != i_old:
             self.zen.greenInjection = i
             print(f"p: {p}, s: {s}({self.zen.solarInputPower}), b: {b} do i {i_old} -> {i}")

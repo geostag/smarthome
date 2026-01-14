@@ -100,11 +100,11 @@ class myFritz:
                 # respect offset
                 t = t - t_offset
                 
-                point = ( Point("fritz_ha").tag("room","2Stock").tag("domain","temperature").field(name,t) )
+                point = ( Point("fritz_ha").tag("room",name).tag("domain","temperature").field("temperature",t) )
                 influx_client_writeapi.write(bucket=INFLUX_BUCKET, record=point)
-                point = ( Point("fritz_ha").tag("room","2Stock").tag("domain","t_reduced").field(name,t_reduced) )
+                point = ( Point("fritz_ha").tag("room",name).field("t_reduced",t_reduced) )
                 influx_client_writeapi.write(bucket=INFLUX_BUCKET, record=point)
-                point = ( Point("fritz_ha").tag("room","2Stock").tag("domain","t_compfort").field(name,t_compfort) )
+                point = ( Point("fritz_ha").tag("room",name).field("t_compfort",t_compfort) )
                 influx_client_writeapi.write(bucket=INFLUX_BUCKET, record=point)
                 
         if self.do_transmission_rate:
