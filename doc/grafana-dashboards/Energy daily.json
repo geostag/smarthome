@@ -148,98 +148,11 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"swm_used\" or\r\n      r._field == \"green_used\" or\r\n      r._field == \"green_upstream\"\r\n  )\r\n  |> aggregateWindow(every: 1d, fn: sum)\r\n  |> timeShift(duration: -12h)\r\n\r\n",
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"swm_used\" or\r\n      r._field == \"green_used\" or\r\n      r._field == \"green_upstream\"\r\n  )\r\n\r\n",
           "refId": "A"
         }
       ],
       "title": "daily energy",
-      "type": "barchart"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "fillOpacity": 80,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineWidth": 1,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 24,
-        "x": 0,
-        "y": 10
-      },
-      "id": 6,
-      "options": {
-        "barRadius": 0,
-        "barWidth": 0.97,
-        "fullHighlight": false,
-        "groupWidth": 0.7,
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "orientation": "auto",
-        "showValue": "auto",
-        "stacking": "normal",
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        },
-        "xTickLabelRotation": 0,
-        "xTickLabelSpacing": 0
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"solarPower1\" or\r\n      r._field == \"solarPower2\" or\r\n      r._field == \"solarPower3\" or\r\n      r._field == \"solarPower4\"\r\n  )\r\n  |> aggregateWindow(every: 1d, fn: sum)\r\n  |> timeShift(duration: -12h)\r\n\r\n",
-          "refId": "A"
-        }
-      ],
-      "title": "Solar Panels",
       "type": "barchart"
     },
     {
@@ -295,7 +208,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 10
       },
       "id": 4,
       "options": {
@@ -323,11 +236,23 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\ndata = \r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -30d)\r\n  |> filter(fn: (r) => r._measurement == \"tasmota\" and r._field == \"upstream\")\r\n\r\npast = \r\ndata\r\n  |> range(start: -30d, stop: today())\r\n  |> aggregateWindow(\r\n      every: 1d,\r\n      fn: (column, tables=<-) =>\r\n        tables |> integral(unit: 1h),\r\n      createEmpty: false\r\n  )\r\n  |> map(fn: (r) => ({\r\n      r with\r\n      _value: -1.0 * r._value / 1000.0\r\n  }))\r\n  |> timeShift(duration: -1d)\r\n  |> drop(columns: [\"_start\", \"_stop\"])\r\n\r\nrecent = \r\ndata\r\n  |> range(start: today())\r\n  |> aggregateWindow(\r\n      every: 1d,\r\n      fn: (column, tables=<-) =>\r\n        tables |> integral(unit: 1h),\r\n      createEmpty: false\r\n  )\r\n  |> map(fn: (r) => ({\r\n      r with\r\n      _value: -1.0 * r._value / 1000.0\r\n  }))\r\n  |> drop(columns: [\"_start\", \"_stop\"])\r\n\r\nunion(tables: [past, recent])\r\n  |> sort(columns: [\"_time\"])",
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"solarPower1\" or\r\n      r._field == \"solarPower2\" or\r\n      r._field == \"solarPower3\" or\r\n      r._field == \"solarPower4\"\r\n  )\r\n\r\n",
           "refId": "A"
         }
       ],
-      "title": "daily green upstream",
+      "title": "daily solar production",
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "reduceRow",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "replaceFields": true
+          }
+        }
+      ],
       "type": "barchart"
     },
     {
@@ -374,8 +299,7 @@
                 "value": 80
               }
             ]
-          },
-          "unit": "kwatth"
+          }
         },
         "overrides": []
       },
@@ -383,9 +307,9 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 20
       },
-      "id": 3,
+      "id": 6,
       "options": {
         "barRadius": 0,
         "barWidth": 0.97,
@@ -395,11 +319,11 @@
           "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": false
+          "showLegend": true
         },
         "orientation": "auto",
         "showValue": "auto",
-        "stacking": "none",
+        "stacking": "normal",
         "tooltip": {
           "hideZeros": false,
           "mode": "single",
@@ -411,99 +335,11 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\ndata =\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -30d)\r\n  |> filter(fn: (r) => r._measurement == \"tasmota\")\r\n  |> filter(fn: (r) => r._field == \"Total\")\r\n  |> drop(columns: [\"electric\"])\r\n\r\npast = \r\ndata \r\n  |> range(start: -30d, stop: today())\r\n  |> aggregateWindow(\r\n      every: 1d,\r\n      fn: last,\r\n      createEmpty: false\r\n  )\r\n  |> difference(nonNegative: false)\r\n  |> timeShift(duration: -1d)\r\n  |> drop(columns: [\"_start\", \"_stop\", \"eletric\"])\r\n\r\nrecent = \r\ndata \r\n  |> range(start: -1d)\r\n  |> aggregateWindow(\r\n      every: 1d,\r\n      fn: last,\r\n      createEmpty: false\r\n  )\r\n  |> difference(nonNegative: false)\r\n  |> drop(columns: [\"_start\", \"_stop\", \"eletric\"])\r\n\r\nunion(tables: [past, recent])\r\n  |> sort(columns: [\"_time\"])",
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"solarPower1\" or\r\n      r._field == \"solarPower2\" or\r\n      r._field == \"solarPower3\" or\r\n      r._field == \"solarPower4\"\r\n  )\r\n\r\n",
           "refId": "A"
         }
       ],
-      "title": "Energy swm used total",
-      "type": "barchart"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "fillOpacity": 80,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineWidth": 1,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "kwatth"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 24,
-        "x": 0,
-        "y": 38
-      },
-      "id": 1,
-      "options": {
-        "barRadius": 0,
-        "barWidth": 0.97,
-        "fullHighlight": false,
-        "groupWidth": 0.7,
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "orientation": "auto",
-        "showValue": "auto",
-        "stacking": "none",
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        },
-        "xTickLabelRotation": 0,
-        "xTickLabelSpacing": 0
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\ndata = \r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -30d)\r\n  |> filter(fn: (r) => r._measurement == \"mystromsolar\" and r._field == \"power\")\r\n\r\npast = \r\ndata\r\n  |> range(start: -30d, stop: today())\r\n  |> aggregateWindow(\r\n      every: 1d,\r\n      fn: (column, tables=<-) =>\r\n        tables |> integral(unit: 1h),\r\n      createEmpty: false\r\n  )\r\n  |> map(fn: (r) => ({\r\n      r with\r\n      _value: r._value / 1000.0\r\n  }))\r\n  |> timeShift(duration: -1d)\r\n  |> drop(columns: [\"_start\", \"_stop\"])\r\n\r\nrecent = \r\ndata\r\n  |> range(start: today())\r\n  |> aggregateWindow(\r\n      every: 1d,\r\n      fn: (column, tables=<-) =>\r\n        tables |> integral(unit: 1h),\r\n      createEmpty: false\r\n  )\r\n  |> map(fn: (r) => ({\r\n      r with\r\n      _value: r._value / 1000.0\r\n  }))\r\n  |> drop(columns: [\"_start\", \"_stop\"])\r\n\r\nunion(tables: [past, recent])\r\n  |> sort(columns: [\"_time\"])",
-          "refId": "A"
-        }
-      ],
-      "title": "Energy Daily Green Inject Total",
+      "title": "Solar Panels",
       "type": "barchart"
     }
   ],
@@ -528,5 +364,5 @@
   "timezone": "browser",
   "title": "Energy daily",
   "uid": "gel4j6k",
-  "version": 33
+  "version": 35
 }
