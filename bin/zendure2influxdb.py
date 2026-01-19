@@ -13,6 +13,7 @@ INTERVAL = int(os.getenv("QUERY_INTERVAL"))
 
 HOST   = os.getenv("ZENDURE_HOST")
 REPORT_PROPERTIES = os.getenv("ZENDURE_REPORT_PROPERTIES").split()
+REPORT_PACK_PROPERTIES = os.getenv("ZENDURE_REPORT_PACK_PROPERTIES").split()
 
 def measure(host):
     url = f"{host}/properties/report"
@@ -31,7 +32,7 @@ def measure(host):
         write_api = client.write_api(write_options=SYNCHRONOUS)
         
         for k in REPORT_PROPERTIES:
-            v = d["properties"][k]
+            v = d["properties"].get(k,0)
             write_api.write(bucket=INFLUX_BUCKET, record=Point("zendure").tag("room","2Stock").tag("domain","electricity").tag("electric","solar").field(k,v) )
             if DEBUG:
                 print(f"{k}: {v}")
@@ -39,9 +40,9 @@ def measure(host):
         for pack in d["packData"]:
             # loop over battery packs
             sn = pack["sn"]
-            k = "socLevel"
-            v = pack["socLevel"]
-            write_api.write(bucket=INFLUX_BUCKET, record=Point("zendure").tag("room","2Stock").tag("domain","electricity").tag("pack",sn).field(k,v) )
+            for k in REPORT_PACK_PROPERTIES:
+                v = pack.get(k,0)
+                write_api.write(bucket=INFLUX_BUCKET, record=Point("zendure").tag("room","2Stock").tag("domain","electricity").tag("pack",sn).field(k,v) )
         
         client.close()
 

@@ -20,11 +20,12 @@ ZENDURE_SN     = os.getenv("ZENDURE_SN")
 
 QUERY_ZENDURE_INTERVAL = 123
 INJECTION_MAX = 300
-BATT_MIN = 11
+BATT_MIN = 10
 BATT_MAX = 95
+BASELOAD = 95
 
 # lookback items (tasmota sends every minute, thus 5 minutes)
-LOOKBACK_ITEMS = 10
+LOOKBACK_ITEMS = 6
 
 class Zendure:
     def __init__(self,host,sn):
@@ -49,8 +50,6 @@ class Zendure:
                 try:
                     self.properties = d["properties"]
                     self.lastqueried = datetime.datetime.now()
-                    self.properties["_time"] = self.lastqueried
-                    #print(f">> {self.properties['outputLimit']}")
                     
                 except:
                     # save fallback
@@ -101,11 +100,13 @@ class ZendureManager:
         s = self.zen.solarInputPower
         self.solarInputPower.append(s)
         self.solarInputPower = self.solarInputPower[(-1 * LOOKBACK_ITEMS):]
-        #s = int( 10 * sum(self.solarInputPower) / len(self.solarInputPower) + 0.5) / 10
+        s = int( 10 * sum(self.solarInputPower) / len(self.solarInputPower) + 0.5) / 10
         
         b = self.zen.batteryLevel
         i = self.zen.greenInjection
         i_old = int(i)
+        
+        hour = datetime.datetime.now().hour
         
         # values ready, lets do logic
         if b <= BATT_MIN:
@@ -116,25 +117,31 @@ class ZendureManager:
             # discharge
             i = INJECTION_MAX
             
-        elif b < 1.2 * BATT_MIN and p > 0 and s < 50 and s > 5:
-            # battery low, little sun, use only sun energy
+        elif s > p + i:
+            # more sun than needed
+            i = p + i
+            
+        elif b < 1.5 * BATT_MIN and s > 0 and s < p+i:
+            # batt low, sun there and completely needed, do not discharge
             i = s
             
-        elif b < 2 * BATT_MIN and p > 0:
-            # battery lower half, slightly add injection based on downstream
-            ratio = 0.5 * (b  - BATT_MIN) / (BATT_MAX - BATT_MIN)
-            i = i + p * min(1.0,ratio)
-            
         else:
-            # match needed power by solar power
-            i = i + p * 0.5
+            # maximum baseload
+            i = min(BASELOAD,i+p)
             
-        # ensure i is positive and does not exceed INJECTION_MAX
-        i = max(0,int(i))
-        i = min(INJECTION_MAX,i)
+        i = int(min(INJECTION_MAX,i) + 0.5) * 1.0
+        
+        if ( i > 10 and abs(i-i_old) < 2 ) or (i > 100 and abs(i-i_old)/i < 0.95) :
+            # peanuts
+            i = i_old
+        
         if i != i_old:
+            if i > i_old:
+                # increase slowly; reduction untouched
+                i = (i_old + i)/2
+                
             self.zen.greenInjection = i
-            print(f"p: {p}, s: {s}({self.zen.solarInputPower}), b: {b} do i {i_old} -> {i}")
+            print(f"p: {p}, s: {s}, b: {b} do i {i_old} -> {i}")
             
         else:
             print(f"p: {p}, s: {s}({self.zen.solarInputPower}), b: {b}, i: {i}")
