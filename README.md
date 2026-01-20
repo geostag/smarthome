@@ -1,10 +1,12 @@
 # my own smarthome scripts and setup
 
-## whats the purpose?
+## purpose?
 
 I want to have an overview over all of my smarthome devices. I don't like HA, because there is so much fiddling around
 to get things up and running - it leaves me with a feeling of "this might brake unforseen and I will have to fiddle around again".
-I prefer a stable, to-the-point-I-want-it setup.
+I prefer a stable, to-the-point-I-want-it setup. 
+
+In addition I control my solar battery pack with an agent.
 
 AI suggested to use a combination of influxDB and grafana. And I added some scripts to query sensors.
 
@@ -16,10 +18,10 @@ AI suggested to use a combination of influxDB and grafana. And I added some scri
    - smarthome devices
 - Tasmota smart meter sensor
    - read grid meter
-- myStrom switch
+- myStrom switches
    - power 
    - temperature
-- Zendure Powerflox
+- Zendure Powerflow
    - electric properties like solar panel power, battery charging, power delivered, ... 
 - Smartthings sensors
    - temperature and humidity sensors
@@ -29,8 +31,10 @@ AI suggested to use a combination of influxDB and grafana. And I added some scri
 ## architecture
 
 - influxDB and grafana are run as docker containers, storing the collected and configured data in corresponding bind mounted directories
-- an MQTT broker is queried to collect smart meter data (tasmota sends data by MQTT)
-- fruther data is collected by sensors doing queries against REST APIs
+- an MQTT broker 
+   - to collect smart meter data (tasmota sends data by MQTT) and send it over to influxdb
+   - to collect recent data for an agent to control the solar output power
+- further data is collected by sensors doing queries against REST APIs
 - all collected data is forwarded to an influxDB bucket called "smarthome"
 - derived data is created by influxDB tasks and stored in an influxDB bucket called "smarthomederived"
 - visualizations are done in grafana dashboards
