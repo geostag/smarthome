@@ -42,8 +42,12 @@
                 "value": 0
               },
               {
-                "color": "semi-dark-green",
+                "color": "#313131",
                 "value": 0
+              },
+              {
+                "color": "semi-dark-green",
+                "value": 1
               }
             ]
           },
@@ -52,8 +56,8 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 4,
+        "h": 3,
+        "w": 2,
         "x": 0,
         "y": 0
       },
@@ -115,9 +119,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 4,
-        "x": 4,
+        "h": 3,
+        "w": 2,
+        "x": 2,
         "y": 0
       },
       "id": 6,
@@ -157,6 +161,7 @@
             "fixedColor": "green",
             "mode": "fixed"
           },
+          "decimals": 0,
           "mappings": [],
           "max": 800,
           "min": 0,
@@ -178,9 +183,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 4,
-        "x": 8,
+        "h": 3,
+        "w": 2,
+        "x": 4,
         "y": 0
       },
       "id": 5,
@@ -245,9 +250,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 4,
-        "x": 12,
+        "h": 3,
+        "w": 2,
+        "x": 6,
         "y": 0
       },
       "id": 4,
@@ -275,6 +280,81 @@
       ],
       "title": "grid power",
       "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": 0
+              },
+              {
+                "color": "dark-yellow",
+                "value": 5
+              },
+              {
+                "color": "dark-green",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 8,
+        "y": 0
+      },
+      "id": 8,
+      "options": {
+        "displayMode": "gradient",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "vertical",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -3h)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"electricLevel\")\r\n|> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "battery level",
+      "type": "bargauge"
     },
     {
       "datasource": {
@@ -330,9 +410,9 @@
         ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 6,
         "w": 4,
-        "x": 16,
+        "x": 10,
         "y": 0
       },
       "id": 9,
@@ -365,7 +445,7 @@
           "refId": "A"
         }
       ],
-      "title": "total energy currently",
+      "title": "energy currently",
       "type": "piechart"
     },
     {
@@ -437,9 +517,9 @@
         ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 6,
         "w": 4,
-        "x": 20,
+        "x": 14,
         "y": 0
       },
       "id": 7,
@@ -485,7 +565,7 @@
             "mode": "thresholds"
           },
           "mappings": [],
-          "max": 1999,
+          "max": 3000,
           "min": 0,
           "thresholds": {
             "mode": "absolute",
@@ -501,10 +581,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 2,
         "x": 0,
-        "y": 4
+        "y": 3
       },
       "id": 11,
       "options": {
@@ -534,7 +614,7 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "from(bucket: \"smarthome\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) => r._measurement == \"zendure\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"solarPower1\" or\r\n      r._field == \"solarPower2\" or\r\n      r._field == \"solarPower3\" or\r\n      r._field == \"solarPower4\"\r\n  )\r\n  |> aggregateWindow(\r\n      every: 1d,\r\n      fn: (column, tables=<-) =>\r\n        tables |> integral(unit: 1h),\r\n      createEmpty: false\r\n  )",
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"solarPower1\" or\r\n      r._field == \"solarPower2\" or\r\n      r._field == \"solarPower3\" or\r\n      r._field == \"solarPower4\"\r\n  )\r\n",
           "refId": "A"
         }
       ],
@@ -565,36 +645,28 @@
             "mode": "thresholds"
           },
           "mappings": [],
-          "max": 100,
+          "max": 3000,
           "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "dark-red",
+                "color": "green",
                 "value": 0
-              },
-              {
-                "color": "dark-yellow",
-                "value": 5
-              },
-              {
-                "color": "dark-green",
-                "value": 10
               }
             ]
           },
-          "unit": "percent"
+          "unit": "watth"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 2,
         "x": 2,
-        "y": 4
+        "y": 3
       },
-      "id": 8,
+      "id": 12,
       "options": {
         "displayMode": "gradient",
         "legend": {
@@ -622,11 +694,220 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -3h)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"electricLevel\")\r\n|> last()",
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"green_used\")\r\n  |> last()",
           "refId": "A"
         }
       ],
-      "title": "battery level",
+      "title": "green used",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 3000,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "semi-dark-blue",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "watth"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 4,
+        "y": 3
+      },
+      "id": 13,
+      "options": {
+        "displayMode": "gradient",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "vertical",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"green_upstream\")\r\n  |> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "green upstream",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 10000,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "semi-dark-red",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "watth"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 6,
+        "y": 3
+      },
+      "id": 14,
+      "options": {
+        "displayMode": "gradient",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "vertical",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"swm_used\")\r\n  |> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "swm used",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "semi-dark-red",
+                "value": 0
+              },
+              {
+                "color": "semi-dark-yellow",
+                "value": 0.7
+              },
+              {
+                "color": "semi-dark-green",
+                "value": 0.8
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 8,
+        "y": 3
+      },
+      "id": 15,
+      "options": {
+        "displayMode": "gradient",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "vertical",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarPower1\" or\r\n      r._field == \"solarPower2\" or\r\n      r._field == \"solarPower3\" or\r\n      r._field == \"solarPower4\" or\r\n      r._field == \"green_used\" or\r\n      r._field == \"green_upstream\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar_efficiency\",\r\n      _field: \"eta\",\r\n      _value:\r\n        (r.green_used - r.green_upstream) /\r\n        (r.solarPower1 + r.solarPower2 + r.solarPower3 + r.solarPower4)\r\n  }))\r\n",
+          "refId": "A"
+        }
+      ],
+      "title": "efficiency",
       "type": "bargauge"
     },
     {
@@ -713,7 +994,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 8
+        "y": 6
       },
       "id": 2,
       "options": {
@@ -732,7 +1013,7 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"tasmota\" and r._field == \"Power\") or (r._measurement == \"mystromsolar\" and r._field == \"power\"))\r\n  |> aggregateWindow(every: 1m, fn: max, createEmpty: false)\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\"])\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )",
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"tasmota\" and r._field == \"Power\") or (r._measurement == \"mystromsolar\" and r._field == \"power\"))\r\n  |> aggregateWindow(every: 1m, fn: max, createEmpty: false)\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\", \"_start\", \"_stop\"])\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )",
           "refId": "A"
         }
       ],
@@ -806,7 +1087,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 15
       },
       "id": 1,
       "options": {
@@ -829,7 +1110,7 @@
             "type": "influxdb",
             "uid": "df8oltzu756o0e"
           },
-          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\")\r\n  |> filter(fn: (r) =>\r\n    r._field == \"solarPower1\" or\r\n    r._field == \"solarPower2\" or\r\n    r._field == \"solarPower3\" or\r\n    r._field == \"solarPower4\"\r\n  )  \r\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\r\n",
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\")\r\n  |> filter(fn: (r) =>\r\n    r._field == \"solarPower1\" or\r\n    r._field == \"solarPower2\" or\r\n    r._field == \"solarPower3\" or\r\n    r._field == \"solarPower4\"\r\n  )\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\r\n",
           "refId": "A"
         }
       ],
@@ -844,7 +1125,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
           "custom": {
             "axisBorderShow": false,
@@ -891,11 +1172,11 @@
               },
               {
                 "color": "dark-orange",
-                "value": 5
+                "value": 10
               },
               {
                 "color": "dark-green",
-                "value": 10
+                "value": 20
               }
             ]
           },
@@ -904,10 +1185,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 6,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 23
       },
       "id": 3,
       "options": {
@@ -926,11 +1207,104 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"zendure\" and r._field == \"electricLevel\"))\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"zendure\" and r._field == \"electricLevel\"))\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
           "refId": "A"
         }
       ],
       "title": "battery level",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 17,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 1000,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "id": 16,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"remainOutTime\")\r\n|> aggregateWindow(every: v.windowPeriod, fn: mean)",
+          "refId": "A"
+        }
+      ],
+      "title": "remain Time",
       "type": "timeseries"
     }
   ],
@@ -958,5 +1332,5 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 77
+  "version": 90
 }
