@@ -19,7 +19,7 @@ ZENDURE_HOST   = os.getenv("ZENDURE_HOST")
 ZENDURE_SN     = os.getenv("ZENDURE_SN")
 
 QUERY_ZENDURE_INTERVAL = 123
-INJECTION_MAX = 300
+INJECTION_MAX = 400
 BATT_MIN = 10
 BATT_MAX = 95
 BASELOAD = 95
@@ -107,44 +107,58 @@ class ZendureManager:
         i_old = int(i)
         
         hour = datetime.datetime.now().hour
+        mode = ""
         
         # values ready, lets do logic
         if b <= BATT_MIN:
             # first load battery
+            mode = "super low batt"
             i = 0
             
         elif b >= BATT_MAX:
             # discharge
+            mode = "super hi batt"
             i = INJECTION_MAX
             
         elif s > p + i:
             # more sun than needed
+            mode = "hi sun"
             i = p + i
             
-        elif b < 1.5 * BATT_MIN and s > 0 and s < p+i:
-            # batt low, sun there and completely needed, do not discharge
+        elif b > 1.2 * BATT_MIN:
+            # enough power there, baseload 
+            mode = "baseload on good battery"
+            i = min(BASELOAD,i+p)
+            
+        elif s > 9 and s < p+i:
+            # sun there and completely needed, do not discharge
+            mode = f"low sun {p},{s},{i}"
             i = s
             
         else:
             # maximum baseload
+            mode = "baseload"
             i = min(BASELOAD,i+p)
             
         i = int(min(INJECTION_MAX,i) + 0.5) * 1.0
         
-        if ( i > 10 and abs(i-i_old) < 2 ) or (i > 100 and abs(i-i_old)/i < 0.95) :
+        if ( i > 10 and abs(i-i_old) < 2 ) or (i > 100 and abs(i-i_old)/i < 0.03) :
             # peanuts
+            mode += f", peanuts {i} {i_old}"
             i = i_old
         
         if i != i_old:
             if i > i_old:
                 # increase slowly; reduction untouched
+                mode += ", slow-raise"
                 i = (i_old + i)/2
                 
             self.zen.greenInjection = i
-            print(f"p: {p}, s: {s}, b: {b} do i {i_old} -> {i}")
+            #print(f"p: {p}, s: {s}, b: {b} do i {i_old} -> {i} ({mode})")
             
         else:
-            print(f"p: {p}, s: {s}({self.zen.solarInputPower}), b: {b}, i: {i}")
+            #print(f"p: {p}, s: {s}, b: {b}, i: {i} ({mode})")
+            n = False
             
 
 def datetime_parser(dct):

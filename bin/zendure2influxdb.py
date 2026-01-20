@@ -1,5 +1,6 @@
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
+import paho.mqtt.client as mqtt
 import requests, json, time, os
 
 DEBUG = False
@@ -15,7 +16,49 @@ HOST   = os.getenv("ZENDURE_HOST")
 REPORT_PROPERTIES = os.getenv("ZENDURE_REPORT_PROPERTIES").split()
 REPORT_PACK_PROPERTIES = os.getenv("ZENDURE_REPORT_PACK_PROPERTIES").split()
 
-def measure(host):
+# we may send Zendure data-copies to MQTT broken
+SEND_DATA_TO_MQTT_BROKER = (os.getenv("ZENDURE_SEND_DATA_TO_MQTT_BROKER","no") == "yes")
+MQTT_BROKER   = os.getenv("MQTT_BROKER","")
+MQTT_PORT     = int(os.getenv("MQTT_PORT","1883"))
+MQTT_USERNAME = os.getenv("MQTT_USERNAME","")
+MQTT_PASSWORD = os.getenv("MQTT_PASSWORD","")
+
+class MQTTconnection:
+    def __init__(self,broker,port,user,password):
+        self.user = user
+        self.password = password
+        self.broker = broker
+        self.port = port
+        self.client = None
+        
+    def openClient(self):
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        self.client.username_pw_set(self.user,self.password)
+        self.client.connect(self.broker,self.port,60)
+        #self.client.loop_start()
+        
+    def reset(self):
+        try:
+            client.disconnect()
+            
+        except:
+            pass
+        
+        self.client = None
+        
+    def publish(self,sn,value):
+        if not self.client:
+            self.openClient()
+            
+        self.client.publish(
+            topic   = f"zendure/datacopy/{sn}",
+            payload = value,
+            qos     = 1,
+            retain  = False
+        )
+        
+
+def measure(host,mqttconnection):
     url = f"{host}/properties/report"
     r = requests.get(url)
     
@@ -31,11 +74,16 @@ def measure(host):
         )
         write_api = client.write_api(write_options=SYNCHRONOUS)
         
+        dcopy = {}
+        sn = d.get("sn","serialnumber")
+        
         for k in REPORT_PROPERTIES:
             v = d["properties"].get(k,0)
             write_api.write(bucket=INFLUX_BUCKET, record=Point("zendure").tag("room","2Stock").tag("domain","electricity").tag("electric","solar").field(k,v) )
             if DEBUG:
                 print(f"{k}: {v}")
+                
+            dcopy[k] = v
                 
         for pack in d["packData"]:
             # loop over battery packs
@@ -44,13 +92,28 @@ def measure(host):
                 v = pack.get(k,0)
                 write_api.write(bucket=INFLUX_BUCKET, record=Point("zendure").tag("room","2Stock").tag("domain","electricity").tag("pack",sn).field(k,v) )
         
+            dcopy[k] = v
+            
         client.close()
+        
+        if mqttconnection:
+            mqttconnection.publish(sn,json.dumps(dcopy))
 
+
+if SEND_DATA_TO_MQTT_BROKER:
+    M = MQTTconnection(MQTT_BROKER, MQTT_PORT, MQTT_USERNAME, MQTT_PASSWORD)
+    
+else:
+    M = None
+    
 while True:
     try:
-        measure(HOST)
+        measure(HOST,M)
     except:
         print("measure and write failed")
+        if M:
+            M.reset()
+            
         time.sleep(240)
         
     time.sleep(INTERVAL)
