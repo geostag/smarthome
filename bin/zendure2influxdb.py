@@ -1,14 +1,8 @@
-from influxdb_client import InfluxDBClient, Point
-from influxdb_client.client.write_api import SYNCHRONOUS
 import paho.mqtt.client as mqtt
 import requests, json, time, os
+from lib.toinflux import Iflx
 
 DEBUG = False
-
-INFLUX_URL   = os.getenv("INFLUX_URL")
-INFLUX_TOKEN = os.getenv("INFLUX_TOKEN")
-INFLUX_ORG   = os.getenv("INFLUX_ORG")
-INFLUX_BUCKET= os.getenv("INFLUX_BUCKET")
 
 INTERVAL = int(os.getenv("QUERY_INTERVAL"))
 
@@ -22,6 +16,8 @@ MQTT_BROKER   = os.getenv("MQTT_BROKER","")
 MQTT_PORT     = int(os.getenv("MQTT_PORT","1883"))
 MQTT_USERNAME = os.getenv("MQTT_USERNAME","")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD","")
+
+INFLUX = Iflx()
 
 class MQTTconnection:
     def __init__(self,broker,port,user,password):
@@ -67,19 +63,16 @@ def measure(host,mqttconnection):
         if DEBUG:
             print(d)
         
-        client = InfluxDBClient(
-            url=INFLUX_URL,
-            token=INFLUX_TOKEN,
-            org=INFLUX_ORG
-        )
-        write_api = client.write_api(write_options=SYNCHRONOUS)
-        
         dcopy = {}
         sn = d.get("sn","serialnumber")
         
         for k in REPORT_PROPERTIES:
             v = d["properties"].get(k,0)
-            write_api.write(bucket=INFLUX_BUCKET, record=Point("zendure").tag("room","2Stock").tag("domain","electricity").tag("electric","solar").field(k,v) )
+            INFLUX.write({
+                "measurement": "zendure",
+                "field": k, "value": v,
+                "tags": { "room": "2Stock", "domain": "electricity", "electric": "solar" }
+            })
             if DEBUG:
                 print(f"{k}: {v}")
                 
@@ -90,12 +83,14 @@ def measure(host,mqttconnection):
             sn = pack["sn"]
             for k in REPORT_PACK_PROPERTIES:
                 v = pack.get(k,0)
-                write_api.write(bucket=INFLUX_BUCKET, record=Point("zendure").tag("room","2Stock").tag("domain","electricity").tag("pack",sn).field(k,v) )
+                INFLUX.write({
+                    "measurement": "zendure",
+                    "field": k, "value": v,
+                    "tags": { "room": "2Stock", "domain": "electricity", "pack": sn }
+                })
         
             dcopy[k] = v
             
-        client.close()
-        
         if mqttconnection:
             mqttconnection.publish(sn,json.dumps(dcopy))
 
