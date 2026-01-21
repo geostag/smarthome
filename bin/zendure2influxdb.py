@@ -35,7 +35,7 @@ class MQTTconnection:
         
     def reset(self):
         try:
-            client.disconnect()
+            self.client.disconnect()
             
         except:
             pass
@@ -68,11 +68,7 @@ def measure(host,mqttconnection):
         
         for k in REPORT_PROPERTIES:
             v = d["properties"].get(k,0)
-            INFLUX.write({
-                "measurement": "zendure",
-                "field": k, "value": v,
-                "tags": { "room": "2Stock", "domain": "electricity", "electric": "solar" }
-            })
+            INFLUX.write("zendure", k, v, { "room": "2Stock", "domain": "electricity", "electric": "solar" })
             if DEBUG:
                 print(f"{k}: {v}")
                 
@@ -83,11 +79,7 @@ def measure(host,mqttconnection):
             sn = pack["sn"]
             for k in REPORT_PACK_PROPERTIES:
                 v = pack.get(k,0)
-                INFLUX.write({
-                    "measurement": "zendure",
-                    "field": k, "value": v,
-                    "tags": { "room": "2Stock", "domain": "electricity", "pack": sn }
-                })
+                INFLUX.write("zendure", k, v, { "room": "2Stock", "domain": "electricity", "pack": sn })
         
             dcopy[k] = v
             

@@ -31,15 +31,16 @@ class Iflx:
         self.client = None
         self.api = None
 
-    def write(self,d):
+    def write(self,measurement,key,value,tags):
         if not self.api:
             self.openClient()
             
-        p = Point(d["measurement"])
-        for t,v in d["tags"].items():
+        p = Point(measurement)
+        for t,v in tags.items():
             p.tag(t,v)
             
-        p.field(d["field"],d["value"])
+        p.field(key,value)
+        #print(p)
         
         try:
             self.api.write(bucket=INFLUX_BUCKET, record = p)

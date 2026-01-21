@@ -1,16 +1,12 @@
-from influxdb_client import InfluxDBClient, Point
-from influxdb_client.client.write_api import SYNCHRONOUS
+from lib.toinflux import Iflx
 import requests, json, time, os
 
 DEBUG = False
 
-INFLUX_URL   = os.getenv("INFLUX_URL")
-INFLUX_TOKEN = os.getenv("INFLUX_TOKEN")
-INFLUX_ORG   = os.getenv("INFLUX_ORG")
-
 REMOTEWEATHER_INTERVAL = int(os.getenv("REMOTEWEATHER_INTERVAL"))
-
 REMOTEWEATHER_URL = os.getenv("REMOTEWEATHER_URL")
+
+INFLUX = Iflx()
 
 def measure():
     r = requests.get(REMOTEWEATHER_URL)
@@ -20,24 +16,18 @@ def measure():
         if DEBUG:
             print(d)
 
-        client = InfluxDBClient(
-            url=INFLUX_URL,
-            token=INFLUX_TOKEN,
-            org=INFLUX_ORG
-        )
-        write_api = client.write_api(write_options=SYNCHRONOUS)
-
         v = d["main"]["temp"] - 273.15
-        write_api.write(bucket="smarthome", record=Point("remoteweather").tag("room","outside").tag("domain","temperature").field("temperature",v))
-        v = d["main"]["humidity"]
-        write_api.write(bucket="smarthome", record=Point("remoteweather").tag("room","outside").tag("domain","humidity").field("humidity",v))
-        v = d["main"]["pressure"]
-        write_api.write(bucket="smarthome", record=Point("remoteweather").tag("room","outside").tag("domain","weather").field("pressure",v))
-        v = d["wind"]["speed"]
-        write_api.write(bucket="smarthome", record=Point("remoteweather").tag("room","outside").tag("domain","weather").field("windspeed",v))
+        INFLUX.write("remoteweather", "temperature", v, { "room": "outside", "domain": "temperature" })
         
-        client.close()
-
+        v = d["main"]["humidity"]
+        INFLUX.write("remoteweather", "humidity", v, { "room": "outside", "domain": "humidity" })
+        
+        v = d["main"]["pressure"]
+        INFLUX.write("remoteweather", "pressure", v, { "room": "outside", "domain": "weather" })
+        
+        v = d["wind"]["speed"]
+        INFLUX.write("remoteweather", "windspeed", v, { "room": "outside", "domain": "weather" })
+        
 while True:
     try:
         measure()

@@ -2,18 +2,13 @@ from fritzconnection import FritzConnection
 from fritzconnection.lib.fritzstatus   import FritzStatus
 from fritzconnection.lib.fritzhomeauto import FritzHomeAutomation
 from fritzconnection.lib.fritzhosts    import FritzHosts
-from influxdb_client import InfluxDBClient, Point
-from influxdb_client.client.write_api import SYNCHRONOUS
 import json, time, os, datetime, re
+from lib.toinflux import Iflx
 
 DEBUG = False
 
-INFLUX_URL    = os.getenv("INFLUX_URL")
-INFLUX_TOKEN  = os.getenv("INFLUX_TOKEN")
-INFLUX_ORG    = os.getenv("INFLUX_ORG")
-INFLUX_BUCKET = os.getenv("INFLUX_BUCKET")
-
 INTERVAL = int(os.getenv("FRITZ_QUERY_INTERVAL"))
+INFLUX = Iflx()
 
 class Mapdevice:
     def __init__(self,mapfile):
@@ -74,7 +69,7 @@ class myFritz:
             except:
                 pass
         
-    def measure(self,influx_client_writeapi):
+    def measure(self):
         if not self.fc:
             self.connect()
             
@@ -100,20 +95,15 @@ class myFritz:
                 # respect offset
                 t = t - t_offset
                 
-                point = ( Point("fritz_ha").tag("room",name).tag("domain","temperature").field("temperature",t) )
-                influx_client_writeapi.write(bucket=INFLUX_BUCKET, record=point)
-                point = ( Point("fritz_ha").tag("room",name).field("t_reduced",t_reduced) )
-                influx_client_writeapi.write(bucket=INFLUX_BUCKET, record=point)
-                point = ( Point("fritz_ha").tag("room",name).field("t_compfort",t_compfort) )
-                influx_client_writeapi.write(bucket=INFLUX_BUCKET, record=point)
+                INFLUX.write("fritz_ha","temperature",t,{"room": name, "domain": "temperature"} )
+                INFLUX.write("fritz_ha","t_reduced",t_reduced,{"room": name} )
+                INFLUX.write("fritz_ha","t_compfort",t_compfort,{"room": name} )
                 
         if self.do_transmission_rate:
             fs = FritzStatus(self.fc)
             (up,down) = fs.transmission_rate
-            point = ( Point("fritz_net").tag("domain","network").field("up",up*8) )
-            influx_client_writeapi.write(bucket=INFLUX_BUCKET, record=point)
-            point = ( Point("fritz_net").tag("domain","network").field("down",down*8) )
-            influx_client_writeapi.write(bucket=INFLUX_BUCKET, record=point)
+            INFLUX.write("fritz_net","up",up*8,{"domain": "network"} )
+            INFLUX.write("fritz_net","down",down*8,{"domain": "network"} )
                                                                                               
     def get_hosts(self,mergewith={}):
         for h in self.hosts_seen:
@@ -136,15 +126,9 @@ DEVICEMAP = Mapdevice(os.getenv('FRITZ_DEVICEMAP'))
 fritzes = [ myFritz(dev,DEVICEMAP) for dev in devices ]
 
 while True:
-    influx_client = InfluxDBClient(
-        url=INFLUX_URL,
-        token=INFLUX_TOKEN,
-        org=INFLUX_ORG
-    )
-    influx_client_writeapi = influx_client.write_api(write_options=SYNCHRONOUS)
     hosts = {}
     for f in fritzes:
-        f.measure(influx_client_writeapi)
+        f.measure()
         hosts = f.get_hosts(hosts)
         
     for h in hosts:
@@ -153,9 +137,8 @@ while True:
             
         else:
             domain = "presence"
-            
-        point = ( Point("fritz_hosts").tag("domain",domain).field(h,1) )
-        influx_client_writeapi.write(bucket=INFLUX_BUCKET, record=point)
+        
+        INFLUX.write("fritz_hosts",h,1,{"domain": domain})
         
     time.sleep(INTERVAL)
     
