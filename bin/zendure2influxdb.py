@@ -31,7 +31,7 @@ class MQTTconnection:
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         self.client.username_pw_set(self.user,self.password)
         self.client.connect(self.broker,self.port,60)
-        #self.client.loop_start()
+        self.client.loop_start()
         
     def reset(self):
         try:
@@ -46,6 +46,7 @@ class MQTTconnection:
         if not self.client:
             self.openClient()
             
+        #print(f"publish: {value}")
         self.client.publish(
             topic   = f"zendure/datacopy/{sn}",
             payload = value,
@@ -76,14 +77,15 @@ def measure(host,mqttconnection):
                 
         for pack in d["packData"]:
             # loop over battery packs
-            sn = pack["sn"]
+            psn = pack["sn"]
             for k in REPORT_PACK_PROPERTIES:
                 v = pack.get(k,0)
-                INFLUX.write("zendure", k, v, { "room": "2Stock", "domain": "electricity", "pack": sn })
+                INFLUX.write("zendure", k, v, { "room": "2Stock", "domain": "electricity", "pack": psn })
         
             dcopy[k] = v
             
         if mqttconnection:
+            #print(dcopy)
             mqttconnection.publish(sn,json.dumps(dcopy))
 
 

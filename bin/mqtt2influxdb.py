@@ -1,13 +1,8 @@
-from influxdb_client import InfluxDBClient, Point
-from influxdb_client.client.write_api import SYNCHRONOUS
+from lib.toinflux import Iflx
 import paho.mqtt.client as mqtt
 import dateutil.parser, datetime, json, re, time, os, requests
 
 DEBUG = False
-
-INFLUX_URL   = os.getenv("INFLUX_URL")
-INFLUX_TOKEN = os.getenv("INFLUX_TOKEN")
-INFLUX_ORG   = os.getenv("INFLUX_ORG")
 
 BROKER   = os.getenv("MQTT_BROKER")
 PORT     = int(os.getenv("MQTT_PORT"))
@@ -26,6 +21,8 @@ BASELOAD = 95
 
 # lookback items (tasmota sends every minute, thus 5 minutes)
 LOOKBACK_ITEMS = 6
+
+INFLUX = Iflx()
 
 class Zendure:
     def __init__(self,host,sn):
@@ -151,7 +148,7 @@ class ZendureManager:
             if i > i_old:
                 # increase slowly; reduction untouched
                 mode += ", slow-raise"
-                i = (i_old + i)/2
+                i = 0.8*(i_old + i)
                 
             self.zen.greenInjection = i
             #print(f"p: {p}, s: {s}, b: {b} do i {i_old} -> {i} ({mode})")
@@ -204,32 +201,23 @@ def on_message(client, userdata, msg):
         print(d)
     
     try:
-        client = InfluxDBClient(
-            url=INFLUX_URL,
-            token=INFLUX_TOKEN,
-            org=INFLUX_ORG
-        )
-        write_api = client.write_api(write_options=SYNCHRONOUS)
         for k,v in d["ENERGY"].items():
-            point = ( Point("tasmota").tag("room","keller").tag("domain","electricity").tag("electric","swm").field(k,v) )
-            write_api.write(bucket="smarthome", record=point)
+            INFLUX.write("tasmota",k,v,{"room": "keller", "domain": "electricity", "electric": "swm" })
             
         p = d["ENERGY"]["Power"]
         if p < 0:
-            write_api.write(bucket="smarthome", record=Point("tasmota").tag("room","keller").tag("domain","electricity").tag("electric","swm").field("upstream",p))
-            write_api.write(bucket="smarthome", record=Point("tasmota").tag("room","keller").tag("domain","electricity").tag("electric","swm").field("downstream",0))
+            INFLUX.write("tasmota","upstream",  p,{"room": "keller", "domain": "electricity", "electric": "swm" })
+            INFLUX.write("tasmota","downstream",0,{"room": "keller", "domain": "electricity", "electric": "swm" })
             
         else:
-            write_api.write(bucket="smarthome", record=Point("tasmota").tag("room","keller").tag("domain","electricity").tag("electric","swm").field("upstream",0))
-            write_api.write(bucket="smarthome", record=Point("tasmota").tag("room","keller").tag("domain","electricity").tag("electric","swm").field("downstream",p))
+            INFLUX.write("tasmota","upstream",  0,{"room": "keller", "domain": "electricity", "electric": "swm" })
+            INFLUX.write("tasmota","downstream",p,{"room": "keller", "domain": "electricity", "electric": "swm" })
             
-        client.close()
-        
     except:
         print("write to influxdb failed")
         time.sleep(60)
         
-    ZM.update(p)
+    #ZM.update(p)
 
 # Client mit neuer Callback-API
 client = mqtt.Client(

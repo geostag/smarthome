@@ -1,16 +1,9 @@
-from influxdb_client import InfluxDBClient, Point
-from influxdb_client.client.write_api import SYNCHRONOUS
+from lib.toinflux import Iflx
 import requests, json, time, os
 
 DEBUG = False
 
-INFLUX_URL    = os.getenv("INFLUX_URL")
-INFLUX_TOKEN  = os.getenv("INFLUX_TOKEN")
-INFLUX_ORG    = os.getenv("INFLUX_ORG")
-INFLUX_BUCKET = os.getenv("INFLUX_BUCKET")
-
 INTERVAL = int(os.getenv("QUERY_INTERVAL"))
-
 ST_TOKEN = os.getenv("SMARTTHINGS_TOKEN")
 ST_DEVICES = []
 for d in os.getenv("SMARTTHINGS_DEVUCELIST"):
@@ -19,6 +12,7 @@ for d in os.getenv("SMARTTHINGS_DEVUCELIST"):
         "label": os.getenv(f"SMARTTHINGS_{d}_LABEL")
     })
     
+INFLUX = Iflx()
 
 def geturl(deviceid):
     return f'https://api.smartthings.com/v1/devices/{deviceid}/status'
@@ -32,23 +26,13 @@ def measure(device):
         if DEBUG:
             print(d)
 
-        client = InfluxDBClient(
-            url=INFLUX_URL,
-            token=INFLUX_TOKEN,
-            org=INFLUX_ORG
-        )
-        write_api = client.write_api(write_options=SYNCHRONOUS)
-
         t = d["components"]["main"]["temperatureMeasurement"]["temperature"]["value"]
-        write_api.write(bucket="smarthome", record=Point("smarthings").tag("room",device["label"]).tag("domain","temperature").field("temperature",t) )
+        INFLUX.write("smarthings","temperature",t,{"room": device["label"], "domain": "temperature"})
         
         if "relativeHumidityMeasurement" in d["components"]["main"]:
             h = d["components"]["main"]["relativeHumidityMeasurement"]["humidity"]["value"]
-            write_api.write(bucket=INFLUX_BUCKET, record=Point("smarthings").tag("room",device["label"]).tag("domain","humidity").field("humidity",h) )
+            INFLUX.write("smarthings","humidity",h,{"room": device["label"], "domain": "humidity"})
             
-        
-        client.close()
-
 while True:
     try:
         for d in ST_DEVICES:

@@ -90,7 +90,7 @@
             "type": "influxdb",
             "uid": "df8oltzu756o0e"
           },
-          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"fritz_hosts\" and (\r\n    r._field == \"Angela\" or\r\n    r._field == \"Georg\" or\r\n    r._field == \"Bekki\" or\r\n    r._field == \"Tristan\" or\r\n    r._field == \"Jonathan\" or \r\n    r._field == \"Aylin\" or\r\n    r._field == \"Emanuel\" or\r\n    r._field == \"Carina\" or\r\n    r._field == \"Johannes\"\r\n))\r\n|> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\r\n",
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r.domain == \"presence\" and (\r\n    r._field == \"Angela\" or\r\n    r._field == \"Georg\" or\r\n    r._field == \"Bekki\" or\r\n    r._field == \"Tristan\" or\r\n    r._field == \"Jonathan\" or \r\n    r._field == \"Aylin\" or\r\n    r._field == \"Emanuel\" or\r\n    r._field == \"Carina\" or\r\n    r._field == \"Johannes\"\r\n))\r\n|> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\r\n",
           "refId": "A"
         }
       ],
@@ -107,6 +107,13 @@
           "color": {
             "mode": "thresholds"
           },
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "temperature over time",
+              "url": "https://grafana.ostertage.de/d/gerhw2f/climate?orgId=1&from=now-6h&to=now&timezone=browser&viewPanel=panel-1"
+            }
+          ],
           "mappings": [],
           "min": 10,
           "thresholds": {
@@ -262,5 +269,5 @@
   "timezone": "browser",
   "title": "Presence",
   "uid": "ge2cvr2",
-  "version": 17
+  "version": 19
 }

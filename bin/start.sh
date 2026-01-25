@@ -5,6 +5,6 @@ _basedir=`dirname $_basedir`
 
 cd ${_basedir} || exit 2
 
-./start-servers.sh
+bin/start-servers.sh
 sleep 10
-./start-sensors.sh
+bin/start-sensors.sh

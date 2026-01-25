@@ -95,15 +95,15 @@ class myFritz:
                 # respect offset
                 t = t - t_offset
                 
-                INFLUX.write("fritz_ha","temperature",t,{"room": name, "domain": "temperature"} )
-                INFLUX.write("fritz_ha","t_reduced",t_reduced,{"room": name} )
-                INFLUX.write("fritz_ha","t_compfort",t_compfort,{"room": name} )
+                INFLUX.write("fritz","temperature",t,{"room": name, "domain": "temperature"} )
+                INFLUX.write("fritz","t_reduced",t_reduced,{"room": name} )
+                INFLUX.write("fritz","t_compfort",t_compfort,{"room": name} )
                 
         if self.do_transmission_rate:
             fs = FritzStatus(self.fc)
             (up,down) = fs.transmission_rate
-            INFLUX.write("fritz_net","up",up*8,{"domain": "network"} )
-            INFLUX.write("fritz_net","down",down*8,{"domain": "network"} )
+            INFLUX.write("fritz","up",up*8,{"domain": "network"} )
+            INFLUX.write("fritz","down",down*8,{"domain": "network"} )
                                                                                               
     def get_hosts(self,mergewith={}):
         for h in self.hosts_seen:
@@ -138,7 +138,7 @@ while True:
         else:
             domain = "presence"
         
-        INFLUX.write("fritz_hosts",h,1,{"domain": domain})
+        INFLUX.write("fritz",h,1,{"domain": domain})
         
     time.sleep(INTERVAL)
     
