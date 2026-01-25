@@ -22,7 +22,7 @@ user_list = [u.text for u in tree.findall(".//users/element")]
 
 dt = datetime.now()
 dt = dt.replace(tzinfo=ZoneInfo("Europe/Berlin"))
-dt = dt.replace(hour=0,minute=0, second=0, microsecond=0)
+dt = dt.replace(hour=3,minute=0, second=0, microsecond=0)
 
 INFLUX = Iflx(bucket="longrange",token=TOKEN)
 
