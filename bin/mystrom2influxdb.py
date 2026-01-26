@@ -8,14 +8,14 @@ SWITCHLIST = os.getenv("MYSTROM_SWITCHLIST")
 devices = []
 for s in SWITCHLIST.split():
     i = {}
-    for k in ["HOST","TOKEN","measurement","room","electric"]:
+    for k in ["HOST","TOKEN","room","electric","DEVICELABEL"]:
         i[k] = os.getenv(f"MYSTROM_{s}_{k}")
         
     devices.append(i)
     
 INFLUX = Iflx()
 
-def measure(host, token, name, room, electric):
+def measure(host, token, room, electric, label):
     url = f"{host}report"
     header = { "Token": token }
     r = requests.get(url, headers=header)
@@ -42,9 +42,9 @@ def measure(host, token, name, room, electric):
                 domain = "generic"
 
             if domain == "electricity":
-                INFLUX.write(name,k,v, {"room": room, "domain": domain, "electric": electric } )
+                INFLUX.write("mystrom",k,v, {"device": label, "room": room, "domain": domain, "electric": electric } )
             else:
-                INFLUX.write(name,k,v, {"room": room, "domain": domain } )
+                INFLUX.write("mystrom",k,v, {"device": label, "room": room, "domain": domain } )
                 
             if DEBUG:
                 print(f"{k} > {v} / {domain} / {electric}")
@@ -53,7 +53,7 @@ def measure(host, token, name, room, electric):
 while True:
     for dev in devices:
         try:
-            measure(dev["HOST"],dev["TOKEN"],dev["measurement"],dev["room"],dev["electric"])
+            measure(dev["HOST"],dev["TOKEN"],dev["room"],dev["electric"],dev["DEVICELABEL"])
             
         except:
             print("measure and write failed")
