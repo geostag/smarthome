@@ -48,7 +48,7 @@ class MQTTconnection:
             
         #print(f"publish: {value}")
         self.client.publish(
-            topic   = f"zendure/datacopy/{sn}",
+            topic   = f"tele/zendure_{sn}/SENSOR",
             payload = value,
             qos     = 1,
             retain  = False

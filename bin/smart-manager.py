@@ -5,23 +5,22 @@ DEBUG = False
 
 BROKER   = os.getenv("MQTT_BROKER")
 PORT     = int(os.getenv("MQTT_PORT"))
-#TOPIC    = os.getenv("MQTT_TOPIC")
-TOPIC    = "#"
+TOPIC    = os.getenv("MQTT_TOPIC")
 USERNAME = os.getenv("MQTT_USERNAME")
 PASSWORD = os.getenv("MQTT_PASSWORD")
+
 ZENDURE_HOST = os.getenv("ZENDURE_HOST")
 ZENDURE_SN   = os.getenv("ZENDURE_SN")
+TASMOTA_TAG  = os.getenv("TASMOTA_TAG")
 
-TASMOTA_TAG = os.getenv("TASMOTA_TAG")
-
-UPDATE_ZENDURE_INTERVAL = 59
-INJECTION_MAX = 400
-BATT_MIN = 10
-BATT_MAX = 95
-BASELOAD = 95
+UPDATE_ZENDURE_INTERVAL = 117
+INJECTION_MAX = int(os.getenv("INJECTION_MAX",400))
+BATT_MIN      = int(os.getenv("MATT_MIN",10))
+BATT_MAX      = int(os.getenv("BATT_MAX",95))
+BASELOAD      = int(os.getenv("BASELOAD",90))
 
 # lookback items (tasmota sends every minute, thus 5 minutes)
-LOOKBACK_ITEMS = 15
+LOOKBACK_ITEMS = 10
 
 
 class Tasmota:
@@ -45,7 +44,7 @@ class Zendure:
         self.injection = 0
         self.lastupdate = False
         self.url = f"{host}/properties/write"
-        self.mqtt_topic = f"zendure/datacopy/{sn}"
+        self.mqtt_topic = f"tele/zendure_{sn}/SENSOR"
         self.db = db
         self.injection = 0
         
@@ -63,8 +62,8 @@ class Zendure:
         
     @property
     def outputLimit(self):
-        return self.get_db_value("outputLimit")
-        #return self.injection
+        #return self.get_db_value("outputLimit")
+        return self.injection
         
     @outputLimit.setter
     def outputLimit(self,value):
@@ -158,15 +157,13 @@ class ZendureManager:
             if i > i_old:
                 # increase slowly; reduction untouched
                 mode += ", slow-raise"
-                i = 0.8*(i_old + i)
+                i = 0.6*(i_old + i)
                 
             self.zen.outputLimit = i
             print(f"p: {p}, s: {s}, b: {b} do i {i_old} -> {i} ({mode})")
             
         else:
             print(f"p: {p}, s: {s}, b: {b}, i: {i} ({mode})")
-            n = False
-            
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
