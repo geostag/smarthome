@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": 0,
   "links": [],
   "panels": [
     {
@@ -32,36 +32,91 @@
             "mode": "thresholds"
           },
           "mappings": [],
-          "max": 100,
-          "min": -100,
+          "max": 600,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "dark-red",
+                "color": "green",
                 "value": 0
-              },
-              {
-                "color": "#313131",
-                "value": 0
-              },
-              {
-                "color": "semi-dark-green",
-                "value": 1
               }
             ]
           },
           "unit": "watt"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mystrom power {device=\"solar\", domain=\"electricity\", electric=\"solar\", room=\"2 Joni my\"}"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "green injection"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tasmota downstream {domain=\"electricity\", electric=\"swm\", room=\"keller\"}"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "swm power"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#9d303c",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "zendure solarInputPower {domain=\"electricity\", electric=\"solar\", room=\"2Stock\"}"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "solar power"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tasmota upstream {domain=\"electricity\", electric=\"swm\", room=\"keller\"}"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "green upstream"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
-        "h": 3,
-        "w": 2,
+        "h": 5,
+        "w": 6,
         "x": 0,
         "y": 0
       },
-      "id": 10,
+      "id": 22,
       "options": {
         "minVizHeight": 75,
         "minVizWidth": 75,
@@ -80,281 +135,12 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "charge =\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -3h)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"outputPackPower\")\r\n  |> last()\r\n  |> map(fn: (r) => ({ r with joinKey: \"x\" }))\r\n  |> keep(columns: [\"_value\", \"joinKey\"])\r\n\r\ndischarge =\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -3h)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"packInputPower\")\r\n  |> last()\r\n  |> map(fn: (r) => ({ r with joinKey: \"x\" }))\r\n  |> keep(columns: [\"_value\", \"joinKey\"])\r\n\r\njoin(tables: {c: charge, d: discharge}, on: [\"joinKey\"])\r\n|> map(fn: (r) => ({\r\n    _time: now(),\r\n    _value: r._value_c - r._value_d\r\n}))\r\n",
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -2h)\r\n|> filter(fn: (r) =>\r\n   (r._measurement == \"zendure\" and r._field == \"solarInputPower\")\r\n   or (r._measurement == \"tasmota\" and r._field == \"downstream\")\r\n   or (r._measurement == \"tasmota\" and r._field == \"upstream\")\r\n   or (r._measurement == \"mystrom\" and r.device == \"solar\" and r._field == \"power\")\r\n)\r\n|> last()",
           "refId": "A"
         }
       ],
-      "title": "battery charging",
+      "title": "recent power",
       "type": "gauge"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "semi-dark-green",
-            "mode": "fixed"
-          },
-          "mappings": [],
-          "max": 800,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "watt"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 2,
-        "y": 0
-      },
-      "id": 6,
-      "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": false,
-        "sizing": "auto"
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -1h)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"solarInputPower\")\r\n|> last()\r\n",
-          "refId": "A"
-        }
-      ],
-      "title": "solar power",
-      "type": "gauge"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "green",
-            "mode": "fixed"
-          },
-          "decimals": 0,
-          "mappings": [],
-          "max": 800,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "watt"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 4,
-        "y": 0
-      },
-      "id": 5,
-      "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": false,
-        "sizing": "auto"
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "query": "from(bucket: \"smarthome\")\r\n |> range(start: -1h)\r\n |> filter(fn: (r) => r._measurement == \"mystromsolar\" and r._field == \"power\")\r\n |> last()",
-          "refId": "A"
-        }
-      ],
-      "title": "green injection",
-      "type": "gauge"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "max": 1000,
-          "min": -20,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "semi-dark-blue",
-                "value": 0
-              },
-              {
-                "color": "semi-dark-green",
-                "value": 0
-              },
-              {
-                "color": "#EAB839",
-                "value": 100
-              },
-              {
-                "color": "red",
-                "value": 250
-              }
-            ]
-          },
-          "unit": "watt"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 6,
-        "y": 0
-      },
-      "id": 4,
-      "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "sizing": "auto"
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "query": "from(bucket: \"smarthome\")\r\n |> range(start: -1h)\r\n |> filter(fn: (r) => r._measurement == \"tasmota\" and r._field == \"Power\")\r\n |> last()",
-          "refId": "A"
-        }
-      ],
-      "title": "grid power",
-      "type": "gauge"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "dark-red",
-                "value": 0
-              },
-              {
-                "color": "dark-yellow",
-                "value": 5
-              },
-              {
-                "color": "dark-green",
-                "value": 10
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 8,
-        "y": 0
-      },
-      "id": 8,
-      "options": {
-        "displayMode": "gradient",
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "vertical",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -3h)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"electricLevel\")\r\n|> last()",
-          "refId": "A"
-        }
-      ],
-      "title": "battery level",
-      "type": "bargauge"
     },
     {
       "datasource": {
@@ -410,9 +196,9 @@
         ]
       },
       "gridPos": {
-        "h": 6,
-        "w": 4,
-        "x": 10,
+        "h": 5,
+        "w": 2,
+        "x": 6,
         "y": 0
       },
       "id": 9,
@@ -441,12 +227,251 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "import \"math\"\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -3h)\r\n  |> filter(fn: (r) => \r\n    (r._measurement == \"tasmota\" and (r._field == \"downstream\" or r._field == \"upstream\")) or\r\n    (r._measurement == \"mystromsolar\" and r._field == \"power\")\r\n  )\r\n  |> drop(columns: [\"domain\",\"electric\",\"room\"])\r\n  |> last()\r\n  |> map(fn: (r) => ({\r\n      r with\r\n      _value: math.abs(x: float(v: r._value))\r\n  }))\r\n",
+          "query": "import \"math\"\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -3h)\r\n  |> filter(fn: (r) => \r\n    (r._measurement == \"tasmota\" and (r._field == \"downstream\" or r._field == \"upstream\")) or\r\n    (r.domain == \"electricity\" and r.electric == \"solar\" and r._field == \"power\")\r\n  )\r\n  |> drop(columns: [\"domain\",\"electric\",\"room\"])\r\n  |> last()\r\n  |> map(fn: (r) => ({\r\n      r with\r\n      _value: math.abs(x: float(v: r._value))\r\n  }))\r\n",
           "refId": "A"
         }
       ],
       "title": "energy currently",
       "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 100,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": 0
+              },
+              {
+                "color": "#313131",
+                "value": 0
+              },
+              {
+                "color": "semi-dark-green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "watt"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 8,
+        "y": 0
+      },
+      "id": 10,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "query": "charge =\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -3h)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"outputPackPower\")\r\n  |> last()\r\n  |> map(fn: (r) => ({ r with joinKey: \"x\" }))\r\n  |> keep(columns: [\"_value\", \"joinKey\"])\r\n\r\ndischarge =\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -3h)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"packInputPower\")\r\n  |> last()\r\n  |> map(fn: (r) => ({ r with joinKey: \"x\" }))\r\n  |> keep(columns: [\"_value\", \"joinKey\"])\r\n\r\njoin(tables: {c: charge, d: discharge}, on: [\"joinKey\"])\r\n|> map(fn: (r) => ({\r\n    _time: now(),\r\n    _value: r._value_c - r._value_d\r\n}))\r\n",
+          "refId": "A"
+        }
+      ],
+      "title": "battery charging",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": 0
+              },
+              {
+                "color": "dark-yellow",
+                "value": 5
+              },
+              {
+                "color": "dark-green",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 8,
+        "y": 3
+      },
+      "id": 8,
+      "options": {
+        "displayMode": "gradient",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "vertical",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -3h)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"electricLevel\")\r\n|> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "battery level",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 10000,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "watth"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "swm_used"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#982734",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "green_upstream"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 5
+      },
+      "id": 23,
+      "options": {
+        "displayMode": "gradient",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) =>\r\n      r._measurement == \"daily_energy\" and\r\n  (  r._field == \"green_used\" \r\n  or r._field == \"green_upstream\"\r\n  or r._field == \"swm_used\"\r\n  or r._field == \"solarInputPower\"\r\n  )\r\n)\r\n|> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "today power",
+      "type": "bargauge"
     },
     {
       "datasource": {
@@ -517,10 +542,10 @@
         ]
       },
       "gridPos": {
-        "h": 6,
-        "w": 4,
-        "x": 14,
-        "y": 0
+        "h": 5,
+        "w": 2,
+        "x": 6,
+        "y": 5
       },
       "id": 7,
       "options": {
@@ -565,287 +590,6 @@
             "mode": "thresholds"
           },
           "mappings": [],
-          "max": 3000,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              }
-            ]
-          },
-          "unit": "watth"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 0,
-        "y": 3
-      },
-      "id": 11,
-      "options": {
-        "displayMode": "gradient",
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "vertical",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"solarPower1\" or\r\n      r._field == \"solarPower2\" or\r\n      r._field == \"solarPower3\" or\r\n      r._field == \"solarPower4\"\r\n  )\r\n",
-          "refId": "A"
-        }
-      ],
-      "title": "solar production",
-      "transformations": [
-        {
-          "id": "calculateField",
-          "options": {
-            "alias": "solarPower",
-            "mode": "reduceRow",
-            "reduce": {
-              "reducer": "sum"
-            },
-            "replaceFields": true
-          }
-        }
-      ],
-      "type": "bargauge"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 3000,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              }
-            ]
-          },
-          "unit": "watth"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 2,
-        "y": 3
-      },
-      "id": 12,
-      "options": {
-        "displayMode": "gradient",
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "vertical",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"green_used\")\r\n  |> last()",
-          "refId": "A"
-        }
-      ],
-      "title": "green used",
-      "type": "bargauge"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 3000,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "semi-dark-blue",
-                "value": 0
-              }
-            ]
-          },
-          "unit": "watth"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 4,
-        "y": 3
-      },
-      "id": 13,
-      "options": {
-        "displayMode": "gradient",
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "vertical",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"green_upstream\")\r\n  |> last()",
-          "refId": "A"
-        }
-      ],
-      "title": "green upstream",
-      "type": "bargauge"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 10000,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "semi-dark-red",
-                "value": 0
-              }
-            ]
-          },
-          "unit": "watth"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 6,
-        "y": 3
-      },
-      "id": 14,
-      "options": {
-        "displayMode": "gradient",
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "vertical",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"swm_used\")\r\n  |> last()",
-          "refId": "A"
-        }
-      ],
-      "title": "swm used",
-      "type": "bargauge"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
           "max": 1,
           "min": 0,
           "thresholds": {
@@ -873,7 +617,7 @@
         "h": 3,
         "w": 2,
         "x": 8,
-        "y": 3
+        "y": 6
       },
       "id": 15,
       "options": {
@@ -994,7 +738,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 10
       },
       "id": 2,
       "options": {
@@ -1013,7 +757,7 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"tasmota\" and r._field == \"Power\") or (r._measurement == \"mystromsolar\" and r._field == \"power\"))\r\n  |> aggregateWindow(every: 1m, fn: max, createEmpty: false)\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\", \"_start\", \"_stop\"])\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )",
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"tasmota\" and r._field == \"Power\") or (r.domain == \"electricity\" and r.electric == \"solar\" and r._field == \"power\"))\r\n  |> aggregateWindow(every: 1m, fn: max, createEmpty: false)\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\", \"_start\", \"_stop\"])\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )",
           "refId": "A"
         }
       ],
@@ -1087,7 +831,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 19
       },
       "id": 1,
       "options": {
@@ -1188,7 +932,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 27
       },
       "id": 3,
       "options": {
@@ -1281,7 +1025,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 33
       },
       "id": 16,
       "options": {
@@ -1309,7 +1053,6 @@
     }
   ],
   "preload": false,
-  "refresh": "1m",
   "schemaVersion": 42,
   "tags": [],
   "templating": {
@@ -1333,5 +1076,5 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 90
+  "version": 101
 }
