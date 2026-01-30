@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 0,
+  "id": 1,
   "links": [],
   "panels": [
     {
@@ -55,6 +55,10 @@
               {
                 "id": "displayName",
                 "value": "green injection"
+              },
+              {
+                "id": "max",
+                "value": 400
               }
             ]
           },
@@ -74,6 +78,10 @@
                   "fixedColor": "#9d303c",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "max",
+                "value": 800
               }
             ]
           },
@@ -86,6 +94,10 @@
               {
                 "id": "displayName",
                 "value": "solar power"
+              },
+              {
+                "id": "max",
+                "value": 400
               }
             ]
           },
@@ -107,12 +119,24 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "zendure packInputPower {domain=\"electricity\", electric=\"solar\", room=\"2Stock\"}"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "battery injection"
+              }
+            ]
           }
         ]
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
+        "w": 7,
         "x": 0,
         "y": 0
       },
@@ -135,11 +159,113 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -2h)\r\n|> filter(fn: (r) =>\r\n   (r._measurement == \"zendure\" and r._field == \"solarInputPower\")\r\n   or (r._measurement == \"tasmota\" and r._field == \"downstream\")\r\n   or (r._measurement == \"tasmota\" and r._field == \"upstream\")\r\n   or (r._measurement == \"mystrom\" and r.device == \"solar\" and r._field == \"power\")\r\n)\r\n|> last()",
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -2h)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"solarInputPower\" )\r\n|> last()\r\n",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "df8oltzu756o0e"
+          },
+          "hide": false,
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -2h)\r\n|> filter(fn: (r) => r._measurement == \"mystrom\" and r.device == \"solar\" and r._field == \"power\")\r\n|> last()\r\n",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "df8oltzu756o0e"
+          },
+          "hide": false,
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -2h)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"packInputPower\" )\r\n|> last()\r\n",
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "df8oltzu756o0e"
+          },
+          "hide": false,
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -2h)\r\n|> filter(fn: (r) => r._measurement == \"tasmota\" and r._field == \"downstream\")\r\n|> last()\r\n",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "df8oltzu756o0e"
+          },
+          "hide": false,
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -2h)\r\n|> filter(fn: (r) => r._measurement == \"tasmota\" and r._field == \"upstream\")\r\n|> map(fn: (r) => ({\r\n    r with\r\n    _value: float(v: r._value) * -1.0\r\n}))\r\n|> last()\r\n",
+          "refId": "D"
         }
       ],
       "title": "recent power",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 100,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": 0
+              },
+              {
+                "color": "#313131",
+                "value": 0
+              },
+              {
+                "color": "semi-dark-green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "watt"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 7,
+        "y": 0
+      },
+      "id": 10,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "query": "charge =\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -3h)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"outputPackPower\")\r\n  |> last()\r\n  |> map(fn: (r) => ({ r with joinKey: \"x\" }))\r\n  |> keep(columns: [\"_value\", \"joinKey\"])\r\n\r\ndischarge =\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -3h)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"packInputPower\")\r\n  |> last()\r\n  |> map(fn: (r) => ({ r with joinKey: \"x\" }))\r\n  |> keep(columns: [\"_value\", \"joinKey\"])\r\n\r\njoin(tables: {c: charge, d: discharge}, on: [\"joinKey\"])\r\n|> map(fn: (r) => ({\r\n    _time: now(),\r\n    _value: r._value_c - r._value_d\r\n}))\r\n",
+          "refId": "A"
+        }
+      ],
+      "title": "battery charging",
       "type": "gauge"
     },
     {
@@ -181,7 +307,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "mystromsolar power"
+              "options": "mystrom power solar"
             },
             "properties": [
               {
@@ -198,7 +324,7 @@
       "gridPos": {
         "h": 5,
         "w": 2,
-        "x": 6,
+        "x": 9,
         "y": 0
       },
       "id": 9,
@@ -227,11 +353,11 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "import \"math\"\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -3h)\r\n  |> filter(fn: (r) => \r\n    (r._measurement == \"tasmota\" and (r._field == \"downstream\" or r._field == \"upstream\")) or\r\n    (r.domain == \"electricity\" and r.electric == \"solar\" and r._field == \"power\")\r\n  )\r\n  |> drop(columns: [\"domain\",\"electric\",\"room\"])\r\n  |> last()\r\n  |> map(fn: (r) => ({\r\n      r with\r\n      _value: math.abs(x: float(v: r._value))\r\n  }))\r\n",
+          "query": "import \"math\"\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -3h)\r\n  |> filter(fn: (r) => \r\n    (r._measurement == \"tasmota\" and (r._field == \"downstream\" or r._field == \"upstream\")) or\r\n    (r._measurement == \"mystrom\" and r.device == \"solar\" and r._field == \"power\")\r\n  )\r\n  |> drop(columns: [\"domain\",\"electric\",\"room\"])\r\n  |> last()\r\n  |> map(fn: (r) => ({\r\n      r with\r\n      _value: math.abs(x: float(v: r._value))\r\n  }))\r\n",
           "refId": "A"
         }
       ],
-      "title": "energy currently",
+      "title": "recent power ratio",
       "type": "piechart"
     },
     {
@@ -245,148 +371,7 @@
             "mode": "thresholds"
           },
           "mappings": [],
-          "max": 100,
-          "min": -100,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "dark-red",
-                "value": 0
-              },
-              {
-                "color": "#313131",
-                "value": 0
-              },
-              {
-                "color": "semi-dark-green",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "watt"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 8,
-        "y": 0
-      },
-      "id": 10,
-      "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "sizing": "auto"
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "query": "charge =\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -3h)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"outputPackPower\")\r\n  |> last()\r\n  |> map(fn: (r) => ({ r with joinKey: \"x\" }))\r\n  |> keep(columns: [\"_value\", \"joinKey\"])\r\n\r\ndischarge =\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -3h)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"packInputPower\")\r\n  |> last()\r\n  |> map(fn: (r) => ({ r with joinKey: \"x\" }))\r\n  |> keep(columns: [\"_value\", \"joinKey\"])\r\n\r\njoin(tables: {c: charge, d: discharge}, on: [\"joinKey\"])\r\n|> map(fn: (r) => ({\r\n    _time: now(),\r\n    _value: r._value_c - r._value_d\r\n}))\r\n",
-          "refId": "A"
-        }
-      ],
-      "title": "battery charging",
-      "type": "gauge"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "dark-red",
-                "value": 0
-              },
-              {
-                "color": "dark-yellow",
-                "value": 5
-              },
-              {
-                "color": "dark-green",
-                "value": 10
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 8,
-        "y": 3
-      },
-      "id": 8,
-      "options": {
-        "displayMode": "gradient",
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "vertical",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -3h)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"electricLevel\")\r\n|> last()",
-          "refId": "A"
-        }
-      ],
-      "title": "battery level",
-      "type": "bargauge"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 10000,
+          "max": 4000,
           "min": 0,
           "thresholds": {
             "mode": "absolute",
@@ -412,6 +397,14 @@
                   "fixedColor": "#982734",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "max",
+                "value": 10000
+              },
+              {
+                "id": "displayName",
+                "value": "swm used"
               }
             ]
           },
@@ -427,6 +420,62 @@
                   "fixedColor": "semi-dark-blue",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "max",
+                "value": 200
+              },
+              {
+                "id": "displayName",
+                "value": "green upstream"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "solarInputPower"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "solar power"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "green_used"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "green used"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "packInputPower"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "battery injected"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "packInputPower"
+            },
+            "properties": [
+              {
+                "id": "max",
+                "value": 2000
               }
             ]
           }
@@ -435,8 +484,8 @@
       "gridPos": {
         "h": 5,
         "w": 6,
-        "x": 0,
-        "y": 5
+        "x": 11,
+        "y": 0
       },
       "id": 23,
       "options": {
@@ -466,11 +515,47 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) =>\r\n      r._measurement == \"daily_energy\" and\r\n  (  r._field == \"green_used\" \r\n  or r._field == \"green_upstream\"\r\n  or r._field == \"swm_used\"\r\n  or r._field == \"solarInputPower\"\r\n  )\r\n)\r\n|> last()",
+          "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"solarInputPower\" )\r\n|> last()\r\n",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "df8oltzu756o0e"
+          },
+          "hide": false,
+          "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"green_used\" )\r\n|> last()\r\n",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "df8oltzu756o0e"
+          },
+          "hide": false,
+          "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"packInputPower\" )\r\n|> last()\r\n",
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "df8oltzu756o0e"
+          },
+          "hide": false,
+          "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"swm_used\" )\r\n|> last()\r\n",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "df8oltzu756o0e"
+          },
+          "hide": false,
+          "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"green_upstream\" )\r\n|> map(fn: (r) => ({\r\n    r with\r\n    _value: r._value * -1.0\r\n}))\r\n|> last()\r\n",
+          "refId": "D"
         }
       ],
-      "title": "today power",
+      "title": "today energy",
       "type": "bargauge"
     },
     {
@@ -544,8 +629,8 @@
       "gridPos": {
         "h": 5,
         "w": 2,
-        "x": 6,
-        "y": 5
+        "x": 17,
+        "y": 0
       },
       "id": 7,
       "options": {
@@ -576,7 +661,7 @@
           "refId": "A"
         }
       ],
-      "title": "total energy today",
+      "title": "today energy ratio",
       "type": "piechart"
     },
     {
@@ -600,10 +685,6 @@
                 "value": 0
               },
               {
-                "color": "semi-dark-yellow",
-                "value": 0.7
-              },
-              {
                 "color": "semi-dark-green",
                 "value": 0.8
               }
@@ -614,12 +695,136 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 3,
+        "h": 5,
         "w": 2,
-        "x": 8,
-        "y": 6
+        "x": 19,
+        "y": 0
       },
       "id": 15,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "vertical",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"green_used\" or\r\n      r._field == \"green_upstream\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar_efficiency\",\r\n      _field: \"eta\",\r\n      _value:\r\n        (r.green_used - r.green_upstream) / r.solarInputPower\r\n  }))\r\n",
+          "refId": "A"
+        }
+      ],
+      "title": "efficiency",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 30,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 21,
+        "y": 0
+      },
+      "id": 24,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -1h)\r\n|> filter(fn: (r) => r._measurement == \"mystrom\" and r.device == \"solar\" and r.domain == \"temperature\")\r\n|> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "room temperature",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": 0
+              },
+              {
+                "color": "dark-green",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 2,
+        "x": 7,
+        "y": 3
+      },
+      "id": 8,
       "options": {
         "displayMode": "gradient",
         "legend": {
@@ -632,7 +837,7 @@
         "minVizHeight": 16,
         "minVizWidth": 8,
         "namePlacement": "auto",
-        "orientation": "vertical",
+        "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -647,11 +852,11 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarPower1\" or\r\n      r._field == \"solarPower2\" or\r\n      r._field == \"solarPower3\" or\r\n      r._field == \"solarPower4\" or\r\n      r._field == \"green_used\" or\r\n      r._field == \"green_upstream\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar_efficiency\",\r\n      _field: \"eta\",\r\n      _value:\r\n        (r.green_used - r.green_upstream) /\r\n        (r.solarPower1 + r.solarPower2 + r.solarPower3 + r.solarPower4)\r\n  }))\r\n",
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -3h)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"electricLevel\")\r\n|> last()",
           "refId": "A"
         }
       ],
-      "title": "efficiency",
+      "title": "battery level",
       "type": "bargauge"
     },
     {
@@ -735,10 +940,10 @@
         ]
       },
       "gridPos": {
-        "h": 9,
-        "w": 24,
+        "h": 6,
+        "w": 11,
         "x": 0,
-        "y": 10
+        "y": 5
       },
       "id": 2,
       "options": {
@@ -772,7 +977,105 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 24,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 4,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": 0
+              },
+              {
+                "color": "dark-orange",
+                "value": 10
+              },
+              {
+                "color": "dark-green",
+                "value": 20
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 10,
+        "x": 11,
+        "y": 5
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"zendure\" and r._field == \"electricLevel\"))\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ],
+      "title": "battery level",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "light-blue",
+            "mode": "palette-classic-by-name"
           },
           "custom": {
             "axisBorderShow": false,
@@ -828,10 +1131,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 24,
+        "h": 6,
+        "w": 11,
         "x": 0,
-        "y": 19
+        "y": 11
       },
       "id": 1,
       "options": {
@@ -880,104 +1183,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 14,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 4,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "dark-red",
-                "value": 0
-              },
-              {
-                "color": "dark-orange",
-                "value": 10
-              },
-              {
-                "color": "dark-green",
-                "value": 20
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 24,
-        "x": 0,
-        "y": 27
-      },
-      "id": 3,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"zendure\" and r._field == \"electricLevel\"))\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
-          "refId": "A"
-        }
-      ],
-      "title": "battery level",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 17,
+            "fillOpacity": 25,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -993,7 +1199,7 @@
             },
             "showPoints": "auto",
             "showValues": false,
-            "spanNulls": false,
+            "spanNulls": true,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -1003,18 +1209,22 @@
             }
           },
           "mappings": [],
-          "max": 1000,
-          "min": 0,
+          "max": 500,
+          "min": -500,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "transparent",
                 "value": 0
               },
               {
-                "color": "red",
-                "value": 80
+                "color": "semi-dark-red",
+                "value": -20000
+              },
+              {
+                "color": "semi-dark-green",
+                "value": 0
               }
             ]
           }
@@ -1023,11 +1233,11 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 24,
-        "x": 0,
-        "y": 33
+        "w": 10,
+        "x": 11,
+        "y": 11
       },
-      "id": 16,
+      "id": 25,
       "options": {
         "legend": {
           "calcs": [],
@@ -1044,11 +1254,11 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"remainOutTime\")\r\n|> aggregateWindow(every: v.windowPeriod, fn: mean)",
+          "query": "from(bucket: \"smarthome\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) => r._measurement == \"zendure\" and (r._field == \"outputPackPower\" or r._field == \"packInputPower\" ))\r\n  |> map(fn: (r) => ({ r with _value:  (if r._field == \"packInputPower\" then -1 * r._value else r._value) }) )\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
           "refId": "A"
         }
       ],
-      "title": "remain Time",
+      "title": "battery charging",
       "type": "timeseries"
     }
   ],
@@ -1059,7 +1269,7 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-12h",
     "to": "now"
   },
   "timepicker": {
@@ -1076,5 +1286,5 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 101
+  "version": 128
 }
