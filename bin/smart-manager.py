@@ -138,8 +138,9 @@ class ZendureManager:
             
         elif s > 9 and s < p+i:
             # sun there and completely needed, do not discharge
+            # keep 3W for zendure itself
             mode = f"low sun {p},{s},{i}"
-            i = s
+            i = s - 3
             
         else:
             # maximum baseload discharge
