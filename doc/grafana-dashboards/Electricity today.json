@@ -813,7 +813,7 @@
                 "value": 0
               },
               {
-                "color": "dark-green",
+                "color": "semi-dark-green",
                 "value": 10
               }
             ]
@@ -910,6 +910,7 @@
           "decimals": 0,
           "mappings": [],
           "max": 1000,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -929,7 +930,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Power"
+              "options": "tasmota Power"
             },
             "properties": [
               {
@@ -938,6 +939,52 @@
                   "fixedColor": "#a83b48",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "displayName",
+                "value": "swm power"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "zendure solarInputPower"
+            },
+            "properties": [
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 29
+              },
+              {
+                "id": "displayName",
+                "value": "solar power"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mystrom power"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "green injection"
               }
             ]
           }
@@ -966,7 +1013,16 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"tasmota\" and r._field == \"Power\") or (r.domain == \"electricity\" and r.electric == \"solar\" and r._field == \"power\"))\r\n  |> aggregateWindow(every: 1m, fn: max, createEmpty: false)\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\", \"_start\", \"_stop\"])\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "df8oltzu756o0e"
+          },
+          "hide": false,
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"solarInputPower\")\r\n|> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n|> drop(columns:[\"domain\", \"electric\", \"room\"])",
+          "refId": "B"
+        },
+        {
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"tasmota\" and r._field == \"Power\") or (r.domain == \"electricity\" and r.electric == \"solar\" and r._field == \"power\"))\r\n  |> aggregateWindow(every: 1m, fn: max, createEmpty: false)\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\", \"_start\", \"_stop\", \"device\"])\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )",
           "refId": "A"
         }
       ],
@@ -992,7 +1048,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 24,
+            "fillOpacity": 40,
             "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
@@ -1187,7 +1243,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 25,
+            "fillOpacity": 77,
             "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
@@ -1318,5 +1374,5 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 133
+  "version": 142
 }

@@ -129,12 +129,12 @@ class ZendureManager:
         elif s > p + i:
             # more sun than needed
             mode = "hi sun"
-            i = p + i
+            i = p + i - 3
             
         elif b > 1.2 * BATT_MIN and s > 9 and s < p+i:
             # enough power there, baseload (discharge mode, while sun still there)
             mode = "low sun, use battery on top"
-            i = min(2*BASELOAD,i+p)
+            i = min(2*BASELOAD,i+p - 3)
             
         elif s > 9 and s < p+i:
             # sun there and completely needed, do not discharge

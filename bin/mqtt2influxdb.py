@@ -1,6 +1,6 @@
 from lib.toinflux import Iflx
 import paho.mqtt.client as mqtt
-import dateutil.parser, datetime, json, re, time, os, requests
+import dateutil.parser, datetime, json, re, time, os, requests, traceback
 
 DEBUG = False
 
@@ -54,22 +54,23 @@ def on_message(client, userdata, msg):
     if DEBUG:
         print(d)
     
-    try:
-        for k,v in d["ENERGY"].items():
-            INFLUX.write("tasmota",k,v,{"room": "keller", "domain": "electricity", "electric": "swm" })
-            
-        p = d["ENERGY"]["Power"]
-        if p < 0:
-            INFLUX.write("tasmota","upstream",  p,{"room": "keller", "domain": "electricity", "electric": "swm" })
-            INFLUX.write("tasmota","downstream",0,{"room": "keller", "domain": "electricity", "electric": "swm" })
-            
-        else:
-            INFLUX.write("tasmota","upstream",  0,{"room": "keller", "domain": "electricity", "electric": "swm" })
-            INFLUX.write("tasmota","downstream",p,{"room": "keller", "domain": "electricity", "electric": "swm" })
-            
-    except:
-        print("write to influxdb failed")
-        
+    if "ENERGY" in d:
+        try:
+            for k,v in d["ENERGY"].items():
+                INFLUX.write("tasmota",k,v,{"room": "keller", "domain": "electricity", "electric": "swm" })
+                
+            p = d["ENERGY"]["Power"]
+            if p < 0:
+                INFLUX.write("tasmota","upstream",  p,{"room": "keller", "domain": "electricity", "electric": "swm" })
+                INFLUX.write("tasmota","downstream",0,{"room": "keller", "domain": "electricity", "electric": "swm" })
+                
+            else:
+                INFLUX.write("tasmota","upstream",  0,{"room": "keller", "domain": "electricity", "electric": "swm" })
+                INFLUX.write("tasmota","downstream",p,{"room": "keller", "domain": "electricity", "electric": "swm" })
+                
+        except:
+            print(traceback.format_exc())
+            print("write to influxdb failed")
 
 # setup MQTT Client 
 client = mqtt.Client( mqtt.CallbackAPIVersion.VERSION2 )

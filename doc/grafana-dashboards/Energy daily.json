@@ -442,7 +442,7 @@
     "list": []
   },
   "time": {
-    "from": "now-3d",
+    "from": "now-15d",
     "to": "now"
   },
   "timepicker": {

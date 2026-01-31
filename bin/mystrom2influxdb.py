@@ -1,4 +1,4 @@
-import requests, json, time, os
+import requests, json, time, datetime, os
 from lib.toinflux import Iflx
 
 DEBUG = False
@@ -20,6 +20,8 @@ def measure(host, token, room, electric, label):
     header = { "Token": token }
     r = requests.get(url, headers=header)
     
+    hour = datetime.datetime.now().hour
+    
     if r.status_code == 200:
         d = json.loads(r.text)
         if DEBUG:
@@ -29,6 +31,11 @@ def measure(host, token, room, electric, label):
             if k == "power":
                 domain = "electricity"
                 v = v * 1.0
+                
+                # special fix: solar mystrom seems to report positive values when zendure heating uses 1kW
+                if label == "solar" and hour < 7 or hour > 20 and v > 700:
+                    v = -1.0 * v
+                
             elif k == "Ws":
                 domain = "electricity"
                 v = v * 1.0
@@ -52,11 +59,11 @@ def measure(host, token, room, electric, label):
 
 while True:
     for dev in devices:
-        try:
-            measure(dev["HOST"],dev["TOKEN"],dev["room"],dev["electric"],dev["DEVICELABEL"])
+        #try:
+        measure(dev["HOST"],dev["TOKEN"],dev["room"],dev["electric"],dev["DEVICELABEL"])
             
-        except:
-            print("measure and write failed")
-            pass
+        #except:
+        #    print("measure and write failed")
+        #    pass
             
     time.sleep(INTERVAL)
