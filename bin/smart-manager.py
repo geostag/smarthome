@@ -19,6 +19,9 @@ BATT_MIN      = int(os.getenv("MATT_MIN",10))
 BATT_MAX      = int(os.getenv("BATT_MAX",95))
 BASELOAD      = int(os.getenv("BASELOAD",90))
 
+# how many watt to reserve for zendure itself
+RESW = 5
+
 # lookback items (tasmota sends every minute, thus 5 minutes)
 LOOKBACK_ITEMS = 10
 
@@ -70,7 +73,10 @@ class Zendure:
         #print(f"pushing to zendure: {value}")
         #return True
         
-        if not self.lastupdate or self.lastupdate < datetime.datetime.now() - datetime.timedelta(seconds=UPDATE_ZENDURE_INTERVAL):
+        value = max(i,0)
+        value = int(min(INJECTION_MAX,value) + 0.5) * 1.0
+        
+        if value < self.injection or (not self.lastupdate or self.lastupdate < datetime.datetime.now() - datetime.timedelta(seconds=UPDATE_ZENDURE_INTERVAL)):
             data = { 
                 "sn": self.sn,
                 "properties": { "outputLimit": int(value) }
@@ -129,39 +135,43 @@ class ZendureManager:
         elif s > p + i:
             # more sun than needed
             mode = "hi sun"
-            i = p + i - 3
+            i = p + i - RESW
             
         elif b > 1.2 * BATT_MIN and s > 9 and s < p+i:
             # enough power there, baseload (discharge mode, while sun still there)
             mode = "low sun, use battery on top"
-            i = min(2*BASELOAD,i+p - 3)
+            i = min(2*BASELOAD,i+p - RESW)
             
         elif s > 9 and s < p+i:
             # sun there and completely needed, do not discharge
             # keep 3W for zendure itself
             mode = f"low sun {p},{s},{i}"
-            i = s - 3
+            i = s - RESW
             
         else:
             # maximum baseload discharge
             mode = "baseload"
             i = min(BASELOAD,i+p)
             
+        # round and limit to INJECTION_MAX
         i = int(min(INJECTION_MAX,i) + 0.5) * 1.0
+        i = max(i,0)
         
-        if ( i > 10 and abs(i-i_old) < 2 ) or (i > 100 and abs(i-i_old)/i < 0.03) :
-            # peanuts
-            mode += f", peanuts {i} {i_old}"
-            i = i_old
-        
-        if i != i_old:
-            if i > i_old:
-                # increase slowly; reduction untouched
+        if p > 0:
+            # we use grid power
+            if ( i > 10 and abs(i-i_old) < 3 ) or ( i > 100 and abs(i-i_old)/i < 0.03 ):
+                # peanut change
+                mode += f", peanuts {i} {i_old}"
+                i = i_old
+                
+            elif i > i_old:
+                # increase injection slowly
                 mode += ", slow-raise"
                 i = 0.6*(i_old + i)
-                
-            self.zen.outputLimit = i
+        
+        if i != i_old:
             print(f"p: {p}, s: {s}, b: {b} do i {i_old} -> {i} ({mode})")
+            self.zen.outputLimit = i
             
         else:
             print(f"p: {p}, s: {s}, b: {b}, i: {i} ({mode})")

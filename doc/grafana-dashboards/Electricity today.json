@@ -689,8 +689,12 @@
                 "value": 0
               },
               {
-                "color": "semi-dark-green",
+                "color": "#EAB839",
                 "value": 0.8
+              },
+              {
+                "color": "semi-dark-green",
+                "value": 0.85
               }
             ]
           },
@@ -882,7 +886,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 84,
+            "fillOpacity": 45,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -917,10 +921,6 @@
               {
                 "color": "green",
                 "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
@@ -943,29 +943,13 @@
               {
                 "id": "displayName",
                 "value": "swm power"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "zendure solarInputPower"
-            },
-            "properties": [
+              },
               {
                 "id": "custom.stacking",
                 "value": {
                   "group": "A",
-                  "mode": "none"
+                  "mode": "normal"
                 }
-              },
-              {
-                "id": "custom.fillOpacity",
-                "value": 29
-              },
-              {
-                "id": "displayName",
-                "value": "solar power"
               }
             ]
           },
@@ -985,6 +969,81 @@
               {
                 "id": "displayName",
                 "value": "green injection"
+              },
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "group": "A",
+                  "mode": "normal"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "zendure solarInputPower {domain=\"electricity\", electric=\"solar\", room=\"2Stock\"}"
+            },
+            "properties": [
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "displayName",
+                "value": "solar power"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tasmota upstream {domain=\"electricity\", electric=\"swm\", room=\"keller\"}"
+            },
+            "properties": [
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-blue",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "displayName",
+                "value": "swm upstream"
               }
             ]
           }
@@ -996,13 +1055,13 @@
         "x": 0,
         "y": 5
       },
-      "id": 2,
+      "id": 27,
       "options": {
         "legend": {
           "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": false
+          "showLegend": true
         },
         "tooltip": {
           "hideZeros": false,
@@ -1013,17 +1072,17 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"tasmota\" and r._field == \"Power\") or (r._measurement ==\"mystrom\" and r.device == \"solar\" and r._field == \"power\"))\r\n  |> aggregateWindow(every: 1m, fn: max, createEmpty: false)\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\", \"_start\", \"_stop\", \"device\"])\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )",
+          "refId": "A"
+        },
+        {
           "datasource": {
             "type": "influxdb",
             "uid": "df8oltzu756o0e"
           },
           "hide": false,
-          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"solarInputPower\")\r\n|> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n|> drop(columns:[\"domain\", \"electric\", \"room\"])",
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => (r._measurement == \"zendure\" and r._field == \"solarInputPower\") or (r._measurement == \"tasmota\" and r._field == \"upstream\"))\r\n|> map(fn: (r) => ({r with _value: if r._field == \"upstream\" then -1 * r._value else r._value}))\r\n",
           "refId": "B"
-        },
-        {
-          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"tasmota\" and r._field == \"Power\") or (r.domain == \"electricity\" and r.electric == \"solar\" and r._field == \"power\"))\r\n  |> aggregateWindow(every: 1m, fn: max, createEmpty: false)\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\", \"_start\", \"_stop\", \"device\"])\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )",
-          "refId": "A"
         }
       ],
       "title": "power provision",
@@ -1357,7 +1416,7 @@
     "list": []
   },
   "time": {
-    "from": "now-12h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {
@@ -1374,5 +1433,5 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 142
+  "version": 151
 }
