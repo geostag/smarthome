@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 0,
+  "id": 1,
   "links": [],
   "panels": [
     {
@@ -70,7 +70,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "swm power"
+                "value": "grid downstream"
               },
               {
                 "id": "color",
@@ -109,7 +109,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "green upstream"
+                "value": "grid upstream"
               },
               {
                 "id": "color",
@@ -408,7 +408,7 @@
               },
               {
                 "id": "displayName",
-                "value": "swm used"
+                "value": "grid downstream"
               }
             ]
           },
@@ -427,11 +427,11 @@
               },
               {
                 "id": "max",
-                "value": 200
+                "value": 300
               },
               {
                 "id": "displayName",
-                "value": "green upstream"
+                "value": "grid upstream"
               }
             ]
           },
@@ -712,7 +712,7 @@
       "options": {
         "minVizHeight": 75,
         "minVizWidth": 75,
-        "orientation": "vertical",
+        "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -765,7 +765,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
+        "h": 4,
         "w": 2,
         "x": 21,
         "y": 0
@@ -875,6 +875,68 @@
       "fieldConfig": {
         "defaults": {
           "color": {
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "max": 45,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 2,
+        "x": 21,
+        "y": 4
+      },
+      "id": 28,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -1h)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"hyperTmpD\")\r\n|> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "device temperature",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
             "mode": "palette-classic"
           },
           "custom": {
@@ -942,7 +1004,7 @@
               },
               {
                 "id": "displayName",
-                "value": "swm power"
+                "value": "grid downstream"
               },
               {
                 "id": "custom.stacking",
@@ -1043,7 +1105,7 @@
               },
               {
                 "id": "displayName",
-                "value": "swm upstream"
+                "value": "grid upstream"
               }
             ]
           }
@@ -1072,7 +1134,7 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"tasmota\" and r._field == \"Power\") or (r._measurement ==\"mystrom\" and r.device == \"solar\" and r._field == \"power\"))\r\n  |> aggregateWindow(every: 1m, fn: max, createEmpty: false)\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\", \"_start\", \"_stop\", \"device\"])\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )",
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"tasmota\" and r._field == \"Power\") or (r._measurement ==\"mystrom\" and r.device == \"solar\" and r._field == \"power\"))\r\n  |> aggregateWindow(every: 1m, fn: max, createEmpty: false)\r\n  |> map(fn: (r) => ({r with _value: if r._value < 0 then 0.0 else float(v: r._value)}))\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\", \"_start\", \"_stop\", \"device\"])\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )",
           "refId": "A"
         },
         {
@@ -1357,6 +1419,10 @@
                   "fixedColor": "semi-dark-green",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "displayName",
+                "value": "charging"
               }
             ]
           },
@@ -1372,6 +1438,10 @@
                   "fixedColor": "semi-dark-red",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "displayName",
+                "value": "discharging"
               }
             ]
           }
@@ -1416,8 +1486,8 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
-    "to": "now"
+    "from": "2026-02-02T08:14:07.051Z",
+    "to": "2026-02-02T20:14:07.051Z"
   },
   "timepicker": {
     "refresh_intervals": [
@@ -1433,5 +1503,5 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 151
+  "version": 160
 }

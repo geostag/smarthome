@@ -68,8 +68,17 @@ def measure(host,mqttconnection):
         sn = d.get("sn","serialnumber")
         
         for k in REPORT_PROPERTIES:
+            tags = { "room": "2Stock", "domain": "electricity", "electric": "solar" }
             v = d["properties"].get(k,0)
-            INFLUX.write("zendure", k, v, { "room": "2Stock", "domain": "electricity", "electric": "solar" })
+            
+            # value interception
+            if k == "hyperTmp":
+                k = "hyperTmpD"
+                v = ( v - 2731 ) / 10.0
+                del tags["electric"]
+                tags["domain"] = "temperatureDevice"
+                
+            INFLUX.write("zendure", k, v, tags)
             if DEBUG:
                 print(f"{k}: {v}")
                 

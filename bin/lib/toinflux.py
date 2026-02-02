@@ -52,5 +52,6 @@ class Iflx:
             self.api.write(bucket=self.bucket, record = p)
 
         except:
+            print("FAIL")
             self.reset()
             

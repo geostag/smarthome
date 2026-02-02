@@ -20,7 +20,7 @@ BATT_MAX      = int(os.getenv("BATT_MAX",95))
 BASELOAD      = int(os.getenv("BASELOAD",90))
 
 # how many watt to reserve for zendure itself
-RESW = 5
+RESW = 7
 
 # lookback items (tasmota sends every minute, thus 5 minutes)
 LOOKBACK_ITEMS = 10
@@ -137,12 +137,12 @@ class ZendureManager:
             mode = "hi sun"
             i = p + i - RESW
             
-        elif b > 1.2 * BATT_MIN and s > 9 and s < p+i:
+        elif b > 1.2 * BATT_MIN and s > (RESW+2) and s < p+i:
             # enough power there, baseload (discharge mode, while sun still there)
             mode = "low sun, use battery on top"
             i = min(2*BASELOAD,i+p - RESW)
             
-        elif s > 9 and s < p+i:
+        elif s > (RESW+2) and s < p+i:
             # sun there and completely needed, do not discharge
             # keep 3W for zendure itself
             mode = f"low sun {p},{s},{i}"

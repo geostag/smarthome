@@ -1,10 +1,12 @@
 from influxdb_client import InfluxDBClient
+import os
 
 # Konfiguration
-url = "http://nextcloudpi:8086"
-token = "token"
-org = "smarthome"
-bucket = "smarthomederived"
+url    = os.getenv("INFLUX_URL")
+token  = os.getenv("INFLUX_TOKEN")
+token = '3FyT8Zn5MgH16K_2dwOX1SntmPsrTZ_wa_kydBrSGWiLdgneM7dgfosvduGRanE2Eb4tUqn7z9WeMCREpRU3Hw=='
+org    = os.getenv("INFLUX_ORG")
+bucket = os.getenv("INFLUX_BUCKET")
 
 # Client erstellen
 client = InfluxDBClient(
@@ -19,8 +21,10 @@ query_api = client.query_api()
 query = f'''
 from(bucket: "{bucket}")
   |> range(start: -8d)
-  |> filter(fn: (r) => r._measurement == "daily_energy")
+  |> filter(fn: (r) => r._field == "hyperTmpD")
 '''
+
+print(query)
 
 # Query ausführen
 tables = query_api.query(query)

@@ -32,8 +32,8 @@ def measure(host, token, room, electric, label):
                 domain = "electricity"
                 v = v * 1.0
                 
-                # special fix: solar mystrom seems to report positive values when zendure heating uses 1kW
-                if label == "solar" and hour < 7 or hour > 20 and v > 700:
+                # special fix: solar mystrom seems to report positive values when zendure grid loading uses 1kW
+                if label == "solar" and hour < 8 or hour > 17 and v > 810:
                     v = -1.0 * v
                 
             elif k == "Ws":
