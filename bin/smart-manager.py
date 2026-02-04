@@ -1,99 +1,73 @@
-import paho.mqtt.client as mqtt
-import dateutil.parser, datetime, json, re, time, os, requests
+from lib.mqttconn import WhiteBoard
+import datetime, time, os, requests
 
 DEBUG = False
 
-BROKER   = os.getenv("MQTT_BROKER")
-PORT     = int(os.getenv("MQTT_PORT"))
-TOPIC    = os.getenv("MQTT_TOPIC")
-USERNAME = os.getenv("MQTT_USERNAME")
-PASSWORD = os.getenv("MQTT_PASSWORD")
-
 ZENDURE_HOST = os.getenv("ZENDURE_HOST")
 ZENDURE_SN   = os.getenv("ZENDURE_SN")
-TASMOTA_TAG  = os.getenv("TASMOTA_TAG")
 
-UPDATE_ZENDURE_INTERVAL = 117
 INJECTION_MAX = int(os.getenv("INJECTION_MAX",400))
 BATT_MIN      = int(os.getenv("MATT_MIN",10))
 BATT_MAX      = int(os.getenv("BATT_MAX",95))
 BASELOAD      = int(os.getenv("BASELOAD",90))
 
 # how many watt to reserve for zendure itself
-RESW = 7
+RESW = 8
 
 # lookback items (tasmota sends every minute, thus 5 minutes)
 LOOKBACK_ITEMS = 10
 
-
 class Tasmota:
-    def __init__(self,tag,db):
-        self.mqtt_topic = f"tele/{tag}/SENSOR"
-        self.db = db
-        
-    def get_db_value(self,key):
-        data = self.db.get(self.mqtt_topic,{})
-        energy = data.get("ENERGY",{})
-        return energy.get(key,0)
+    def __init__(self,wb):
+        self.wb = wb
         
     @property
     def Power(self):
-        return self.get_db_value("Power")
+        return self.wb.dataGet("tasmota","Power")
 
 class Zendure:
-    def __init__(self,host,sn,db):
+    def __init__(self,host,sn,wb):
         self.host = host
         self.sn = sn
+        self.wb = wb
         self.injection = 0
-        self.lastupdate = False
         self.url = f"{host}/properties/write"
-        self.mqtt_topic = f"tele/zendure_{sn}/SENSOR"
-        self.db = db
         self.injection = 0
-        
-    def get_db_value(self,key):
-        data = self.db.get(self.mqtt_topic,{})
-        return data.get(key,0)
         
     @property
     def solarInputPower(self):
-        return self.get_db_value("solarInputPower")
+        return self.wb.dataGet("zendure","solarInputPower")
         
     @property
     def electricLevel(self):
-        return self.get_db_value("electricLevel")
+        return self.wb.dataGet("zendure","electricLevel")
         
     @property
     def outputLimit(self):
-        #return self.get_db_value("outputLimit")
+        #return self.wb.dataGet("zendure","outputLimit")
         return self.injection
         
     @outputLimit.setter
     def outputLimit(self,value):
-        #print(f"pushing to zendure: {value}")
-        #return True
+        print(f"pushing to zendure: {value}")
+        return True
         
-        value = max(i,0)
+        value = max(value,0)
         value = int(min(INJECTION_MAX,value) + 0.5) * 1.0
         
-        if value < self.injection or (not self.lastupdate or self.lastupdate < datetime.datetime.now() - datetime.timedelta(seconds=UPDATE_ZENDURE_INTERVAL)):
-            data = { 
-                "sn": self.sn,
-                "properties": { "outputLimit": int(value) }
-            }
-            r = requests.post(self.url, json=data)
-            if r.status_code != 200:
-                print(f"ERROR setting outputlimit: {r.status_code}")
-                return False
-                
-            else:
-                self.injection = value
-                self.lastupdate = datetime.datetime.now()
-                print("DONE" + str(self.lastupdate))
-                return True
-        
+        data = { 
+            "sn": self.sn,
+            "properties": { "outputLimit": int(value) }
+        }
+        r = requests.post(self.url, json=data)
+        if r.status_code != 200:
+            print(f"ERROR setting outputlimit: {r.status_code}")
+            return False
+            
         else:
-            print(f"last update less than {UPDATE_ZENDURE_INTERVAL}s ago - doing nothing")
+            self.injection = value
+            print("DONE" + str(self.lastupdate))
+            return True
         
 class ZendureManager:
     def __init__(self,zen,tasmota):
@@ -177,51 +151,13 @@ class ZendureManager:
             print(f"p: {p}, s: {s}, b: {b}, i: {i} ({mode})")
 
 
-def on_connect(client, userdata, flags, reason_code, properties):
-    if reason_code == 0:
-        if DEBUG:
-            print("✅ Erfolgreich verbunden")
-        client.subscribe(TOPIC)
-    else:
-        print(f"❌ Verbindung fehlgeschlagen: {reason_code}")
-
-def on_message(client, userdata, msg):
-    payload = msg.payload.decode()
-    if DEBUG:
-        print(f"{msg.topic}: {payload}")
-        
-    try:
-        d = json.loads(payload)
-        DB[msg.topic] = d
-        
-    except:
-        d = payload
-    
-    if DEBUG:
-        print("------------")
-        print(d)
-        print("------------")
-    
-    
-    ZM.controller_update()
-
 # ----------------------------- main -------------------------------
-DB = {}
 
+# Whiteboard with recent data
+WB  = WhiteBoard()
 # Zendure management
-ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, DB), Tasmota(TASMOTA_TAG, DB) )
+ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB) )
 
-# setup MQTT client
-client = mqtt.Client( mqtt.CallbackAPIVersion.VERSION2 )
-client.username_pw_set(USERNAME, PASSWORD)
-client.on_connect = on_connect
-client.on_message = on_message
-client.connect(BROKER, PORT, keepalive=60)
-
-# start loop
-client.loop_forever()
-
-
-# tele/tasmota_828769/STATE {"Time":"2026-01-23T20:22:02","Uptime":"211T14:53:51","UptimeSec":18284031,"Heap":18,"SleepMode":"Dynamic","Sleep":50,"LoadAvg":19,"MqttCount":2379,"POWER":"ON","Wifi":{"AP":1,"SSId":"EagleView","BSSId":"38:10:D5:A4:69:51","Channel":6,"Mode":"11n","RSSI":78,"Signal":-61,"LinkCount":1475,"Downtime":"0T22:51:11"}}
-# tele/tasmota_828769/SENSOR {"Time":"2026-01-23T20:22:02","ENERGY":{"Total":8650.0075,"Power":63,"Voltage":238.2,"Current":0.95,"phase_angle_L1":284.0,"Freq":50.0,"ID":"0a01454652220271ec73"}}
-# zendure/datacopy/CO4EHNCDN247220 {"solarPower1": 0, "solarPower2": 0, "solarPower3": 0, "solarPower4": 0, "electricLevel": 13, "gridInputPower": 0, "solarInputPower": 0, "outputLimit": 95, "gridOffPower": 0, "BatVolt": 4745, "packInputPower": 95, "outputPackPower": 0, "packState": 2, "remainOutTime": 143, "power": 104}
+while True:
+    time.sleep(60)
+    ZM.controller_update()

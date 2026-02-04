@@ -1,13 +1,40 @@
 import paho.mqtt.client as mqtt
-import os
+import os, json
 
-DEBUG = True
+DEBUG = False
 
 MQTT_BROKER   = os.getenv("MQTT_BROKER","")
 MQTT_PORT     = int(os.getenv("MQTT_PORT","1883"))
 MQTT_USERNAME = os.getenv("MQTT_USERNAME","")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD","")
 
+class WhiteBoard:
+    def __init__(self):
+        def onMessage(client,userdata,msg):
+            payload = msg.payload.decode()
+            try:
+                d = json.loads(payload)
+                
+            except:
+                print(f"Whiteboard: could not decode '{payload}'")
+                d = {}
+                
+            if d.get("ENERGY"):
+                # this is tasmota message
+                d = d.get("ENERGY")
+                k = "tasmota"
+                
+            else:
+                k = "zendure"
+                
+            self.db[k] = d
+                
+        self.db = {}
+        self.mqtt = MqttConn(topic = "tele/+/SENSOR",on_message=onMessage)
+        
+    def dataGet(self,device,key):
+        return self.db.get(device,{}).get(key,0)
+    
         
 class MqttConn:
     def __init__(self, **kwargs):
@@ -62,3 +89,34 @@ class MqttConn:
             retain  = False
         )
     
+    
+#{
+#    "Time": "2026-02-02T22:17:13",
+#    "ENERGY": {
+#        "Total": 8732.6868,
+#        "Power": 246,
+#        "Voltage": 235.1,
+#        "Current": 1.42,
+#        "phase_angle_L1": 311.0,
+#        "Freq": 49.9,
+#        "ID": "0a01454652220271ec73"
+#    }
+#}
+#{
+#    "solarPower1": 0,
+#    "solarPower2": 0,
+#    "solarPower3": 0,
+#    "solarPower4": 0,
+#    "electricLevel": 10,
+#    "gridInputPower": 0,
+#    "solarInputPower": 0,
+#    "outputLimit": 0,
+#    "gridOffPower": 0,
+#    "BatVolt": 4770,
+#    "packInputPower": 0,
+#    "outputPackPower": 0,
+#    "packState": 0,
+#    "remainOutTime": 59940,
+#    "hyperTmpD": 24.0,
+#    "power": 0
+#}

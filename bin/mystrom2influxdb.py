@@ -15,7 +15,10 @@ for s in SWITCHLIST.split():
     
 INFLUX = Iflx()
 
+POWERLIST = []
+
 def measure(host, token, room, electric, label):
+    global POWERLIST
     url = f"{host}report"
     header = { "Token": token }
     r = requests.get(url, headers=header)
@@ -32,8 +35,11 @@ def measure(host, token, room, electric, label):
                 domain = "electricity"
                 v = v * 1.0
                 
+                POWERLIST.append(v)
+                POWERLIST = POWERLIST[-2:]
+                
                 # special fix: solar mystrom seems to report positive values when zendure grid loading uses 1kW
-                if label == "solar" and hour < 8 or hour > 17 and v > 810:
+                if label == "solar" and hour < 8 or hour > 17 and v > 400 and len(POWERLIST)>0 and POWERLIST[0] < 1:
                     v = -1.0 * v
                 
             elif k == "Ws":
