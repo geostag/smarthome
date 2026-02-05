@@ -1,4 +1,4 @@
-import paho.mqtt.client as mqtt
+from lib.mqttconn import MqttConn
 import requests, json, time, os
 from lib.toinflux import Iflx
 
@@ -12,48 +12,8 @@ REPORT_PACK_PROPERTIES = os.getenv("ZENDURE_REPORT_PACK_PROPERTIES").split()
 
 # we may send Zendure data-copies to MQTT broken
 SEND_DATA_TO_MQTT_BROKER = (os.getenv("ZENDURE_SEND_DATA_TO_MQTT_BROKER","no") == "yes")
-MQTT_BROKER   = os.getenv("MQTT_BROKER","")
-MQTT_PORT     = int(os.getenv("MQTT_PORT","1883"))
-MQTT_USERNAME = os.getenv("MQTT_USERNAME","")
-MQTT_PASSWORD = os.getenv("MQTT_PASSWORD","")
 
 INFLUX = Iflx()
-
-class MQTTconnection:
-    def __init__(self,broker,port,user,password):
-        self.user = user
-        self.password = password
-        self.broker = broker
-        self.port = port
-        self.client = None
-        
-    def openClient(self):
-        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-        self.client.username_pw_set(self.user,self.password)
-        self.client.connect(self.broker,self.port,60)
-        self.client.loop_start()
-        
-    def reset(self):
-        try:
-            self.client.disconnect()
-            
-        except:
-            pass
-        
-        self.client = None
-        
-    def publish(self,sn,value):
-        if not self.client:
-            self.openClient()
-            
-        #print(f"publish: {value}")
-        self.client.publish(
-            topic   = f"tele/zendure_{sn}/SENSOR",
-            payload = value,
-            qos     = 1,
-            retain  = False
-        )
-        
 
 def measure(host,mqttconnection):
     url = f"{host}/properties/report"
@@ -95,11 +55,12 @@ def measure(host,mqttconnection):
             
         if mqttconnection:
             #print(dcopy)
-            mqttconnection.publish(sn,json.dumps(dcopy))
+            topic = f"tele/zendure_{sn}/SENSOR"
+            mqttconnection.publish(topic,json.dumps(dcopy))
 
 
 if SEND_DATA_TO_MQTT_BROKER:
-    M = MQTTconnection(MQTT_BROKER, MQTT_PORT, MQTT_USERNAME, MQTT_PASSWORD)
+    M = MqttConn()
     
 else:
     M = None

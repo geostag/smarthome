@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": 0,
   "links": [],
   "panels": [
     {
@@ -31,6 +31,10 @@
           "color": {
             "mode": "thresholds"
           },
+          "custom": {
+            "neutral": 0
+          },
+          "decimals": 0,
           "mappings": [],
           "max": 600,
           "min": 0,
@@ -75,7 +79,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "#9d303c",
+                  "fixedColor": "#bf3848",
                   "mode": "fixed"
                 }
               },
@@ -216,9 +220,12 @@
           "color": {
             "mode": "thresholds"
           },
+          "custom": {
+            "neutral": 0
+          },
           "mappings": [],
-          "max": 100,
-          "min": -100,
+          "max": 200,
+          "min": -200,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -289,6 +296,8 @@
               "viz": false
             }
           },
+          "decimals": 0,
+          "fieldMinMax": false,
           "mappings": [],
           "unit": "watt"
         },
@@ -350,7 +359,7 @@
         "sort": "desc",
         "tooltip": {
           "hideZeros": false,
-          "mode": "single",
+          "mode": "multi",
           "sort": "none"
         }
       },
@@ -374,6 +383,7 @@
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 1,
           "mappings": [],
           "max": 4000,
           "min": 0,
@@ -398,7 +408,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "#982734",
+                  "fixedColor": "#c73d4d",
                   "mode": "fixed"
                 }
               },
@@ -1342,7 +1352,7 @@
           "refId": "A"
         }
       ],
-      "title": "solar power",
+      "title": "solar panels",
       "type": "timeseries"
     },
     {
@@ -1470,11 +1480,143 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "from(bucket: \"smarthome\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) => r._measurement == \"zendure\" and (r._field == \"outputPackPower\" or r._field == \"packInputPower\" ))\r\n  |> map(fn: (r) => ({ r with _value:  (if r._field == \"packInputPower\" then -1 * r._value else r._value) }) )\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "query": "from(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\" and (r._field == \"outputPackPower\" or r._field == \"packInputPower\" ))\r\n  |> map(fn: (r) => ({ r with _value:  (if r._field == \"packInputPower\" then -1 * r._value else r._value) }) )\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
           "refId": "A"
         }
       ],
       "title": "battery charging",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 77,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 400,
+          "min": -300,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "outputHomePower {domain=\"electricity\", electric=\"solar\", room=\"2Stock\"}"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "green injection"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gridInputPower {domain=\"electricity\", electric=\"solar\", room=\"2Stock\"}"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "grid2zendure"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 10,
+        "x": 11,
+        "y": 17
+      },
+      "id": 29,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "query": "from(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\" and (r._field == \"outputHomePower\" or r._field == \"gridInputPower\" ))\r\n  |> map(fn: (r) => ({ r with _value:  (if r._field == \"gridInputPower\" then -1 * r._value else r._value) }) )\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ],
+      "title": "grid charging",
       "type": "timeseries"
     }
   ],
@@ -1486,7 +1628,7 @@
     "list": []
   },
   "time": {
-    "from": "now-12h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {
@@ -1503,5 +1645,5 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 160
+  "version": 171
 }

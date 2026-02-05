@@ -78,7 +78,7 @@ class MqttConn:
         
         self.client = None
         
-    def publish(self,topic,sn,value):
+    def publish(self,topic,value):
         if not self.client:
             self.openClient()
             

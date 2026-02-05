@@ -6,7 +6,7 @@ DEBUG = False
 ZENDURE_HOST = os.getenv("ZENDURE_HOST")
 ZENDURE_SN   = os.getenv("ZENDURE_SN")
 
-INJECTION_MAX = int(os.getenv("INJECTION_MAX",400))
+INJECTION_MAX = int(os.getenv("INJECTION_MAX",800))
 BATT_MIN      = int(os.getenv("MATT_MIN",10))
 BATT_MAX      = int(os.getenv("BATT_MAX",95))
 BASELOAD      = int(os.getenv("BASELOAD",90))
@@ -32,7 +32,7 @@ class Zendure:
         self.wb = wb
         self.injection = 0
         self.url = f"{host}/properties/write"
-        self.injection = 0
+        self.injection = -1
         
     @property
     def solarInputPower(self):
@@ -44,13 +44,15 @@ class Zendure:
         
     @property
     def outputLimit(self):
-        #return self.wb.dataGet("zendure","outputLimit")
+        if self.injection < 0:
+            self.injection = self.wb.dataGet("zendure","outputLimit")
+            
         return self.injection
         
     @outputLimit.setter
     def outputLimit(self,value):
-        print(f"pushing to zendure: {value}")
-        return True
+        #print(f"pushing to zendure: {value}")
+        #return True
         
         value = max(value,0)
         value = int(min(INJECTION_MAX,value) + 0.5) * 1.0
@@ -66,7 +68,6 @@ class Zendure:
             
         else:
             self.injection = value
-            print("DONE" + str(self.lastupdate))
             return True
         
 class ZendureManager:
@@ -123,9 +124,9 @@ class ZendureManager:
             i = s - RESW
             
         else:
-            # maximum baseload discharge
-            mode = "baseload"
-            i = min(BASELOAD,i+p)
+            # maximum 3*baseload discharge
+            mode = "6baseload"
+            i = min(6*BASELOAD,i+p)
             
         # round and limit to INJECTION_MAX
         i = int(min(INJECTION_MAX,i) + 0.5) * 1.0

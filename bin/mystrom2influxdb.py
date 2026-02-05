@@ -39,7 +39,7 @@ def measure(host, token, room, electric, label):
                 POWERLIST = POWERLIST[-2:]
                 
                 # special fix: solar mystrom seems to report positive values when zendure grid loading uses 1kW
-                if label == "solar" and hour < 8 or hour > 17 and v > 400 and len(POWERLIST)>0 and POWERLIST[0] < 1:
+                if label == "solar" and hour < 8 or hour > 17 and v > 700 and len(POWERLIST)>0 and POWERLIST[0] < 1:
                     v = -1.0 * v
                 
             elif k == "Ws":
