@@ -53,12 +53,12 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "mystrom power {device=\"solar\", domain=\"electricity\", electric=\"solar\", room=\"2 Joni my\"}"
+              "options": "zendure outputHomePower {domain=\"electricity\", electric=\"solar\", room=\"2Stock\"}"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "green injection"
+                "value": "solar2home"
               },
               {
                 "id": "max",
@@ -176,7 +176,7 @@
             "uid": "df8oltzu756o0e"
           },
           "hide": false,
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -2h)\r\n|> filter(fn: (r) => r._measurement == \"mystrom\" and r.device == \"solar\" and r._field == \"power\")\r\n|> last()\r\n",
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -2h)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"outputHomePower\")\r\n|> last()\r\n",
           "refId": "B"
         },
         {
@@ -320,7 +320,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "mystrom power solar"
+              "options": "zendure outputHomePower"
             },
             "properties": [
               {
@@ -366,7 +366,7 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "import \"math\"\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -3h)\r\n  |> filter(fn: (r) => \r\n    (r._measurement == \"tasmota\" and (r._field == \"downstream\" or r._field == \"upstream\")) or\r\n    (r._measurement == \"mystrom\" and r.device == \"solar\" and r._field == \"power\")\r\n  )\r\n  |> drop(columns: [\"domain\",\"electric\",\"room\"])\r\n  |> last()\r\n  |> map(fn: (r) => ({\r\n      r with\r\n      _value: math.abs(x: float(v: r._value))\r\n  }))\r\n",
+          "query": "import \"math\"\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -3h)\r\n  |> filter(fn: (r) => \r\n    (r._measurement == \"tasmota\" and (r._field == \"downstream\" or r._field == \"upstream\")) or\r\n    (r._measurement == \"zendure\" and r._field == \"outputHomePower\")\r\n  )\r\n  |> drop(columns: [\"domain\",\"electric\",\"room\"])\r\n  |> last()\r\n  |> map(fn: (r) => ({\r\n      r with\r\n      _value: math.abs(x: float(v: r._value))\r\n  }))\r\n",
           "refId": "A"
         }
       ],
@@ -465,7 +465,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "green injected"
+                "value": "solar2home"
               }
             ]
           },
@@ -688,6 +688,7 @@
           "color": {
             "mode": "thresholds"
           },
+          "displayName": "${__field.labels._measurement}",
           "mappings": [],
           "max": 1,
           "min": 0,
@@ -710,7 +711,32 @@
           },
           "unit": "percentunit"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "solar efficiency _value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "solar efficiency"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "solar use ratio _value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "solar use ratio"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 5,
@@ -720,9 +746,18 @@
       },
       "id": 15,
       "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "vertical",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -730,19 +765,28 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "sizing": "auto"
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
       },
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"green_used\" or\r\n      r._field == \"green_upstream\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar_efficiency\",\r\n      _field: \"eta\",\r\n      _value:\r\n        (r.green_used - r.green_upstream) / r.solarInputPower\r\n  }))\r\n",
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"green_injected\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar efficiency\",\r\n      _field: \"eta\",\r\n      _value:\r\n        r.green_injected / r.solarInputPower\r\n  }))\r\n",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "df8oltzu756o0e"
+          },
+          "hide": false,
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"green_used\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar use ratio\",\r\n      _field: \"eta\",\r\n      _value:\r\n        r.green_used / r.solarInputPower\r\n  }))\r\n",
+          "refId": "B"
         }
       ],
       "title": "efficiency",
-      "type": "gauge"
+      "type": "bargauge"
     },
     {
       "datasource": {
@@ -1028,7 +1072,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "mystrom power"
+              "options": "0zendure outputHomePower"
             },
             "properties": [
               {
@@ -1040,7 +1084,7 @@
               },
               {
                 "id": "displayName",
-                "value": "green injection"
+                "value": "solar2home"
               },
               {
                 "id": "custom.stacking",
@@ -1144,7 +1188,7 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"tasmota\" and r._field == \"Power\") or (r._measurement ==\"mystrom\" and r.device == \"solar\" and r._field == \"power\"))\r\n  |> aggregateWindow(every: 1m, fn: max, createEmpty: false)\r\n  |> map(fn: (r) => ({r with _value: if r._value < 0 then 0.0 else float(v: r._value)}))\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\", \"_start\", \"_stop\", \"device\"])\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )",
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"tasmota\" and r._field == \"Power\") or (r._measurement ==\"zendure\" and r._field == \"outputHomePower\"))\r\n  |> aggregateWindow(every: 1m, fn: max, createEmpty: false)\r\n  |> map(fn: (r) => ({r with _measurement: if r._measurement == \"zendure\" then \"0zendure\" else r._measurement}))\r\n  |> drop(columns: [ \"room\", \"_start\", \"_stop\", \"domain\", \"electric\"])\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )",
           "refId": "A"
         },
         {
@@ -1400,8 +1444,8 @@
             }
           },
           "mappings": [],
-          "max": 400,
-          "min": -300,
+          "max": 500,
+          "min": -500,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1532,8 +1576,8 @@
             }
           },
           "mappings": [],
-          "max": 400,
-          "min": -300,
+          "max": 500,
+          "min": -500,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1552,7 +1596,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "outputHomePower {domain=\"electricity\", electric=\"solar\", room=\"2Stock\"}"
+              "options": "zendure outputHomePower {domain=\"electricity\", electric=\"solar\", room=\"2Stock\"}"
             },
             "properties": [
               {
@@ -1571,7 +1615,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "gridInputPower {domain=\"electricity\", electric=\"solar\", room=\"2Stock\"}"
+              "options": "zendure gridInputPower {domain=\"electricity\", electric=\"solar\", room=\"2Stock\"}"
             },
             "properties": [
               {
@@ -1583,7 +1627,26 @@
               },
               {
                 "id": "displayName",
-                "value": "grid2zendure"
+                "value": "house2zendure"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mystrom power {device=\"solar\", domain=\"electricity\", electric=\"solar\", room=\"2 Joni my\"}"
+            },
+            "properties": [
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-green",
+                  "mode": "fixed"
+                }
               }
             ]
           }
@@ -1601,7 +1664,7 @@
           "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": false
         },
         "tooltip": {
           "hideZeros": false,
@@ -1612,11 +1675,11 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "from(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\" and (r._field == \"outputHomePower\" or r._field == \"gridInputPower\" ))\r\n  |> map(fn: (r) => ({ r with _value:  (if r._field == \"gridInputPower\" then -1 * r._value else r._value) }) )\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "query": "from(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"zendure\" and (r._field == \"outputHomePower\" or r._field == \"gridInputPower\" ))\r\n                    or (r._measurement == \"mystrom\" and r.device == \"solar\" and r._field == \"power\")\r\n                    )\r\n  |> map(fn: (r) => ({ r with _value:  (if r._field == \"gridInputPower\" then -1.0 * float(v: r._value) else float(v: r._value)) }) )\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
           "refId": "A"
         }
       ],
-      "title": "grid charging",
+      "title": "solar <-> home",
       "type": "timeseries"
     }
   ],
@@ -1628,7 +1691,7 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-12h",
     "to": "now"
   },
   "timepicker": {
@@ -1645,5 +1708,5 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 171
+  "version": 181
 }
