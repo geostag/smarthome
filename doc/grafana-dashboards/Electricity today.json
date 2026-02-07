@@ -465,7 +465,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "solar2home"
+                "value": "zen2home"
               }
             ]
           },
@@ -478,15 +478,7 @@
               {
                 "id": "displayName",
                 "value": "battery injected"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "packInputPower"
-            },
-            "properties": [
+              },
               {
                 "id": "max",
                 "value": 2000
@@ -772,7 +764,7 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"green_injected\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar efficiency\",\r\n      _field: \"eta\",\r\n      _value:\r\n        r.green_injected / r.solarInputPower\r\n  }))\r\n",
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"green_injected\" or\r\n      r._field == \"gridInputPower\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar efficiency\",\r\n      _field: \"eta\",\r\n      _value:\r\n        (r.green_injected - r.gridInputPower) / r.solarInputPower\r\n  }))\r\n",
           "refId": "A"
         },
         {
@@ -781,7 +773,7 @@
             "uid": "df8oltzu756o0e"
           },
           "hide": false,
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"green_used\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar use ratio\",\r\n      _field: \"eta\",\r\n      _value:\r\n        r.green_used / r.solarInputPower\r\n  }))\r\n",
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"green_used\" or\r\n      r._field == \"gridInputPower\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar use ratio\",\r\n      _field: \"eta\",\r\n      _value:\r\n        (r.green_used - r.gridInputPower) / r.solarInputPower\r\n  }))\r\n",
           "refId": "B"
         }
       ],
@@ -1708,5 +1700,5 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 181
+  "version": 183
 }

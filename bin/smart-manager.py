@@ -145,11 +145,14 @@ class ZendureManager:
                 i = 0.6*(i_old + i)
         
         if i != i_old:
-            print(f"p: {p}, s: {s}, b: {b} do i {i_old} -> {i} ({mode})")
+            if DEBUG:
+                print(f"p: {p}, s: {s}, b: {b} do i {i_old} -> {i} ({mode})")
+                
             self.zen.outputLimit = i
             
         else:
-            print(f"p: {p}, s: {s}, b: {b}, i: {i} ({mode})")
+            if DEBUG: 
+                print(f"p: {p}, s: {s}, b: {b}, i: {i} ({mode})")
 
 
 # ----------------------------- main -------------------------------

@@ -1,4 +1,4 @@
-import requests, json, time, datetime, os
+import requests, json, time, datetime, os, traceback
 from lib.toinflux import Iflx
 
 DEBUG = False
@@ -55,11 +55,12 @@ def measure(host, token, room, electric, label):
 
 while True:
     for dev in devices:
-        #try:
-        measure(dev["HOST"],dev["TOKEN"],dev["room"],dev["electric"],dev["DEVICELABEL"])
+        try:
+            measure(dev["HOST"],dev["TOKEN"],dev["room"],dev["electric"],dev["DEVICELABEL"])
             
-        #except:
-        #    print("measure and write failed")
-        #    pass
+        except:
+            print(traceback.format_exc())
+            print("measure and write failed")
+            pass
             
     time.sleep(INTERVAL)
