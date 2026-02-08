@@ -465,7 +465,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "zen2home"
+                "value": "green injected"
               }
             ]
           },
@@ -764,7 +764,7 @@
       "pluginVersion": "12.3.1",
       "targets": [
         {
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"green_injected\" or\r\n      r._field == \"gridInputPower\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar efficiency\",\r\n      _field: \"eta\",\r\n      _value:\r\n        (r.green_injected - r.gridInputPower) / r.solarInputPower\r\n  }))\r\n",
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"green_injected\" \r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar efficiency\",\r\n      _field: \"eta\",\r\n      _value:\r\n        r.green_injected / r.solarInputPower\r\n  }))\r\n",
           "refId": "A"
         },
         {
@@ -773,7 +773,7 @@
             "uid": "df8oltzu756o0e"
           },
           "hide": false,
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"green_used\" or\r\n      r._field == \"gridInputPower\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar use ratio\",\r\n      _field: \"eta\",\r\n      _value:\r\n        (r.green_used - r.gridInputPower) / r.solarInputPower\r\n  }))\r\n",
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"green_used\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar use ratio\",\r\n      _field: \"eta\",\r\n      _value:\r\n        r.green_used / r.solarInputPower\r\n  }))\r\n",
           "refId": "B"
         }
       ],
@@ -994,7 +994,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 45,
+            "fillOpacity": 58,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -1552,7 +1552,7 @@
             "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
-            "pointSize": 5,
+            "pointSize": 1,
             "scaleDistribution": {
               "type": "linear"
             },
@@ -1601,6 +1601,10 @@
               {
                 "id": "displayName",
                 "value": "green injection"
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 0
               }
             ]
           },
@@ -1636,7 +1640,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "light-green",
+                  "fixedColor": "super-light-yellow",
                   "mode": "fixed"
                 }
               }
@@ -1671,7 +1675,7 @@
           "refId": "A"
         }
       ],
-      "title": "solar <-> home",
+      "title": "zendure <-> home",
       "type": "timeseries"
     }
   ],
@@ -1700,5 +1704,5 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 183
+  "version": 187
 }
