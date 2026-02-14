@@ -40,7 +40,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 12,
+            "fillOpacity": 0,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -83,10 +83,102 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
+        "h": 17,
         "w": 24,
         "x": 0,
         "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "query": "data =\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\" and \r\n     (r._field == \"solarInputPower\" \r\n     or r._field == \"outputPackPower\" \r\n     or r._field == \"packInputPower\" \r\n     or r._field == \"gridInputPower\" \r\n     or r._field == \"outputHomePower\"))\r\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\r\n\r\npivoted =\r\ndata\r\n  |> pivot(\r\n      rowKey:[\"_time\"],\r\n      columnKey:[\"_field\"],\r\n      valueColumn:\"_value\"\r\n  )\r\n\r\ncalc =\r\npivoted\r\n  |> map(fn: (r) => {\r\n      solar = if exists r.solarInputPower then float(v: r.solarInputPower) else 0.0\r\n      packOut = if exists r.outputPackPower then float(v: r.outputPackPower) else 0.0\r\n      packIn = if exists r.packInputPower then float(v: r.packInputPower) else 0.0\r\n      home = if exists r.outputHomePower then float(v: r.outputHomePower) else 0.0\r\n\r\n      input = solar - packOut + packIn\r\n\r\n      return {\r\n          _time: r._time,\r\n          inverterInputPower: input,\r\n          inverterEfficiency:\r\n              if input > 0.0 then home / input else 0.0\r\n      }\r\n  })\r\n\r\n// Jetzt wieder in Zeitreihen-Format bringen\r\nc1 =\r\ncalc\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _field: \"inverterInputPower\",\r\n      _value: r.inverterInputPower\r\n  }))\r\n\r\nc2 =\r\ncalc\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _field: \"inverterEfficiency\",\r\n      _value: r.inverterEfficiency\r\n  }))\r\n\r\nsolar =\r\ndata |> filter(fn: (r) => r._field == \"solarInputPower\")\r\n|> keep(columns: [\"_time\", \"_field\", \"_value\"])\r\n\r\nunion(tables: [c1, c2, solar])\r\n  |> group(columns: [\"_field\"])\r\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Inverter efficiency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 12,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 17
       },
       "id": 1,
       "options": {
@@ -131,5 +223,5 @@
   "timezone": "browser",
   "title": "Misc",
   "uid": "gegkgsq",
-  "version": 2
+  "version": 11
 }

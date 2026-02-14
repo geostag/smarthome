@@ -1,7 +1,7 @@
 from lib.mqttconn import WhiteBoard
 import datetime, time, os, requests
 
-DEBUG = False
+DEBUG = True
 
 ZENDURE_HOST = os.getenv("ZENDURE_HOST")
 ZENDURE_SN   = os.getenv("ZENDURE_SN")
@@ -94,6 +94,8 @@ class ZendureManager:
         i_old = int(i)
         
         hour = datetime.datetime.now().hour
+        needed = i+p
+        bres = (b - BATT_MIN)/(BATT_MAX-BATT_MIN)
         mode = ""
         
         # values ready, lets do logic
@@ -107,26 +109,26 @@ class ZendureManager:
             mode = "super hi batt"
             i = INJECTION_MAX
             
-        elif s > p + i:
+        elif s > needed:
             # more sun than needed
             mode = "hi sun"
-            i = p + i - RESW
+            i = needed
             
-        elif b > 1.2 * BATT_MIN and s > (RESW+2) and s < p+i:
-            # enough power there, baseload (discharge mode, while sun still there)
-            mode = "low sun, use battery on top"
-            i = min(2*BASELOAD,i+p - RESW)
+        elif hour < 14 and s < 70 and b < 1.5 * BATT_MIN:
+            # morning, low sun, low inverter efficiency - charge battery
+            mode = "low sun, low battery, charge it"
+            i = 0
             
-        elif s > (RESW+2) and s < p+i:
-            # sun there and completely needed, do not discharge
-            # keep 3W for zendure itself
+        elif hour < 14 and s < needed:
+            # morning, sun there and completely needed
+            # keep RESW for zendure itself
             mode = f"low sun {p},{s},{i}"
             i = s - RESW
             
         else:
-            # maximum 3*baseload discharge
-            mode = "6baseload"
-            i = min(6*BASELOAD,i+p)
+            # maximum discharge based on reserves in battery
+            mode = "blow out"
+            i = min(bres*INJECTION_MAX,needed)
             
         # round and limit to INJECTION_MAX
         i = int(min(INJECTION_MAX,i) + 0.5) * 1.0
