@@ -1,5 +1,5 @@
 from lib.toinflux import Iflx
-import requests, json, time, os
+import requests, json, time, os, traceback
 
 DEBUG = False
 
@@ -34,12 +34,14 @@ def measure(device):
             INFLUX.write("smarthings","humidity",h,{"room": device["label"], "domain": "humidity"})
             
 while True:
-    try:
-        for d in ST_DEVICES:
+    for d in ST_DEVICES:
+        try:
             measure(d)
+            time.sleep(1)
             
-    except:
-        print("measure and write failed")
-        time.sleep(240)
+        except:
+            print(f"measure and write failed: {d[id]}")
+            print(traceback.format_exc())
+            time.sleep(60)
         
     time.sleep(INTERVAL)    
