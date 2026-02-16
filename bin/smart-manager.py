@@ -95,7 +95,7 @@ class ZendureManager:
         
         hour = datetime.datetime.now().hour
         needed = i+p
-        bres = (b - BATT_MIN)/(BATT_MAX-BATT_MIN)
+        bres = int(100 * (b - BATT_MIN)/(BATT_MAX-BATT_MIN) + 0.5) / 100
         mode = ""
         
         # values ready, lets do logic
@@ -125,10 +125,17 @@ class ZendureManager:
             mode = f"low sun {p},{s},{i}"
             i = s - RESW
             
+        elif hour >= 14 and b < 1.2 * BATT_MIN and s < 20:
+            # afternoon, everything low
+            mode = f"afternoon, low sun {s} and battery"
+            i = 0
+            
         else:
             # maximum discharge based on reserves in battery
-            mode = "blow out"
-            i = min(bres*INJECTION_MAX,needed)
+            minj = 1.0 * BASELOAD
+            maxj = bres * (INJECTION_MAX - minj) + minj
+            mode = f"blow out {bres}, {maxj}"
+            i = min(maxj,needed)
             
         # round and limit to INJECTION_MAX
         i = int(min(INJECTION_MAX,i) + 0.5) * 1.0
@@ -144,7 +151,7 @@ class ZendureManager:
             elif i > i_old:
                 # increase injection slowly
                 mode += ", slow-raise"
-                i = 0.6*(i_old + i)
+                i = 0.5*(i_old + i)
         
         if i != i_old:
             if DEBUG:
