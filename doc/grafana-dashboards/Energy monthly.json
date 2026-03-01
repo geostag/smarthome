@@ -145,7 +145,7 @@
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 0
       },
-      "pluginVersion": "12.3.1",
+      "pluginVersion": "12.3.3",
       "targets": [
         {
           "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"swm_used\" or\r\n      r._field == \"green_used\" or\r\n      r._field == \"green_upstream\"\r\n  )\r\n  |> aggregateWindow(every: 1mo, fn: sum)\r\n  |> timeShift(duration: -12h)\r\n\r\n",
@@ -233,7 +233,7 @@
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 0
       },
-      "pluginVersion": "12.3.1",
+      "pluginVersion": "12.3.3",
       "targets": [
         {
           "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"packInputPower\")\r\n|> aggregateWindow(every: 1mo, fn: sum)\r\n|> timeShift(duration: -12h)\r\n",

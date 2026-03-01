@@ -40,8 +40,9 @@ while True:
             time.sleep(1)
             
         except:
-            print(f"measure and write failed: {d[id]}")
             print(traceback.format_exc())
+            i = d.get("id","-")
+            print(f"measure and write failed: {i}")
             time.sleep(60)
         
     time.sleep(INTERVAL)    

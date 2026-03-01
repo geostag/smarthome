@@ -145,7 +145,7 @@
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 0
       },
-      "pluginVersion": "12.3.1",
+      "pluginVersion": "12.3.3",
       "targets": [
         {
           "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"swm_used\" or\r\n      r._field == \"green_used\" or\r\n      r._field == \"green_upstream\"\r\n  )\r\n\r\n",
@@ -234,7 +234,7 @@
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 0
       },
-      "pluginVersion": "12.3.1",
+      "pluginVersion": "12.3.3",
       "targets": [
         {
           "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"solarPower1\" or\r\n      r._field == \"solarPower2\" or\r\n      r._field == \"solarPower3\" or\r\n      r._field == \"solarPower4\"\r\n  )\r\n",
@@ -299,11 +299,11 @@
               },
               {
                 "color": "semi-dark-yellow",
-                "value": 0.8
+                "value": 0.75
               },
               {
                 "color": "semi-dark-green",
-                "value": 0.85
+                "value": 0.8
               }
             ]
           },
@@ -341,7 +341,7 @@
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 0
       },
-      "pluginVersion": "12.3.1",
+      "pluginVersion": "12.3.3",
       "targets": [
         {
           "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarPower1\" or\r\n      r._field == \"solarPower2\" or\r\n      r._field == \"solarPower3\" or\r\n      r._field == \"solarPower4\" or\r\n      r._field == \"green_used\" or\r\n      r._field == \"green_upstream\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar_efficiency\",\r\n      _field: \"eta\",\r\n      _value:\r\n        (r.green_used - r.green_upstream) /\r\n        (r.solarPower1 + r.solarPower2 + r.solarPower3 + r.solarPower4)\r\n  }))\r\n",
@@ -425,7 +425,7 @@
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 0
       },
-      "pluginVersion": "12.3.1",
+      "pluginVersion": "12.3.3",
       "targets": [
         {
           "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"packInputPower\")",
@@ -513,7 +513,7 @@
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 0
       },
-      "pluginVersion": "12.3.1",
+      "pluginVersion": "12.3.3",
       "targets": [
         {
           "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and (r._field == \"solarInputPower\" or r._field == \"outputPackPower\" or r._field == \"packInputPower\" or r._field == \"gridInputPower\" or r._field == \"outputHomePower\" ))\r\n|> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)",
@@ -545,5 +545,5 @@
   "timezone": "browser",
   "title": "Energy daily",
   "uid": "gel4j6k",
-  "version": 50
+  "version": 51
 }
