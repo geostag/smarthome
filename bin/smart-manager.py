@@ -131,11 +131,12 @@ class ZendureManager:
             i = 0
             
         else:
-            # maximum discharge based on reserves in battery
+            # maximum discharge based on reserves in battery or sun (whatever is more)
             minj = 1.0 * BASELOAD
             maxj = bres * (INJECTION_MAX - minj) + minj
-            mode = f"blow out {bres}, {maxj}"
-            i = min(maxj,needed)
+            maxtotal = max(maxj,s)
+            mode = f"blow out {bres}, {maxj}, {s}"
+            i = min(maxtotal,needed)
             
         # round and limit to INJECTION_MAX
         i = int(min(INJECTION_MAX,i) + 0.5) * 1.0
