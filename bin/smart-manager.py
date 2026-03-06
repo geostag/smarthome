@@ -1,4 +1,5 @@
 from lib.mqttconn import WhiteBoard
+from lib.valueManager import changeLimitedFreq
 import datetime, time, os, requests
 
 DEBUG = False
@@ -70,12 +71,14 @@ class Zendure:
             self.injection = value
             return True
         
+
 class ZendureManager:
     def __init__(self,zen,tasmota):
         self.zen = zen
         self.tasmota = tasmota
         self.swmpower = []
         self.solarInputPower = []
+        self.injectValueManager = changeLimitedFreq(mindur = 90, minabs = 5, minper = 5)
         
     def controller_update(self):
         b = self.zen.electricLevel
@@ -143,17 +146,11 @@ class ZendureManager:
         i = max(i,0)
         
         if p > 0:
-            # we use grid power
-            if ( i > 10 and abs(i-i_old) < 3 ) or ( i > 100 and abs(i-i_old)/i < 0.03 ):
-                # peanut change
-                mode += f", peanuts {i} {i_old}"
-                i = i_old
-                
-            elif i > i_old:
-                # increase injection slowly
-                mode += ", slow-raise"
-                i = 0.5*(i_old + i)
-        
+            # when using grid energy, increase injection slowly and reduce change rate
+            mode += ", slow-raise"
+            i = 0.5*(i_old + i)
+            i = self.injectValueManager(i)
+
         if i != i_old:
             if DEBUG:
                 print(f"p: {p}, s: {s}, b: {b} do i {i_old} -> {i} ({mode})")
