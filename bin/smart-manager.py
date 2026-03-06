@@ -145,11 +145,14 @@ class ZendureManager:
         i = int(min(INJECTION_MAX,i) + 0.5) * 1.0
         i = max(i,0)
         
-        if p > 0:
+        if p >= 0:
             # when using grid energy, increase injection slowly and reduce change rate
             mode += ", slow-raise"
             i = 0.5*(i_old + i)
             i = self.injectValueManager(i)
+            
+        else:
+            i = self.injectValueManager(i,forced=True)
 
         if i != i_old:
             if DEBUG:
@@ -170,5 +173,5 @@ WB  = WhiteBoard()
 ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB) )
 
 while True:
-    time.sleep(60)
+    time.sleep(30)
     ZM.controller_update()
