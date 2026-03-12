@@ -58,7 +58,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "solar2home"
+                "value": "green injection"
               },
               {
                 "id": "max",
@@ -69,23 +69,47 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "tasmota downstream {domain=\"electricity\", electric=\"swm\", room=\"keller\"}"
+              "options": "tasmota Power {domain=\"electricity\", electric=\"swm\", room=\"keller\"}"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "grid downstream"
+                "value": "grid"
               },
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "#bf3848",
-                  "mode": "fixed"
+                  "fixedColor": "semi-dark-blue",
+                  "mode": "thresholds"
                 }
               },
               {
                 "id": "max",
-                "value": 800
+                "value": 1000
+              },
+              {
+                "id": "min",
+                "value": -100
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "semi-dark-blue",
+                      "value": 0
+                    },
+                    {
+                      "color": "#898989",
+                      "value": 0
+                    },
+                    {
+                      "color": "semi-dark-red",
+                      "value": 1
+                    }
+                  ]
+                }
               }
             ]
           },
@@ -102,25 +126,6 @@
               {
                 "id": "max",
                 "value": 400
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "tasmota upstream {domain=\"electricity\", electric=\"swm\", room=\"keller\"}"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "grid upstream"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "semi-dark-blue",
-                  "mode": "fixed"
-                }
               }
             ]
           },
@@ -194,17 +199,8 @@
             "uid": "df8oltzu756o0e"
           },
           "hide": false,
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -2h)\r\n|> filter(fn: (r) => r._measurement == \"tasmota\" and r._field == \"downstream\")\r\n|> last()\r\n",
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -2h)\r\n|> filter(fn: (r) => r._measurement == \"tasmota\" and r._field == \"Power\")\r\n|> last()\r\n",
           "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "df8oltzu756o0e"
-          },
-          "hide": false,
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: -2h)\r\n|> filter(fn: (r) => r._measurement == \"tasmota\" and r._field == \"upstream\")\r\n|> map(fn: (r) => ({\r\n    r with\r\n    _value: float(v: r._value) * -1.0\r\n}))\r\n|> last()\r\n",
-          "refId": "D"
         }
       ],
       "title": "recent power",
@@ -519,7 +515,7 @@
       },
       "id": 23,
       "options": {
-        "displayMode": "gradient",
+        "displayMode": "basic",
         "legend": {
           "calcs": [],
           "displayMode": "list",
@@ -530,7 +526,7 @@
         "minVizHeight": 16,
         "minVizWidth": 8,
         "namePlacement": "auto",
-        "orientation": "auto",
+        "orientation": "vertical",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -540,6 +536,9 @@
         },
         "showUnfilled": true,
         "sizing": "auto",
+        "text": {
+          "titleSize": 11
+        },
         "valueMode": "color"
       },
       "pluginVersion": "12.3.3",
@@ -717,11 +716,11 @@
               },
               {
                 "color": "#EAB839",
-                "value": 0.8
+                "value": 0.75
               },
               {
                 "color": "semi-dark-green",
-                "value": 0.85
+                "value": 0.8
               }
             ]
           },
@@ -748,7 +747,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "solar use ratio"
+                "value": "total efficiency"
               }
             ]
           }
@@ -762,7 +761,7 @@
       },
       "id": 15,
       "options": {
-        "displayMode": "gradient",
+        "displayMode": "basic",
         "legend": {
           "calcs": [],
           "displayMode": "list",
@@ -788,7 +787,7 @@
       "pluginVersion": "12.3.3",
       "targets": [
         {
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"green_injected\" \r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar efficiency\",\r\n      _field: \"eta\",\r\n      _value:\r\n        r.green_injected / r.solarInputPower\r\n  }))\r\n",
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"outputHomePower\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar efficiency\",\r\n      _field: \"eta\",\r\n      _value:\r\n        r.outputHomePower / r.solarInputPower\r\n  }))\r\n",
           "refId": "A"
         },
         {
@@ -797,7 +796,7 @@
             "uid": "df8oltzu756o0e"
           },
           "hide": false,
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"green_used\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar use ratio\",\r\n      _field: \"eta\",\r\n      _value:\r\n        r.green_used / r.solarInputPower\r\n  }))\r\n",
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"outputHomePower\" or\r\n      r._field == \"gridInputPower\" or\r\n      r._field == \"green_upstream\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar use ratio\",\r\n      _field: \"eta\",\r\n      _value: (r.outputHomePower + r.green_upstream - r.gridInputPower) / r.solarInputPower\r\n  }))\r\n",
           "refId": "B"
         }
       ],
@@ -1622,6 +1621,103 @@
       "fieldConfig": {
         "defaults": {
           "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "custom": {
+            "axisPlacement": "auto",
+            "fillOpacity": 70,
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineWidth": 0,
+            "spanNulls": false
+          },
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Presence Details",
+              "url": "https://grafana.ostertage.de/d/ge2cvr2/presence?orgId=1&from=now-6h&to=now&timezone=browser"
+            }
+          ],
+          "mappings": [],
+          "max": 10,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#000000",
+                "value": 0
+              },
+              {
+                "color": "dark-green",
+                "value": 5
+              },
+              {
+                "color": "semi-dark-red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 11,
+        "x": 0,
+        "y": 17
+      },
+      "id": 31,
+      "options": {
+        "alignValue": "center",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "mergeValues": true,
+        "rowHeight": 0.85,
+        "showValue": "auto",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.3",
+      "targets": [
+        {
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"fritz\" and r.domain == \"presence\")\r\n|> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)",
+          "refId": "A"
+        }
+      ],
+      "title": "crowd",
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "reduceRow",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "replaceFields": true
+          }
+        }
+      ],
+      "type": "state-timeline"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
             "mode": "thresholds"
           },
           "custom": {
@@ -1766,7 +1862,7 @@
           "refId": "A"
         }
       ],
-      "title": "zendure <-> home",
+      "title": "green injection",
       "type": "timeseries"
     }
   ],
@@ -1795,5 +1891,5 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 195
+  "version": 203
 }

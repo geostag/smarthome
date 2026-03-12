@@ -4,6 +4,7 @@ import requests, json, time, os, traceback
 DEBUG = False
 
 INTERVAL = int(os.getenv("QUERY_INTERVAL"))
+INTERVAL = int(os.getenv("SMARTTHINGS_QUERY_INTERVAL",INTERVAL))
 ST_TOKEN = os.getenv("SMARTTHINGS_TOKEN")
 ST_DEVICES = []
 for d in os.getenv("SMARTTHINGS_DEVUCELIST"):

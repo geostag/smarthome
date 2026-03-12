@@ -1,8 +1,8 @@
 from lib.mqttconn import WhiteBoard
-from lib.valueManager import changeLimitedFreq
+from lib.myLog import mLog
 import datetime, time, os, requests
 
-DEBUG = False
+DEBUG = True
 
 ZENDURE_HOST = os.getenv("ZENDURE_HOST")
 ZENDURE_SN   = os.getenv("ZENDURE_SN")
@@ -15,7 +15,7 @@ BASELOAD      = int(os.getenv("BASELOAD",90))
 # how many watt to reserve for zendure itself
 RESW = 8
 
-# lookback items (tasmota sends every minute, thus 5 minutes)
+# lookback items 
 LOOKBACK_ITEMS = 10
 
 class Tasmota:
@@ -52,8 +52,6 @@ class Zendure:
         
     @outputLimit.setter
     def outputLimit(self,value):
-        #print(f"pushing to zendure: {value}")
-        #return True
         
         value = max(value,0)
         value = int(min(INJECTION_MAX,value) + 0.5) * 1.0
@@ -71,14 +69,16 @@ class Zendure:
             self.injection = value
             return True
         
-
 class ZendureManager:
     def __init__(self,zen,tasmota):
         self.zen = zen
         self.tasmota = tasmota
         self.swmpower = []
         self.solarInputPower = []
-        self.injectValueManager = changeLimitedFreq(mindur = 90, minabs = 5, minper = 5)
+        
+    @property
+    def isUpstream(self):
+        return (self.tasmota.Power < 0)
         
     def controller_update(self):
         b = self.zen.electricLevel
@@ -122,7 +122,7 @@ class ZendureManager:
             mode = "low sun, low battery, charge it"
             i = 0
             
-        elif hour < 14 and s < needed:
+        elif hour < 14 and s < needed and b < 1.5 * BATT_MIN:
             # morning, sun there and completely needed
             # keep RESW for zendure itself
             mode = f"low sun {p},{s},{i}"
@@ -145,24 +145,27 @@ class ZendureManager:
         i = int(min(INJECTION_MAX,i) + 0.5) * 1.0
         i = max(i,0)
         
-        if p >= 0:
-            # when using grid energy, increase injection slowly and reduce change rate
-            mode += ", slow-raise"
-            i = 0.5*(i_old + i)
-            i = self.injectValueManager(i)
-            
-        else:
-            i = self.injectValueManager(i,forced=True)
-
+        if p > 0:
+            # we use grid power
+            if ( i > 10 and abs(i-i_old) < 3 ) or ( i > 100 and abs(i-i_old)/i < 0.03 ):
+                # peanut change
+                mode += f", peanuts {i} {i_old}"
+                i = i_old
+                
+            elif i > i_old:
+                # increase injection slowly
+                mode += ", slow-raise"
+                i = 0.5*(i_old + i)
+        
         if i != i_old:
-            if DEBUG:
-                print(f"p: {p}, s: {s}, b: {b} do i {i_old} -> {i} ({mode})")
+            if ML:
+                ML.log(f"p: {p}, s: {s}, b: {b} do i {i_old} -> {i} ({mode})")
                 
             self.zen.outputLimit = i
             
         else:
-            if DEBUG: 
-                print(f"p: {p}, s: {s}, b: {b}, i: {i} ({mode})")
+            if ML: 
+                ML.log(f"p: {p}, s: {s}, b: {b}, i: {i} ({mode})")
 
 
 # ----------------------------- main -------------------------------
@@ -172,6 +175,23 @@ WB  = WhiteBoard()
 # Zendure management
 ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB) )
 
+if DEBUG:
+    ML = mLog("smart-manager")
+    
+else:
+    ML = None
+
+n = 0
 while True:
-    time.sleep(30)
-    ZM.controller_update()
+    if n >= 12:
+        ZM.controller_update()
+        n = 0
+        
+    elif ZM.isUpstream:
+        ZM.controller_update()
+        time.sleep(60)
+        n = 12
+        
+    else:
+        time.sleep(5)
+        n += 1
