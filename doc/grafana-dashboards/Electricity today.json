@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": 0,
   "links": [],
   "panels": [
     {
@@ -509,7 +509,7 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 7,
+        "w": 6,
         "x": 11,
         "y": 0
       },
@@ -658,7 +658,7 @@
       "gridPos": {
         "h": 5,
         "w": 2,
-        "x": 18,
+        "x": 17,
         "y": 0
       },
       "id": 7,
@@ -750,13 +750,36 @@
                 "value": "total efficiency"
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "upstream ratio _value"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-blue",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "upstream ratio"
+              },
+              {
+                "id": "max",
+                "value": 0.15
+              }
+            ]
           }
         ]
       },
       "gridPos": {
         "h": 5,
-        "w": 2,
-        "x": 20,
+        "w": 3,
+        "x": 19,
         "y": 0
       },
       "id": 15,
@@ -798,6 +821,15 @@
           "hide": false,
           "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"outputHomePower\" or\r\n      r._field == \"gridInputPower\" or\r\n      r._field == \"green_upstream\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar use ratio\",\r\n      _field: \"eta\",\r\n      _value: (r.outputHomePower + r.green_upstream - r.gridInputPower) / r.solarInputPower\r\n  }))\r\n",
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "df8oltzu756o0e"
+          },
+          "hide": false,
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"green_upstream\" or\r\n      r._field == \"outputHomePower\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"upstream ratio\",\r\n      _field: \"eta\",\r\n      _value: -1.0 * r.green_upstream / r.outputHomePower\r\n  }))\r\n",
+          "refId": "C"
         }
       ],
       "title": "efficiency",
@@ -907,7 +939,7 @@
       },
       "id": 8,
       "options": {
-        "displayMode": "gradient",
+        "displayMode": "lcd",
         "legend": {
           "calcs": [],
           "displayMode": "list",
@@ -1891,5 +1923,5 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 203
+  "version": 206
 }

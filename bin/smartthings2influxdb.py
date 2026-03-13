@@ -38,7 +38,7 @@ while True:
     for d in ST_DEVICES:
         try:
             measure(d)
-            time.sleep(1)
+            time.sleep(2)
             
         except:
             print(traceback.format_exc())

@@ -2,7 +2,7 @@ from lib.mqttconn import WhiteBoard
 from lib.myLog import mLog
 import datetime, time, os, requests
 
-DEBUG = True
+DEBUG = False
 
 ZENDURE_HOST = os.getenv("ZENDURE_HOST")
 ZENDURE_SN   = os.getenv("ZENDURE_SN")
@@ -189,7 +189,7 @@ while True:
         
     elif ZM.isUpstream:
         ZM.controller_update()
-        time.sleep(60)
+        time.sleep(70)
         n = 12
         
     else:
