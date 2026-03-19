@@ -130,7 +130,7 @@ class ZendureManager:
             mode = f"low sun {p},{s},{i}"
             i = s - RESW
             
-        elif hour >= 14 and b < 1.2 * BATT_MIN and s < 20:
+        elif hour >= 14 and b < 1.3 * BATT_MIN and s < 20:
             # afternoon, everything low
             mode = f"afternoon, low sun {s} and battery"
             i = 0
