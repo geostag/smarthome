@@ -86,7 +86,9 @@ class ZendureManager:
         p = self.tasmota.Power
         self.swmpower.append(p)
         self.swmpower = self.swmpower[(-1 * LOOKBACK_ITEMS):]
-        #p = int( 10 * sum(self.swmpower) / len(self.swmpower) + 0.5) / 10
+        p10 = int( 10 * sum(self.swmpower) / len(self.swmpower) + 0.5) / 10
+        if p > 100:
+            p = p10
         
         s = self.zen.solarInputPower
         self.solarInputPower.append(s)
