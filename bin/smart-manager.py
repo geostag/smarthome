@@ -1,5 +1,6 @@
 from lib.mqttconn import WhiteBoard
 from lib.myLog import mLog
+from lib.toinflux import Iflx
 import datetime, time, os, requests
 
 DEBUG = False
@@ -11,6 +12,7 @@ INJECTION_MAX = int(os.getenv("INJECTION_MAX",800))
 BATT_MIN      = int(os.getenv("MATT_MIN",10))
 BATT_MAX      = int(os.getenv("BATT_MAX",95))
 BASELOAD      = int(os.getenv("BASELOAD",90))
+GRIDPOWERREMEMBER_MINUTES = 5
 
 # how many watt to reserve for zendure itself
 RESW = 8
@@ -73,8 +75,16 @@ class ZendureManager:
     def __init__(self,zen,tasmota):
         self.zen = zen
         self.tasmota = tasmota
-        self.swmpower = []
+        self.gridpower = []
         self.solarInputPower = []
+        
+    def rememberGridPower(self,p):
+        self.gridpower.append( { "t": time.time(), "v": p } )
+        now = time.time()
+        self.gridpower = [ x for x in self.gridpower if x["t"] > now - GRIDPOWERREMEMBER_MINUTES*60 ]
+        
+    def minRememberGridPower(self):
+        return min( [ x["v"] for x in self.gridpower ] )
         
     @property
     def isUpstream(self):
@@ -84,11 +94,9 @@ class ZendureManager:
         b = self.zen.electricLevel
         
         p = self.tasmota.Power
-        self.swmpower.append(p)
-        self.swmpower = self.swmpower[(-1 * LOOKBACK_ITEMS):]
-        p10 = int( 10 * sum(self.swmpower) / len(self.swmpower) + 0.5) / 10
+        self.rememberGridPower(p)
         if p > 100:
-            p = p10
+            p = self.minRememberGridPower()
         
         s = self.zen.solarInputPower
         self.solarInputPower.append(s)
@@ -124,7 +132,7 @@ class ZendureManager:
             mode = "low sun, low battery, charge it"
             i = 0
             
-        elif hour < 14 and s < needed and b < 1.5 * BATT_MIN:
+        elif hour < 14 and s < needed and b < 2 * BATT_MIN:
             # morning, sun there and completely needed
             # keep RESW for zendure itself
             mode = f"low sun {p},{s},{i}"
@@ -157,7 +165,7 @@ class ZendureManager:
             elif i > i_old:
                 # increase injection slowly
                 mode += ", slow-raise"
-                i = 0.5*(i_old + i)
+                i = 0.8 * (i - i_old) + i_old
         
         if i != i_old:
             if ML:
@@ -172,6 +180,8 @@ class ZendureManager:
 
 # ----------------------------- main -------------------------------
 
+# InfluxDB connection to create a heartbeat
+INFLUX = Iflx()
 # Whiteboard with recent data
 WB  = WhiteBoard()
 # Zendure management
@@ -188,6 +198,7 @@ while True:
     if n >= 12:
         ZM.controller_update()
         n = 0
+        INFLUX.heartbeat("smart-manager")
         
     elif ZM.isUpstream:
         ZM.controller_update()
