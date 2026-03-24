@@ -187,6 +187,14 @@ WB  = WhiteBoard()
 # Zendure management
 ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB) )
 
+def tasmotaCallback(data):
+    if data.get("Power",0) < 0:
+        # we deliver power to the grid, call the smart manager immediately
+        ZM.controller_update()
+
+# trigger callback, when new tasmota values available
+WB.addDeviceListener("tasmota",tasmotaCallback)
+
 if DEBUG:
     ML = mLog("smart-manager")
     
