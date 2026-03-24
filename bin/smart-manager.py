@@ -3,7 +3,7 @@ from lib.myLog import mLog
 from lib.toinflux import Iflx
 import datetime, time, os, requests
 
-DEBUG = False
+DEBUG = True
 
 ZENDURE_HOST = os.getenv("ZENDURE_HOST")
 ZENDURE_SN   = os.getenv("ZENDURE_SN")
@@ -190,6 +190,7 @@ ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB) )
 def tasmotaCallback(data):
     if data.get("Power",0) < 0:
         # we deliver power to the grid, call the smart manager immediately
+        ML.log("yusha, call update")
         ZM.controller_update()
 
 # trigger callback, when new tasmota values available

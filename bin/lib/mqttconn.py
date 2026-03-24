@@ -36,7 +36,7 @@ class WhiteBoard:
         self.listener = {}
 
     def addDeviceListener(self,device,callback):
-        self.listener[device] = fallback
+        self.listener[device] = callback
         
     def dataGet(self,device,key):
         return self.db.get(device,{}).get(key,0)

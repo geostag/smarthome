@@ -20,7 +20,7 @@ test -d $logdir || mkdir $logdir
 stamp=`date '+%Y%m%d-%H%M%S'`
 
 pkill -u $USERID -f "$sen".py
-killall sleep
-sleep 2
-pgrep -u $USERID -f "$sen".py -a
-echo $sen done
+while true; do
+    python bin/${sen}.py > ${logdir}/${sen}-${stamp}.log 2>&1 < /dev/null
+    sleep 300
+done
