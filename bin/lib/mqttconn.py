@@ -28,13 +28,18 @@ class WhiteBoard:
                 k = "zendure"
                 
             self.db[k] = d
+            if k in self.listener:
+                self.listener[k]()
                 
         self.db = {}
         self.mqtt = MqttConn(topic = "tele/+/SENSOR",on_message=onMessage)
+        self.listener = {}
+
+    def addDeviceListener(self,device,callback):
+        self.listener[device] = fallback
         
     def dataGet(self,device,key):
         return self.db.get(device,{}).get(key,0)
-    
         
 class MqttConn:
     def __init__(self, **kwargs):
