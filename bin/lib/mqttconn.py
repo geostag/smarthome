@@ -29,7 +29,7 @@ class WhiteBoard:
                 
             self.db[k] = d
             if k in self.listener:
-                self.listener[k]()
+                self.listener[k](d)
                 
         self.db = {}
         self.mqtt = MqttConn(topic = "tele/+/SENSOR",on_message=onMessage)
