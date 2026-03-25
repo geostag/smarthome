@@ -190,8 +190,11 @@ ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB) )
 def tasmotaCallback(data):
     if data.get("Power",0) < 0:
         # we deliver power to the grid, call the smart manager immediately
-        ML.log("yusha, call update")
+        if DEBUG:
+            ML.log("yusha, call update")
+            
         ZM.controller_update()
+        time.sleep(30)
 
 # trigger callback, when new tasmota values available
 WB.addDeviceListener("tasmota",tasmotaCallback)
@@ -202,18 +205,7 @@ if DEBUG:
 else:
     ML = None
 
-n = 0
 while True:
-    if n >= 12:
-        ZM.controller_update()
-        n = 0
-        INFLUX.heartbeat("smart-manager")
-        
-    elif ZM.isUpstream:
-        ZM.controller_update()
-        time.sleep(70)
-        n = 12
-        
-    else:
-        time.sleep(5)
-        n += 1
+    time.sleep(60)
+    ZM.controller_update()
+    INFLUX.heartbeat("smart-manager")

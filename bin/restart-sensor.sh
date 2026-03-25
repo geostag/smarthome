@@ -20,6 +20,7 @@ test -d $logdir || mkdir $logdir
 stamp=`date '+%Y%m%d-%H%M%S'`
 
 pkill -u $USERID -f "$sen".py
+sleep 2
 killall sleep
 sleep 2
 pgrep -u $USERID -f "$sen".py -a
