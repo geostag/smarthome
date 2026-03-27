@@ -497,11 +497,30 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "battery injected"
+                "value": "inject batt"
               },
               {
                 "id": "max",
                 "value": 2000
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pv_excess"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "pv excess"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "super-light-blue",
+                  "mode": "fixed"
+                }
               }
             ]
           }
@@ -562,7 +581,7 @@
             "uid": "df8oltzu756o0e"
           },
           "hide": false,
-          "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"packInputPower\" )\r\n|> last()\r\n",
+          "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and (r._field == \"packInputPower\" or r._field == \"pv_excess\") )\r\n|> last()\r\n",
           "refId": "E"
         },
         {
@@ -828,7 +847,7 @@
             "uid": "df8oltzu756o0e"
           },
           "hide": false,
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"green_upstream\" or\r\n      r._field == \"outputHomePower\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"upstream ratio\",\r\n      _field: \"eta\",\r\n      _value: -1.0 * r.green_upstream / r.outputHomePower\r\n  }))\r\n",
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"green_upstream\" or\r\n      r._field == \"green_injected\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"upstream ratio\",\r\n      _field: \"eta\",\r\n      _value: -1.0 * r.green_upstream / r.green_injected\r\n  }))\r\n",
           "refId": "C"
         }
       ],
@@ -866,7 +885,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 2,
         "x": 22,
         "y": 0
@@ -1003,10 +1022,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 2,
         "x": 22,
-        "y": 4
+        "y": 3
       },
       "id": 28,
       "options": {
@@ -1384,10 +1403,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 2,
         "x": 22,
-        "y": 8
+        "y": 6
       },
       "id": 30,
       "options": {
@@ -1414,6 +1433,77 @@
       ],
       "title": "outside",
       "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "${__series.name}",
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#454645",
+                "value": 0
+              },
+              {
+                "color": "semi-dark-green",
+                "value": 0.5
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 1,
+        "x": 22,
+        "y": 9
+      },
+      "id": 32,
+      "options": {
+        "displayMode": "basic",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "top",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "hidden"
+      },
+      "pluginVersion": "12.3.3",
+      "targets": [
+        {
+          "query": "import \"array\"\r\n\r\nsensors =\r\n  array.from(rows: [\r\n    {_measurement: \"fritz\", _value: 0},\r\n    {_measurement: \"mystrom\", _value: 0},\r\n    {_measurement: \"remoteweather\", _value: 0},\r\n    {_measurement: \"smart-manager\", _value: 0},\r\n    {_measurement: \"smarthings\", _value: 0},\r\n    {_measurement: \"tasmota\", _value: 0},\r\n    {_measurement: \"zendure\", _value: 0}\r\n  ])\r\n\r\ndata =\r\n  from(bucket: \"smarthome\")\r\n    |> range(start: -6m)\r\n    |> filter(fn: (r) => r.domain == \"heartbeat\")\r\n    |> group(columns: [\"_measurement\"])\r\n    |> count()\r\n    |> map(fn: (r) => ({\r\n        _measurement: r._measurement,\r\n        _value: if r._value > 0 then 1 else 0\r\n    }))\r\n\r\nunion(tables: [sensors, data])\r\n  |> group(columns: [\"_measurement\"])\r\n  |> max()",
+          "refId": "A"
+        }
+      ],
+      "title": "heartbeats",
+      "type": "bargauge"
     },
     {
       "datasource": {
@@ -1923,5 +2013,5 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 206
+  "version": 217
 }

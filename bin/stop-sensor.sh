@@ -6,6 +6,7 @@ _basedir=`dirname $_basedir`
 cd ${_basedir} || exit 2
 . env.sh
 
-for sen in $SMARTHOME_SENSORS; do
-    start-sensor.sh "$sen" 
-done
+sen="$1"
+
+pkill -u $USERID -f "$sen".py
+echo $sen stopped

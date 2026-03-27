@@ -3,7 +3,7 @@ from lib.myLog import mLog
 from lib.toinflux import Iflx
 import datetime, time, os, requests
 
-DEBUG = True
+DEBUG = False
 
 ZENDURE_HOST = os.getenv("ZENDURE_HOST")
 ZENDURE_SN   = os.getenv("ZENDURE_SN")

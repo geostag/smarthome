@@ -7,7 +7,5 @@ cd ${_basedir} || exit 2
 . env.sh
 
 for sen in $SMARTHOME_SENSORS; do
-    pkill -u $USERID -f "daemon-sensor.sh $sen"
-    pkill -u $USERID -f "$sen".py
-    echo $sen stopped
+    stop-sensor.sh "$sen"
 done
