@@ -7,6 +7,7 @@ INFLUX_TOKEN = os.getenv("INFLUX_TOKEN")
 INFLUX_ORG   = os.getenv("INFLUX_ORG")
 INFLUX_BUCKET= os.getenv("INFLUX_BUCKET")
 HEARTBEAT_INTERVAL = 300
+MAX_CLIENT_LIFETIME = 3600 * 25
 
 class Iflx:
     def __init__(self,**kwargs):
@@ -14,6 +15,7 @@ class Iflx:
         self.token  = kwargs.get("token",INFLUX_TOKEN)
         self.client = None
         self.api = None
+        self.client_opened = 0
         self.heartbeat_last = 0
         
     def openClient(self):
@@ -22,7 +24,13 @@ class Iflx:
             token=self.token,
             org=INFLUX_ORG
         )
+        self.client_opened = time.time()
         self.api = self.client.write_api(write_options=SYNCHRONOUS)
+        
+    def ensureRecentClient(self):
+        if not self.client or not self.api or self.client_opened < time.time() - MAX_CLIENT_LIFETIME:
+            self.reset()
+            self.openClient()
         
     def reset(self):
         if self.client:
@@ -36,9 +44,8 @@ class Iflx:
         self.api = None
         
     def _write(self,measurement,key,value,tags,timestamp=None):
-        if not self.api:
-            self.openClient()
-            
+        self.ensureRecentClient()       
+        
         p = Point(measurement)
         for t,v in tags.items():
             p.tag(t,v)
