@@ -14,7 +14,7 @@ INFLUX = Iflx()
 
 def datetime_parser(dct):
     for k, v in dct.items():
-        if isinstance(v, str) and re.search("^2\d{3}-\d{2}-\d{2}[A-Z]", v):
+        if isinstance(v, str) and re.search(r'^2\d{3}-\d{2}-\d{2}[A-Z]', v):
             try:
                 dct[k] = dateutil.parser.isoparse(v)
             except:
@@ -23,7 +23,7 @@ def datetime_parser(dct):
                     
                 pass
             
-        elif isinstance(v, str) and re.search("^2\d{3}-\d{2}-\d{2} ", v):
+        elif isinstance(v, str) and re.search(r'^2\d{3}-\d{2}-\d{2} ', v):
             try:
                 dct[k] = datetime.datetime.strptime(v, '%Y-%m-%d %H:%M:%S')
             except:
