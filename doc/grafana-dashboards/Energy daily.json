@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 4,
+  "id": 0,
   "links": [],
   "panels": [
     {
@@ -163,107 +163,6 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "fixedColor": "light-blue",
-            "mode": "fixed"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "fillOpacity": 80,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineWidth": 1,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "watth"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 24,
-        "x": 0,
-        "y": 10
-      },
-      "id": 4,
-      "options": {
-        "barRadius": 0,
-        "barWidth": 0.97,
-        "fullHighlight": false,
-        "groupWidth": 0.7,
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "orientation": "auto",
-        "showValue": "auto",
-        "stacking": "none",
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        },
-        "xTickLabelRotation": 0,
-        "xTickLabelSpacing": 0
-      },
-      "pluginVersion": "12.3.3",
-      "targets": [
-        {
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"solarPower1\" or\r\n      r._field == \"solarPower2\" or\r\n      r._field == \"solarPower3\" or\r\n      r._field == \"solarPower4\"\r\n  )\r\n",
-          "refId": "A"
-        }
-      ],
-      "title": "daily solar production",
-      "transformations": [
-        {
-          "id": "calculateField",
-          "options": {
-            "mode": "reduceRow",
-            "reduce": {
-              "reducer": "sum"
-            },
-            "replaceFields": true
-          }
-        }
-      ],
-      "type": "barchart"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
             "fixedColor": "semi-dark-blue",
             "mode": "fixed"
           },
@@ -310,7 +209,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 10
       },
       "id": 10,
       "options": {
@@ -322,7 +221,7 @@
           "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": false
         },
         "orientation": "auto",
         "showValue": "auto",
@@ -338,7 +237,7 @@
       "pluginVersion": "12.3.3",
       "targets": [
         {
-          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"green_upstream\" or\r\n      r._field == \"green_injected\"\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"upstream_ratio\",\r\n      _field: \"eta\",\r\n      _value: -1.0 * r.green_upstream / r.green_injected\r\n  }))\r\n\r\n",
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"green_upstream\" or\r\n      r._field == \"green_injected\"\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"upstream_ratio\",\r\n      _value: -1.0 * r.green_upstream / r.green_injected\r\n  }))\r\n\r\n",
           "refId": "A"
         }
       ],
@@ -405,7 +304,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 18
       },
       "id": 7,
       "options": {
@@ -472,27 +371,73 @@
               "mode": "off"
             }
           },
+          "displayName": "${__field.name}",
+          "fieldMinMax": false,
           "mappings": [],
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
                 "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
               }
             ]
           },
           "unit": "watth"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pv_excess"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "PV excess"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "super-light-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "_value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "battery loss"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 9,
         "w": 24,
         "x": 0,
-        "y": 36
+        "y": 26
       },
-      "id": 8,
+      "id": 11,
       "options": {
         "barRadius": 0,
         "barWidth": 0.97,
@@ -502,10 +447,10 @@
           "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": false
+          "showLegend": true
         },
-        "orientation": "auto",
-        "showValue": "auto",
+        "orientation": "vertical",
+        "showValue": "always",
         "stacking": "none",
         "tooltip": {
           "hideZeros": false,
@@ -518,11 +463,11 @@
       "pluginVersion": "12.3.3",
       "targets": [
         {
-          "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"packInputPower\")",
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => \r\n    r._measurement == \"daily_energy\" and \r\n    (r._field == \"packInputPower\" or r._field == \"outputPackPower\" or r._field == \"pv_excess\")\r\n  )\r\n  |> pivot(\r\n    rowKey: [\"_time\"],\r\n    columnKey: [\"_field\"],\r\n    valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n    r with \r\n    _value: r.outputPackPower - r.packInputPower\r\n  }))\r\n  |> drop(columns: [\"outputPackPower\", \"packInputPower\"])",
           "refId": "A"
         }
       ],
-      "title": "battery injected",
+      "title": "buffering efficiency",
       "type": "barchart"
     },
     {
@@ -578,7 +523,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 44
+        "y": 35
       },
       "id": 9,
       "options": {
@@ -635,5 +580,5 @@
   "timezone": "browser",
   "title": "Energy daily",
   "uid": "gel4j6k",
-  "version": 53
+  "version": 57
 }
