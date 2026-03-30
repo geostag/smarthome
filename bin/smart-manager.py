@@ -18,7 +18,7 @@ GRIDPOWERREMEMBER_MINUTES = 5
 RESW = 8
 
 # lookback items 
-LOOKBACK_ITEMS = 10
+LOOKBACK_ITEMS = 6
 
 class Tasmota:
     def __init__(self,wb):
@@ -165,7 +165,7 @@ class ZendureManager:
             elif i > i_old:
                 # increase injection slowly
                 mode += ", slow-raise"
-                i = 0.8 * (i - i_old) + i_old
+                i = 0.9 * (i - i_old) + i_old
         
         if i != i_old:
             if ML:
