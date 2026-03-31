@@ -4,19 +4,9 @@ set -euo pipefail
 cd /app
 mkdir -p /app/logs
 
-declare -a discovered_scripts
-mapfile -t discovered_scripts < <(find /app/bin -maxdepth 1 -type f -name '*2influxdb.py' -printf '%f\n' | sort)
-
-declare -a extra_scripts
-if [ -n "${SCRIPTS_EXTRA_FILES:-}" ]; then
-  read -r -a extra_scripts <<< "${SCRIPTS_EXTRA_FILES}"
-else
-  extra_scripts=()
-fi
-
 declare -A seen_scripts=()
 declare -a all_scripts=()
-for script in "${discovered_scripts[@]}" "${extra_scripts[@]}"; do
+for script in "${SCRIPTS_FILES[@]}"; do
   [ -n "${script}" ] || continue
   if [ -z "${seen_scripts[${script}]+x}" ]; then
     seen_scripts["${script}"]=1

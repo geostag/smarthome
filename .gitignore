@@ -1,4 +1,5 @@
 env.sh
+.env
 penv
 grafana-data
 influxdb-data
