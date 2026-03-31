@@ -1,5 +1,4 @@
 env.sh
-docker-compose.yml
 penv
 grafana-data
 influxdb-data

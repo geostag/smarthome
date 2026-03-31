@@ -5,6 +5,4 @@ _basedir=`dirname $_basedir`
 
 cd ${_basedir} || exit 2
 
-bin/start-servers.sh
-sleep 10
-bin/start-sensors.sh
+docker compose up -d --build

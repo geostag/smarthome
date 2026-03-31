@@ -30,7 +30,11 @@ AI suggested to use a combination of influxDB and grafana. And I added some scri
 
 ## architecture
 
-- influxDB and grafana are run as docker containers, storing the collected and configured data in corresponding bind mounted directories
+- influxDB, grafana and the helper scripts are run by one root level `docker-compose.yml`
+- the helper scripts container starts every top-level `bin/*2influxdb.py`
+- `nextcloud-usage2influxdb.py` and `schatzkiste-latest2influxdb.py` are treated as one-shot jobs and run once on container start
+- extra buckets (`smarthomederived` and `longrange`) are created during InfluxDB initialization
+- collected and configured data is stored in corresponding bind mounted directories
 - an MQTT broker 
    - to collect smart meter data (tasmota sends data by MQTT) and send it over to influxdb
    - to collect recent data for an agent to control the solar output power
@@ -41,16 +45,21 @@ AI suggested to use a combination of influxDB and grafana. And I added some scri
 
 ## setup
 
-1. `cp env.sh.template env.sh`
-2. adjust env.sh
-3. run the setup tool once: `bin/setup-once.sh`
-4. start servers: `start-servers.sh`
-5. start sensors: `start-sensors.sh`
-6. add tasks in influxdb by importing from files in doc/influx-tasks
-7. add dashboards in grafana by importing from files in doc/grafana-dashboards
+1. `cp .env.template .env`
+2. adjust `.env`
+3. optionally place local config files such as `fritz-devicemap.json` in `config/`
+4. run the setup tool once: `bin/setup-once.sh`
+5. start the full stack: `docker compose up -d --build` or `bin/start.sh`
+6. add tasks in influxdb by importing from files in `doc/influx-tasks`
+7. add dashboards in grafana by importing from files in `doc/grafana-dashboards`
+
+## helper scripts container
+
+- the scripts container auto-discovers every top-level `bin/*2influxdb.py`
+- add non-matching helpers such as `smart-manager.py` through `SCRIPTS_EXTRA_FILES` in `.env`
+- logs are written to `logs/`
 
 ## result
 
 ![screenshot of a dashboard](/doc/screenshot.png "screenshot")
-
 

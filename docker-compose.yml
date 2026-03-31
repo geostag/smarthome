@@ -1,0 +1,57 @@
+services:
+  influxdb:
+    image: influxdb:2
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_INIT_USERNAME}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_INIT_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET}
+      DOCKER_INFLUXDB_INIT_RETENTION: ${INFLUXDB_INIT_RETENTION}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN}
+      INFLUX_DERIVED_BUCKET: ${INFLUX_DERIVED_BUCKET}
+      INFLUX_LONGRANGE_BUCKET: ${INFLUX_LONGRANGE_BUCKET}
+    volumes:
+      - ./influxdb-data:/var/lib/influxdb2
+      - ./docker/influxdb/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana
+    user: "${USERID:-472}"
+    ports:
+      - "3000:3000"
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+    environment:
+      GF_FEATURE_TOGGLES_PUBLICDASHBOARDS: true
+      GF_PUBLIC_DASHBOARDS_ENABLED: true
+      GF_SECURITY_ALLOW_EMBEDDING: true
+      GF_TIME_PICKER_QUICK_RANGES: '[ {"from":"now-3h","to":"now","display":"Last 3 hours"}, {"from":"now-6h","to":"now","display":"Last 6 hours"}, {"from":"now-12h","to":"now","display":"Last 12 hours"}, {"from":"now-24h","to":"now","display":"Last 24 hours"}, {"from":"now-3d","to":"now","display":"Last 3 days"}, {"from":"now-7d","to":"now","display":"Last 7 days"}, {"from":"now-31d","to":"now","display":"Last month"}, {"from":"now-3y","to":"now","display":"Last 3 years"} ]'
+    restart: unless-stopped
+
+  scripts:
+    build:
+      context: .
+      dockerfile: docker/scripts.Dockerfile
+    init: true
+    env_file:
+      - .env
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+      - ./schatzkiste:/app/schatzkiste
+      - ./config:/app/config
+    restart: unless-stopped
