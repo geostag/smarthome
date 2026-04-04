@@ -1,7 +1,7 @@
 from lib.toinflux import Iflx
 import requests, json, time, os
 
-DEBUG = False
+DEBUG = True
 
 REMOTEWEATHER_INTERVAL = int(os.getenv("REMOTEWEATHER_INTERVAL"))
 REMOTEWEATHER_URL = os.getenv("REMOTEWEATHER_URL")
@@ -27,6 +27,9 @@ def measure():
         
         v = d["wind"]["speed"]
         INFLUX.write("remoteweather", "windspeed", v, { "room": "outside", "domain": "weather" })
+
+    else:
+        print("could not connect remotewaether url")
         
 while True:
     try:

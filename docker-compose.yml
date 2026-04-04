@@ -1,5 +1,6 @@
 services:
   influxdb:
+    container_name: sh-influxdb
     image: influxdb:2
     ports:
       - "8086:8086"
@@ -9,13 +10,10 @@ services:
       DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_INIT_PASSWORD}
       DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG}
       DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET}
-      DOCKER_INFLUXDB_INIT_RETENTION: ${INFLUXDB_INIT_RETENTION}
+      DOCKER_INFLUXDB_INIT_RETENTION: ${INFLUX_RETENTION}
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN}
-      INFLUX_DERIVED_BUCKET: ${INFLUX_DERIVED_BUCKET}
-      INFLUX_LONGRANGE_BUCKET: ${INFLUX_LONGRANGE_BUCKET}
     volumes:
-      - ./influxdb-data:/var/lib/influxdb2
-      - ./docker/influxdb/init:/docker-entrypoint-initdb.d:ro
+      - ./data/influxdb:/var/lib/influxdb2
     healthcheck:
       test: ["CMD", "influx", "ping"]
       interval: 10s
@@ -25,6 +23,7 @@ services:
 
   grafana:
     image: grafana/grafana
+    container_name: sh-grafana
     user: "${USERID:-472}"
     ports:
       - "3000:3000"
@@ -32,7 +31,7 @@ services:
       influxdb:
         condition: service_healthy
     volumes:
-      - ./grafana-data:/var/lib/grafana
+      - ./data/grafana:/var/lib/grafana
     environment:
       GF_FEATURE_TOGGLES_PUBLICDASHBOARDS: true
       GF_PUBLIC_DASHBOARDS_ENABLED: true
@@ -41,6 +40,7 @@ services:
     restart: unless-stopped
 
   scripts:
+    container_name: sh-scripts
     build:
       context: .
       dockerfile: docker/scripts.Dockerfile
@@ -52,6 +52,6 @@ services:
         condition: service_healthy
     volumes:
       - ./logs:/app/logs
-      - ./schatzkiste:/app/schatzkiste
+      - ./data/schatzkiste:/app/schatzkiste
       - ./config:/app/config
     restart: unless-stopped

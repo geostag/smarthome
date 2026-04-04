@@ -12,4 +12,6 @@ COPY docker/scripts-entrypoint.sh /usr/local/bin/scripts-entrypoint.sh
 
 RUN chmod +x /usr/local/bin/scripts-entrypoint.sh
 
-CMD ["scripts-entrypoint.sh"]
+#CMD ["scripts-entrypoint.sh"]
+CMD ["python3","/app/bin/remotetemperature2influxdb.py"]
+
