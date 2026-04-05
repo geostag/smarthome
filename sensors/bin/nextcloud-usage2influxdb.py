@@ -7,7 +7,7 @@ import requests, os, time
 NEXTCLOUD_URL = os.getenv("NEXTCLOUD_URL")
 ADMIN_USER    = os.getenv("NEXTCLOUD_USER")
 APP_PASSWORD  = os.getenv("NEXTCLOUD_APITOKEN")
-TOKEN         = os.getenv("INFLUX_TOKEN_LONGRANGE")
+TOKEN         = os.getenv("INFLUX_LONGRANGE_TOKEN")
 
 
 def queryNc():

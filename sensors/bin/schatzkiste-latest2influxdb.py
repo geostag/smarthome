@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 from lib.toinflux import Iflx
 import re, os, time
 
-TOKEN = os.getenv("INFLUX_TOKEN_LONGRANGE")
+TOKEN = os.getenv("INFLUX_LONGRANGE_TOKEN")
 srcdir = os.getenv("SCHATZKISTE_LOGDIR")
 
 def logSK():

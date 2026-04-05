@@ -1,7 +1,7 @@
 from lib.toinflux import Iflx
 import requests, json, time, os
 
-DEBUG = True
+DEBUG = False
 
 REMOTEWEATHER_INTERVAL = int(os.getenv("REMOTEWEATHER_INTERVAL"))
 REMOTEWEATHER_URL = os.getenv("REMOTEWEATHER_URL")

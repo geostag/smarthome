@@ -30,9 +30,7 @@ AI suggested to use a combination of influxDB and grafana. And I added some scri
 
 ## architecture
 
-- influxDB, grafana and the helper scripts are run by one root level `docker-compose.yml`
-- the helper scripts container starts every top-level `bin/*2influxdb.py`
-- `nextcloud-usage2influxdb.py` and `schatzkiste-latest2influxdb.py` are treated as one-shot jobs and run once on container start
+- influxDB, grafana, mqtt and the helper scripts are run by one root level `docker-compose.yml`
 - extra buckets (`smarthomederived` and `longrange`) are created during InfluxDB initialization
 - collected and configured data is stored in corresponding bind mounted directories
 - an MQTT broker 
@@ -45,19 +43,11 @@ AI suggested to use a combination of influxDB and grafana. And I added some scri
 
 ## setup
 
-1. `cp .env.template .env`
+1. `cp .env.default .env`
 2. adjust `.env`
-3. optionally place local config files such as `fritz-devicemap.json` in `config/`
-4. run the setup tool once: `bin/setup-once.sh`
-5. start the full stack: `docker compose up -d --build` or `bin/start.sh`
-6. add tasks in influxdb by importing from files in `doc/influx-tasks`
-7. add dashboards in grafana by importing from files in `doc/grafana-dashboards`
-
-## helper scripts container
-
-- the scripts container auto-discovers every top-level `bin/*2influxdb.py`
-- add non-matching helpers such as `smart-manager.py` through `SCRIPTS_EXTRA_FILES` in `.env`
-- logs are written to `logs/`
+3. `(cd data && mkdir -p grafana/lib influxdb/lib sensors secrets)`
+4. start the full stack: `docker compose up -d --build`
+5. run the setup tool once: `./bootstrap.sh`
 
 ## result
 

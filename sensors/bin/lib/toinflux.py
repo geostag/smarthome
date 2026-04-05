@@ -3,7 +3,7 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 import os, time
 
 INFLUX_URL   = os.getenv("INFLUX_URL")
-INFLUX_TOKEN = os.getenv("INFLUX_TOKEN")
+INFLUX_SMARTHOME_TOKEN = os.getenv("INFLUX_SMARTHOME_TOKEN")
 INFLUX_ORG   = os.getenv("INFLUX_ORG")
 INFLUX_BUCKET= os.getenv("INFLUX_BUCKET")
 HEARTBEAT_INTERVAL = 300
@@ -12,7 +12,7 @@ MAX_CLIENT_LIFETIME = 3600 * 25
 class Iflx:
     def __init__(self,**kwargs):
         self.bucket = kwargs.get("bucket",INFLUX_BUCKET)
-        self.token  = kwargs.get("token",INFLUX_TOKEN)
+        self.token  = kwargs.get("token",INFLUX_SMARTHOME_TOKEN)
         self.client = None
         self.api = None
         self.client_opened = 0
@@ -59,7 +59,7 @@ class Iflx:
             self.api.write(bucket=self.bucket, record = p)
 
         except:
-            print("FAIL")
+            print(f"FAIL write influx: {measurement} {key}")
             self.reset()
 
     def heartbeat(self,measurement):

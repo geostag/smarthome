@@ -1,12 +1,25 @@
 #!/bin/bash
 set -euo pipefail
 
+while true; do
+  if [ -f /etc/smarthome-secrets/.env ]; then
+    . /etc/smarthome-secrets/.env
+    if [ "_$INFLUX_READALL_TOKEN" != "_" ]; then
+      echo "found. starting up"
+      break
+    fi
+  fi
+  echo "please run bootstrap.sh once to set up influxdb, grafana and secrets"
+  sleep 60
+done
+
+
 cd /app
 mkdir -p /app/logs
 
 declare -A seen_scripts=()
 declare -a all_scripts=()
-for script in "${SCRIPTS_FILES[@]}"; do
+for script in ${SENSORS}; do
   [ -n "${script}" ] || continue
   if [ -z "${seen_scripts[${script}]+x}" ]; then
     seen_scripts["${script}"]=1
@@ -14,33 +27,20 @@ for script in "${SCRIPTS_FILES[@]}"; do
   fi
 done
 
-declare -A one_shot_scripts=()
-for script in ${SCRIPTS_ONE_SHOT_FILES:-}; do
-  [ -n "${script}" ] || continue
-  one_shot_scripts["${script}"]=1
-done
-
 declare -a daemon_pids=()
-declare -a one_shot_pids=()
 
 start_script() {
   local script="$1"
-  local mode="$2"
-  local logfile="/app/logs/${script%.py}.log"
 
-  echo "Starting ${mode} script ${script} -> ${logfile}"
-  python -u "/app/bin/${script}" >> "${logfile}" 2>&1 &
+  echo "Starting script ${script}"
+  python -u "/app/bin/${script}" &
   local pid=$!
 
-  if [ "${mode}" = "daemon" ]; then
-    daemon_pids+=("${pid}")
-  else
-    one_shot_pids+=("${pid}")
-  fi
+  daemon_pids+=("${pid}")
 }
 
 terminate_children() {
-  local pids=("${daemon_pids[@]}" "${one_shot_pids[@]}")
+  local pids=("${daemon_pids[@]}")
   if [ "${#pids[@]}" -gt 0 ]; then
     kill "${pids[@]}" 2>/dev/null || true
     wait "${pids[@]}" 2>/dev/null || true
@@ -55,18 +55,8 @@ for script in "${all_scripts[@]}"; do
     continue
   fi
 
-  if [ -n "${one_shot_scripts[${script}]+x}" ]; then
-    start_script "${script}" "one-shot"
-  else
-    start_script "${script}" "daemon"
-  fi
+  start_script "${script}"
 done
-
-if [ "${#daemon_pids[@]}" -eq 0 ]; then
-  echo "No daemon scripts configured. Waiting for one-shot jobs to finish."
-  wait "${one_shot_pids[@]}"
-  exit 0
-fi
 
 while true; do
   set +e
