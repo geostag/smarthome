@@ -13,7 +13,7 @@ services:
       DOCKER_INFLUXDB_INIT_RETENTION: ${INFLUX_RETENTION}
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN}
     volumes:
-      - ./data/influxdb/lib:/var/lib/influxdb2
+      - ./data/influxdb:/var/lib/influxdb2
       - ./data/secrets:/etc/smarthome-secrets
     healthcheck:
       test: ["CMD", "influx", "ping"]
@@ -32,7 +32,7 @@ services:
       influxdb:
         condition: service_healthy
     volumes:
-      - ./data/grafana/lib:/var/lib/grafana
+      - ./data/grafana:/var/lib/grafana
       - ./data/secrets:/etc/smarthome-secrets
     environment:
       GF_FEATURE_TOGGLES_PUBLICDASHBOARDS: true
