@@ -41,7 +41,7 @@ jobs:
           owner="$(printf '%s' "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
           repo="$(basename "${GITHUB_REPOSITORY}")"
           repo="$(printf '%s' "${repo}" | tr '[:upper:]' '[:lower:]')"
-          echo "image=ghcr.io/${owner}/${repo}-scripts" >> "${GITHUB_OUTPUT}"
+          echo "image=ghcr.io/${owner}/${repo}-sensors" >> "${GITHUB_OUTPUT}"
 
       - name: Set Up QEMU
         uses: docker/setup-qemu-action@v3

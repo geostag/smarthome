@@ -58,7 +58,7 @@ services:
 
   sensors:
     container_name: sh-sensors
-    image: ghcr.io/geostag/smarthome-scripts:latest
+    image: ghcr.io/geostag/smarthome-sensors:latest
     env_file:
       - .env
     depends_on:
