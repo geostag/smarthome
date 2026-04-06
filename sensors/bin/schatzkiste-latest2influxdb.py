@@ -5,6 +5,18 @@ from zoneinfo import ZoneInfo
 from lib.toinflux import Iflx
 import re, os, time
 
+# this relies on files log-YYYMMDD in SCHATZKISTE_LOGDIR of the form:
+#
+# Filesystem                              1K-blocks       Used  Available Use% Mounted on
+# schatzkiste:/volume1/pi-export/nc-data 3746108800 2349104768 1397004032  63% /var/nc-data
+#
+# created by a daily script:
+# #!/bin/bash
+# 
+# TDIR=$HOME/smarthome/data/sensors/schatzkiste
+# 
+# df /var/nc-data/. > $TDIR/stats/log-`date +%Y%m%d`
+
 TOKEN = os.getenv("INFLUX_LONGRANGE_TOKEN")
 srcdir = os.getenv("SCHATZKISTE_LOGDIR")
 

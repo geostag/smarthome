@@ -125,6 +125,12 @@ class myFritz:
             mergewith[h] = self.hosts_seen[h]
             
         return mergewith
+    
+    def macmap(self,mergewith={}):
+        for name in self.hosts_seen:
+            mergewith[name] = self.hosts_seen[name].get("mac","-")
+
+        return mergewith
 
 
 # initialization
@@ -142,9 +148,11 @@ fritzes = [ myFritz(dev,DEVICEMAP) for dev in devices ]
 
 while True:
     hosts = {}
+    macmap = {}
     for f in fritzes:
         f.measure()
         hosts = f.get_hosts(hosts)
+        macmap = f.macmap(macmap)
         
     for h in hosts:
         if re.search(r'-pc$',h):
@@ -152,8 +160,8 @@ while True:
             
         else:
             domain = "presence"
-        
-        INFLUX.write("fritz",h,1,{"domain": domain})
+
+        INFLUX.write("fritz",h,1,{"domain": domain, "mac": macmap[h]})
         
     time.sleep(INTERVAL)
     
