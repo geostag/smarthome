@@ -1,0 +1,70 @@
+services:
+  influxdb:
+    container_name: sh-influxdb
+    image: influxdb:2
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_INIT_USERNAME}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_INIT_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET}
+      DOCKER_INFLUXDB_INIT_RETENTION: ${INFLUX_RETENTION}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN}
+    volumes:
+      - ./data/influxdb/lib:/var/lib/influxdb2
+      - ./data/secrets:/etc/smarthome-secrets
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana
+    container_name: sh-grafana
+    user: "${USERID}"
+    ports:
+      - "3000:3000"
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    volumes:
+      - ./data/grafana/lib:/var/lib/grafana
+      - ./data/secrets:/etc/smarthome-secrets
+    environment:
+      GF_FEATURE_TOGGLES_PUBLICDASHBOARDS: true
+      GF_PUBLIC_DASHBOARDS_ENABLED: true
+      GF_SECURITY_ALLOW_EMBEDDING: true
+      GF_TIME_PICKER_QUICK_RANGES: '[ {"from":"now-3h","to":"now","display":"Last 3 hours"}, {"from":"now-6h","to":"now","display":"Last 6 hours"}, {"from":"now-12h","to":"now","display":"Last 12 hours"}, {"from":"now-24h","to":"now","display":"Last 24 hours"}, {"from":"now-3d","to":"now","display":"Last 3 days"}, {"from":"now-7d","to":"now","display":"Last 7 days"}, {"from":"now-31d","to":"now","display":"Last month"}, {"from":"now-3y","to":"now","display":"Last 3 years"} ]'
+    restart: unless-stopped
+
+  mqtt:
+    container_name: sh-mqtt
+    image: eclipse-mosquitto
+    env_file:
+      - .env
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mqtt/config:/mosquitto/config
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    entrypoint: ["/mosquitto/config/entrypoint-mqtt.sh"]
+
+  sensors:
+    container_name: sh-sensors
+    image: ghcr.io/geostag/smarthome-scripts:latest
+    env_file:
+      - .env
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    volumes:
+      - ./data/sensors:/app/sensors
+      - ./data/secrets:/etc/smarthome-secrets
+    restart: unless-stopped
