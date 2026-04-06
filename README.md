@@ -30,7 +30,9 @@ AI suggested to use a combination of influxDB and grafana. And I added some scri
 
 ## architecture
 
-- influxDB and grafana are run as docker containers, storing the collected and configured data in corresponding bind mounted directories
+- influxDB, grafana, mqtt and the helper scripts are run by one root level `docker-compose.yml`
+- extra buckets (`smarthomederived` and `longrange`) are created during InfluxDB initialization
+- collected and configured data is stored in corresponding bind mounted directories
 - an MQTT broker 
    - to collect smart meter data (tasmota sends data by MQTT) and send it over to influxdb
    - to collect recent data for an agent to control the solar output power
@@ -41,16 +43,13 @@ AI suggested to use a combination of influxDB and grafana. And I added some scri
 
 ## setup
 
-1. `cp env.sh.template env.sh`
-2. adjust env.sh
-3. run the setup tool once: `bin/setup-once.sh`
-4. start servers: `start-servers.sh`
-5. start sensors: `start-sensors.sh`
-6. add tasks in influxdb by importing from files in doc/influx-tasks
-7. add dashboards in grafana by importing from files in doc/grafana-dashboards
+1. `cp .env.default .env`
+2. adjust `.env`
+3. `(cd data && mkdir -p grafana/lib influxdb/lib sensors secrets)`
+4. start the full stack: `docker compose up -d --build`
+5. run the setup tool once: `./bootstrap.sh`
 
 ## result
 
 ![screenshot of a dashboard](/doc/screenshot.png "screenshot")
-
 

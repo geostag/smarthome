@@ -2,7 +2,7 @@ from fritzconnection import FritzConnection
 from fritzconnection.lib.fritzstatus   import FritzStatus
 from fritzconnection.lib.fritzhomeauto import FritzHomeAutomation
 from fritzconnection.lib.fritzhosts    import FritzHosts
-import json, time, os, datetime, re
+import json, time, os, datetime, re, requests
 from lib.toinflux import Iflx
 
 DEBUG = False
@@ -11,15 +11,30 @@ INTERVAL = int(os.getenv("FRITZ_QUERY_INTERVAL"))
 INFLUX = Iflx()
 
 class Mapdevice:
-    def __init__(self,mapfile):
+    def __init__(self,mapurl,mapuser,mappassword):
         self.macmap = {}
-        self.mapfile = mapfile
+        self.mapurl = mapurl
+        self.mapuser = mapuser
+        self.mappassword = mappassword
+        self.mapfile = "/app/sensors/device-map.txt"
         self.devices = {}
         self.alwayson = []
         self.read_devicemap_last = 0
         self.readmap()
-        
+
+    def downloadmap(self):
+        response = requests.get(self.mapurl, auth=(self.mapuser, self.mappassword), stream=True)
+        if response.status_code == 200:
+            with open(self.mapfile, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+
+        else:
+            print(f"Fail download mapfile: {response.status_code}")
+            print(f"{self.mapurl}  -  {self.mapuser}:{self.mappassword}")
+
     def readmap(self):
+        self.downloadmap()
         if self.mapfile:
             with open(self.mapfile,"r") as f:
                 t = json.load(f)
@@ -122,7 +137,7 @@ for s in DEVLIST.split():
         
     devices.append(i)
     
-DEVICEMAP = Mapdevice(os.getenv('FRITZ_DEVICEMAP'))
+DEVICEMAP = Mapdevice(os.getenv('FRITZ_DEVICEMAP_URL'),os.getenv('FRITZ_DEVICEMAP_USER'),os.getenv('FRITZ_DEVICEMAP_PASSWORD'))
 fritzes = [ myFritz(dev,DEVICEMAP) for dev in devices ]
 
 while True:

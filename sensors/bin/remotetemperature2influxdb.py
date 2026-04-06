@@ -27,6 +27,9 @@ def measure():
         
         v = d["wind"]["speed"]
         INFLUX.write("remoteweather", "windspeed", v, { "room": "outside", "domain": "weather" })
+
+    else:
+        print("could not connect remotewaether url")
         
 while True:
     try:
