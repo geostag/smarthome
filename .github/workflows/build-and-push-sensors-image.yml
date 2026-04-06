@@ -8,21 +8,19 @@ on:
       - "v*"
     paths:
       - ".dockerignore"
-      - ".github/workflows/build-and-push-scripts-image.yml"
-      - "bin/**"
-      - "docker/scripts-entrypoint.sh"
-      - "docker/scripts.Dockerfile"
+      - ".github/workflows/build-and-push-sensors-image.yml"
+      - "sensors/bin/**"
+      - "sensors/sensors-entrypoint.sh"
+      - "sensors/sensors.Dockerfile"
       - "requirements.txt"
-      - "schatzkiste/**"
   pull_request:
     paths:
       - ".dockerignore"
-      - ".github/workflows/build-and-push-scripts-image.yml"
-      - "bin/**"
-      - "docker/scripts-entrypoint.sh"
-      - "docker/scripts.Dockerfile"
+      - ".github/workflows/build-and-push-sensors-image.yml"
+      - "sensors/bin/**"
+      - "sensors/sensors-entrypoint.sh"
+      - "sensors/sensors.Dockerfile"
       - "requirements.txt"
-      - "schatzkiste/**"
   workflow_dispatch:
 
 permissions:
@@ -74,7 +72,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: docker/scripts.Dockerfile
+          file: docker/sensors.Dockerfile
           platforms: linux/amd64,linux/arm64
           pull: true
           push: ${{ github.event_name != 'pull_request' && (github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.ref, 'refs/tags/')) }}
