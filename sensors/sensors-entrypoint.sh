@@ -10,6 +10,7 @@ while true; do
     fi
   fi
   echo "please run bootstrap.sh once to set up influxdb, grafana and secrets"
+  echo "waiting 60 seconds"
   sleep 60
 done
 

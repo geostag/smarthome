@@ -1,7 +1,3 @@
-##datatype measurement,tag,double,dateTime:RFC3339
-##default,,,
-#strom,haus,123.4,2024-01-01T12:00:00+01:00
-
 from os import listdir
 from os.path import isfile, join
 from datetime import datetime
@@ -33,6 +29,10 @@ def logSK():
                     INFLUX.write("schatzkiste","used",int(used),{"domain": "storage"},dt)
 
 while True:
-    logSK()
+    if not os.path.isdir(srcdir):
+        print(f"stats directory for schatzkiste das not exist. Waiting one day.")
+    else:
+        logSK()
+
     time.sleep(86400)
     

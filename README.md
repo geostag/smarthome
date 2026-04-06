@@ -45,8 +45,8 @@ AI suggested to use a combination of influxDB and grafana. And I added some scri
 
 1. `cp .env.default .env`
 2. adjust `.env`
-3. `(cd data && mkdir -p grafana/lib influxdb/lib sensors secrets)`
-4. start the full stack: `docker compose up -d --build`
+3. `mkdir -p data/grafana/lib data/influxdb/lib data/sensors data/secrets`
+4. start the full stack: `docker compose -f docker-compose-prod.yml up`
 5. run the setup tool once: `./bootstrap.sh`
 
 ## result
