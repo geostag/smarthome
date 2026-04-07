@@ -18,7 +18,7 @@ GRIDPOWERREMEMBER_MINUTES = 5
 RESW = 8
 
 # lookback items 
-LOOKBACK_ITEMS = 6
+LOOKBACK_ITEMS = 5
 
 class Tasmota:
     def __init__(self,wb):
@@ -118,9 +118,9 @@ class ZendureManager:
             i = 0
             
         elif b >= BATT_MAX:
-            # discharge
+            # input = output
             mode = "super hi batt"
-            i = INJECTION_MAX
+            i = s
             
         elif s > needed:
             # more sun than needed
@@ -132,7 +132,7 @@ class ZendureManager:
             mode = "low sun, low battery, charge it"
             i = 0
             
-        elif hour < 14 and s < needed and b < 2 * BATT_MIN:
+        elif hour < 14 and s < needed and b < 1.5 * BATT_MIN:
             # morning, sun there and completely needed
             # keep RESW for zendure itself
             mode = f"low sun {p},{s},{i}"
