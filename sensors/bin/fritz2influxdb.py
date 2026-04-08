@@ -34,7 +34,11 @@ class Mapdevice:
             print(f"{self.mapurl}  -  {self.mapuser}:{self.mappassword}")
 
     def readmap(self):
-        self.downloadmap()
+        try:
+            self.downloadmap()
+        except:
+            print("failed to download devicemap")
+            
         if self.mapfile:
             with open(self.mapfile,"r") as f:
                 t = json.load(f)

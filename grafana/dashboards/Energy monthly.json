@@ -18,7 +18,6 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 9,
   "links": [],
   "panels": [
     {
@@ -145,7 +144,7 @@
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 0
       },
-      "pluginVersion": "12.3.3",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"swm_used\" or\r\n      r._field == \"green_used\" or\r\n      r._field == \"green_upstream\"\r\n  )\r\n  |> aggregateWindow(every: 1mo, fn: sum)\r\n  |> timeShift(duration: -12h)\r\n\r\n",
@@ -163,7 +162,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "fixedColor": "semi-dark-blue",
+            "mode": "fixed"
           },
           "custom": {
             "axisBorderShow": false,
@@ -200,17 +200,17 @@
               }
             ]
           },
-          "unit": "watth"
+          "unit": "percentunit"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
+        "h": 5,
         "w": 24,
         "x": 0,
         "y": 9
       },
-      "id": 6,
+      "id": 7,
       "options": {
         "barRadius": 0,
         "barWidth": 0.97,
@@ -233,14 +233,232 @@
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 0
       },
-      "pluginVersion": "12.3.3",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
-          "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"packInputPower\")\r\n|> aggregateWindow(every: 1mo, fn: sum)\r\n|> timeShift(duration: -12h)\r\n",
+          "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\" and (r._field == \"green_injected\" or r._field == \"green_upstream\" ))\r\n  |> aggregateWindow(every: 1mo, fn: sum)\r\n  |> pivot(\r\n    rowKey: [\"_time\"],\r\n    columnKey: [\"_field\"],\r\n    valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n    _time: r._time,\r\n    _measurement: \"upstream_ratio\",\r\n    _value: -1.0 * r.green_upstream / r.green_injected\r\n  }))\r\n",
           "refId": "A"
         }
       ],
-      "title": "battery buffered",
+      "title": "upstream ratio",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "id": 8,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "orientation": "auto",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"solarInputPower\" or\r\n      r._field == \"outputHomePower\" or\r\n      r._field == \"gridInputPower\" or\r\n      r._field == \"green_upstream\"\r\n    )\r\n  )\r\n  |> aggregateWindow(every: 1mo, fn: sum)\r\n  |> timeShift(duration: -12h)\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"solar_efficiency\",\r\n      _value: (r.outputHomePower + r.green_upstream - r.gridInputPower) / r.solarInputPower\r\n  }))\r\n",
+          "refId": "A"
+        }
+      ],
+      "title": "solar efficiency",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "watth"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pv_excess"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "PV excess"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "super-light-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "_value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "battery loss"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 9,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "auto",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => \r\n    r._measurement == \"daily_energy\" and \r\n    (r._field == \"packInputPower\" or r._field == \"outputPackPower\" or r._field == \"pv_excess\")\r\n  )\r\n  |> aggregateWindow(every: 1mo, fn: sum)\r\n  |> timeShift(duration: -12h)\r\n  |> pivot(\r\n    rowKey: [\"_time\"],\r\n    columnKey: [\"_field\"],\r\n    valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n    r with \r\n    _value: r.outputPackPower - r.packInputPower\r\n  }))\r\n  |> drop(columns: [\"outputPackPower\", \"packInputPower\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "buffering efficiency",
       "type": "barchart"
     }
   ],
@@ -267,5 +485,6 @@
   "timezone": "browser",
   "title": "Energy monthly",
   "uid": "gefbpzf",
-  "version": 8
+  "version": 11,
+  "weekStart": ""
 }

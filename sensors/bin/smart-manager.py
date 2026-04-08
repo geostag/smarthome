@@ -150,11 +150,17 @@ class ZendureManager:
             maxtotal = max(maxj,s)
             mode = f"blow out {bres}, {maxj}, {s}"
             i = min(maxtotal,needed)
-            
+
         # round and limit to INJECTION_MAX
         i = int(min(INJECTION_MAX,i) + 0.5) * 1.0
-        i = max(i,0)
         
+        # whereever we land, if we have enough energy, provide at least BASELOAD
+        if b > 20:
+            i = max(i,BASELOAD)
+        
+        else:
+            i = max(i,0)
+            
         if p > 0:
             # we use grid power
             if ( i > 10 and abs(i-i_old) < 3 ) or ( i > 100 and abs(i-i_old)/i < 0.03 ):
