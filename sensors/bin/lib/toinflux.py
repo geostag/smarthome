@@ -59,7 +59,7 @@ class Iflx:
             self.api.write(bucket=self.bucket, record = p)
 
         except:
-            print(f"FAIL write influx: {measurement} {key}")
+            print(f"FAIL write influx: {measurement} {key} {value}")
             self.reset()
 
     def heartbeat(self,measurement):

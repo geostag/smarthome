@@ -12,7 +12,9 @@ INJECTION_MAX = int(os.getenv("INJECTION_MAX",800))
 BATT_MIN      = int(os.getenv("MATT_MIN",10))
 BATT_MAX      = int(os.getenv("BATT_MAX",95))
 BASELOAD      = int(os.getenv("BASELOAD",90))
-GRIDPOWERREMEMBER_MINUTES = 5
+GRIDPOWERREMEMBER_MINUTES = 4
+
+INTERVAL = 60
 
 # how many watt to reserve for zendure itself
 RESW = 8
@@ -77,6 +79,7 @@ class ZendureManager:
         self.tasmota = tasmota
         self.gridpower = []
         self.solarInputPower = []
+        self.last_controller_update = 0
         
     def rememberGridPower(self,p):
         self.gridpower.append( { "t": time.time(), "v": p } )
@@ -90,7 +93,12 @@ class ZendureManager:
     def isUpstream(self):
         return (self.tasmota.Power < 0)
         
-    def controller_update(self):
+    def controller_update(self,force = False):
+        if self.last_controller_update > time.time() - INTERVAL and not force:
+            return True
+        
+        self.last_controller_update = time.time()
+
         b = self.zen.electricLevel
         
         p = self.tasmota.Power
@@ -199,8 +207,7 @@ def tasmotaCallback(data):
         if DEBUG:
             ML.log("yusha, call update")
             
-        ZM.controller_update()
-        time.sleep(30)
+        ZM.controller_update(True)
 
 # trigger callback, when new tasmota values available
 WB.addDeviceListener("tasmota",tasmotaCallback)
@@ -212,6 +219,6 @@ else:
     ML = None
 
 while True:
-    time.sleep(60)
+    time.sleep(INTERVAL)
     ZM.controller_update()
     INFLUX.heartbeat("smart-manager")
