@@ -25,7 +25,7 @@ def measure():
         v = d["main"]["pressure"]
         INFLUX.write("remoteweather", "pressure", v, { "room": "outside", "domain": "weather" })
         
-        v = d["wind"]["speed"]
+        v = 1.0 * d["wind"]["speed"]
         INFLUX.write("remoteweather", "windspeed", v, { "room": "outside", "domain": "weather" })
 
     else:
