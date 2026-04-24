@@ -19,9 +19,6 @@ INTERVAL = 60
 # how many watt to reserve for zendure itself
 RESW = 8
 
-# lookback items 
-LOOKBACK_ITEMS = 5
-
 class Tasmota:
     def __init__(self,wb):
         self.wb = wb
@@ -98,8 +95,16 @@ class ZendureManager:
             return True
         
         self.last_controller_update = time.time()
-
+        
+        hour = datetime.datetime.now().hour
         b = self.zen.electricLevel
+        
+        # battery fill ratio (0...1)
+        bres = int(100 * (b - BATT_MIN)/(BATT_MAX-BATT_MIN) + 0.5) / 100
+        # ratio of sunhours
+        shourr = max(1,min(0,(hour - 7 ) / 12))
+        
+        lookback_items = 5
         
         p = self.tasmota.Power
         self.rememberGridPower(p)
@@ -108,15 +113,13 @@ class ZendureManager:
         
         s = self.zen.solarInputPower
         self.solarInputPower.append(s)
-        self.solarInputPower = self.solarInputPower[(-1 * LOOKBACK_ITEMS):]
+        self.solarInputPower = self.solarInputPower[(-1 * lookback_items):]
         s = int( 10 * sum(self.solarInputPower) / len(self.solarInputPower) + 0.5) / 10
         
         i = self.zen.outputLimit
         i_old = int(i)
         
-        hour = datetime.datetime.now().hour
         needed = i+p
-        bres = int(100 * (b - BATT_MIN)/(BATT_MAX-BATT_MIN) + 0.5) / 100
         mode = ""
         
         # values ready, lets do logic
