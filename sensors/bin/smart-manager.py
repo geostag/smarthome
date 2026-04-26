@@ -16,6 +16,8 @@ GRIDPOWERREMEMBER_MINUTES = 4
 
 INTERVAL = 60
 
+DRYRUN = (os.getenv("DRYRUN","FALSE") == "TRUE")
+
 # how many watt to reserve for zendure itself
 RESW = 8
 
@@ -56,6 +58,10 @@ class Zendure:
         
         value = max(value,0)
         value = int(min(INJECTION_MAX,value) + 0.5) * 1.0
+
+        if DRYRUN:
+            print(f"DRYRUN: setting output to value {value}")
+            return True
         
         data = { 
             "sn": self.sn,
@@ -77,6 +83,10 @@ class ZendureManager:
         self.gridpower = []
         self.solarInputPower = []
         self.last_controller_update = 0
+        self.sunRaise = False
+        self.sunDown  = False
+        self.sunRaiseYesterday = False
+        self.sunDownYesterday  = False
         
     def rememberGridPower(self,p):
         self.gridpower.append( { "t": time.time(), "v": p } )
@@ -89,7 +99,51 @@ class ZendureManager:
     @property
     def isUpstream(self):
         return (self.tasmota.Power < 0)
+    
+    @property
+    def hourFloat(self):
+        hour = datetime.datetime.now().hour
+        minute = datetime.datetime.now().minute
+        return hour + minute / 60
+    
+    def setSunRaiseDown(self,s):
+        h = self.hourFloat
+        if self.sunRaise == False and s > 0:
+            self.sunRaise = h
+
+        elif self.sunRaise != False and self.sunDown == False and h > 15 and s == 0:
+            self.sunRaiseYesterday = self.sunRaise
+            self.sunDownYesterday  = h
+            self.sunRaise = False
+            self.sunDown  = False
+
+    @property
+    def hratio(self):
+        # sun hour ratio
+        # range 0...1
+        r = self.sunRaiseYesterday if self.sunRaiseYesterday else 7.0
+        d = self.sunDownYesterday  if self.sunDownYesterday  else 17.0
+        d = max(d,r+5)
+        h = self.hourFloat
+        return min(1,max(0,(h - r)) / (d - r))
+    
+    @property
+    def bratio(self):
+        # battery fill ratio
+        # range: 0...1
+        b = self.zen.electricLevel
+        return int(100 * (b - BATT_MIN)/(BATT_MAX-BATT_MIN) + 0.5) / 100
+    
+    @property
+    def generosity(self):
+        # is this a sunny day?
+        # range: 0.. 1 .. 2
+        try: 
+            return min(2,self.bratio / self.hratio)
         
+        except:
+            return 1
+
     def controller_update(self,force = False):
         if self.last_controller_update > time.time() - INTERVAL and not force:
             return True
@@ -98,12 +152,7 @@ class ZendureManager:
         
         hour = datetime.datetime.now().hour
         b = self.zen.electricLevel
-        
-        # battery fill ratio (0...1)
-        bres = int(100 * (b - BATT_MIN)/(BATT_MAX-BATT_MIN) + 0.5) / 100
-        # ratio of sunhours
-        shourr = max(1,min(0,(hour - 7 ) / 12))
-        
+                
         lookback_items = 5
         
         p = self.tasmota.Power
@@ -112,12 +161,18 @@ class ZendureManager:
             p = self.minRememberGridPower()
         
         s = self.zen.solarInputPower
+        self.setSunRaiseDown(s)
+
         self.solarInputPower.append(s)
         self.solarInputPower = self.solarInputPower[(-1 * lookback_items):]
         s = int( 10 * sum(self.solarInputPower) / len(self.solarInputPower) + 0.5) / 10
         
         i = self.zen.outputLimit
         i_old = int(i)
+
+        if datetime.datetime.now().minute < 6:
+            t = str(datetime.datetime.now())
+            print(f"{t}: h: {self.hratio} b: {self.bratio} g: {self.generosity}")
         
         needed = i+p
         mode = ""
@@ -128,10 +183,10 @@ class ZendureManager:
             mode = "super low batt"
             i = 0
             
-        elif b >= BATT_MAX:
+        elif b >= 0.98 * BATT_MAX and s > INJECTION_MAX:
             # input = output
             mode = "super hi batt"
-            i = s
+            i = s - 30
             
         elif s > needed:
             # more sun than needed
@@ -157,9 +212,9 @@ class ZendureManager:
         else:
             # maximum discharge based on reserves in battery or sun (whatever is more)
             minj = 1.0 * BASELOAD
-            maxj = bres * (INJECTION_MAX - minj) + minj
+            maxj = self.bratio * (INJECTION_MAX - minj) + minj
             maxtotal = max(maxj,s)
-            mode = f"blow out {bres}, {maxj}, {s}"
+            mode = f"blow out {self.bratio}, {maxj}, {s}"
             i = min(maxtotal,needed)
 
         # round and limit to INJECTION_MAX
