@@ -153,7 +153,7 @@ class ZendureManager:
         hour = datetime.datetime.now().hour
         b = self.zen.electricLevel
                 
-        lookback_items = 11 - 5 * self.generosity
+        lookback_items = 11 - int(5 * self.generosity + 0.5)
         
         p = self.tasmota.Power
         self.rememberGridPower(p)
