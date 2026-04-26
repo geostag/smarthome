@@ -139,7 +139,7 @@ class ZendureManager:
         # is this a sunny day?
         # range: 0.. 1 .. 2
         try: 
-            return min(2,self.bratio / self.hratio)
+            return min(2,0.8 * self.bratio / self.hratio)
         
         except:
             return 1
@@ -153,7 +153,7 @@ class ZendureManager:
         hour = datetime.datetime.now().hour
         b = self.zen.electricLevel
                 
-        lookback_items = 5
+        lookback_items = 11 - 5 * self.generosity
         
         p = self.tasmota.Power
         self.rememberGridPower(p)
@@ -170,7 +170,7 @@ class ZendureManager:
         i = self.zen.outputLimit
         i_old = int(i)
 
-        if datetime.datetime.now().minute < 6:
+        if datetime.datetime.now().minute < 3:
             t = str(datetime.datetime.now())
             print(f"{t}: h: {self.hratio} b: {self.bratio} g: {self.generosity}")
         
