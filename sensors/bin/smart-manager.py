@@ -1,6 +1,7 @@
 from lib.mqttconn import WhiteBoard
 from lib.myLog import mLog
 from lib.toinflux import Iflx
+from lib.myDatabase import mDb
 import datetime, time, os, requests
 
 DEBUG = False
@@ -77,9 +78,10 @@ class Zendure:
             return True
         
 class ZendureManager:
-    def __init__(self,zen,tasmota):
+    def __init__(self,zen,tasmota,db):
         self.zen = zen
         self.tasmota = tasmota
+        self.db = db
         self.gridpower = []
         self.solarInputPower = []
         self.last_controller_update = 0
@@ -110,10 +112,12 @@ class ZendureManager:
         h = self.hourFloat
         if self.sunRaise == False and s > 0:
             self.sunRaise = h
+            self.db.set("sunRaiseYesterday",h)
 
         elif self.sunRaise != False and self.sunDown == False and h > 15 and s == 0:
             self.sunRaiseYesterday = self.sunRaise
             self.sunDownYesterday  = h
+            self.db.set("sunDownYesterday",h)
             self.sunRaise = False
             self.sunDown  = False
 
@@ -139,7 +143,7 @@ class ZendureManager:
         # is this a sunny day?
         # range: 0.. 1 .. 2
         try: 
-            return min(2,0.8 * self.bratio / self.hratio)
+            return min(2,0.8 * self.bratio / (self.hratio + 1))
         
         except:
             return 1
@@ -170,7 +174,7 @@ class ZendureManager:
         i = self.zen.outputLimit
         i_old = int(i)
 
-        if datetime.datetime.now().minute < 3:
+        if datetime.datetime.now().minute < 2:
             t = str(datetime.datetime.now())
             print(f"{t}: h: {self.hratio} b: {self.bratio} g: {self.generosity}")
         
@@ -186,7 +190,7 @@ class ZendureManager:
         elif b >= 0.98 * BATT_MAX and s > INJECTION_MAX:
             # input = output
             mode = "super hi batt"
-            i = s - 30
+            i = s - 5
             
         elif s > needed:
             # more sun than needed
@@ -237,7 +241,7 @@ class ZendureManager:
             elif i > i_old:
                 # increase injection slowly
                 mode += ", slow-raise"
-                i = 0.9 * (i - i_old) + i_old
+                i = (0.9 + 0.05 * self.generosity) * (i - i_old) + i_old
         
         if i != i_old:
             if ML:
@@ -256,8 +260,10 @@ class ZendureManager:
 INFLUX = Iflx()
 # Whiteboard with recent data
 WB  = WhiteBoard()
+# a persistent database to store sunraise/down times
+DB = mDb("/app/sensors/smart-manager-state.json")
 # Zendure management
-ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB) )
+ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB), DB )
 
 def tasmotaCallback(data):
     if data.get("Power",0) < 0:

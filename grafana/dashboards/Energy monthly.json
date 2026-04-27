@@ -236,7 +236,7 @@
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\" and (r._field == \"green_injected\" or r._field == \"green_upstream\" ))\r\n  |> aggregateWindow(every: 1mo, fn: sum)\r\n  |> pivot(\r\n    rowKey: [\"_time\"],\r\n    columnKey: [\"_field\"],\r\n    valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n    _time: r._time,\r\n    _measurement: \"upstream_ratio\",\r\n    _value: -1.0 * r.green_upstream / r.green_injected\r\n  }))\r\n",
+          "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\" and (r._field == \"green_injected\" or r._field == \"green_upstream\" ))\r\n  |> aggregateWindow(every: 1mo, fn: sum)\r\n  |> pivot(\r\n    rowKey: [\"_time\"],\r\n    columnKey: [\"_field\"],\r\n    valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n    _time: r._time,\r\n    _measurement: \"upstream_ratio\",\r\n    _value: -1.0 * r.green_upstream / r.green_injected\r\n  }))\r\n  |> timeShift(duration: -12h)\r\n",
           "refId": "A"
         }
       ],
@@ -485,6 +485,6 @@
   "timezone": "browser",
   "title": "Energy monthly",
   "uid": "gefbpzf",
-  "version": 11,
+  "version": 12,
   "weekStart": ""
 }
