@@ -154,7 +154,6 @@ class ZendureManager:
         
         self.last_controller_update = time.time()
         
-        hour = datetime.datetime.now().hour
         b = self.zen.electricLevel
                 
         lookback_items = 11 - int(5 * self.generosity + 0.5)
@@ -187,28 +186,28 @@ class ZendureManager:
             mode = "super low batt"
             i = 0
             
-        elif b >= 0.98 * BATT_MAX and s > INJECTION_MAX:
+        elif b >= 0.98 * BATT_MAX and s > i + 5:
             # input = output
             mode = "super hi batt"
-            i = s - 5
+            i = s
             
         elif s > needed:
             # more sun than needed
             mode = "hi sun"
             i = needed
             
-        elif hour < 14 and s < 70 and b < 1.5 * BATT_MIN:
+        elif self.hourFloat < 14 and s < 70 and b < 1.5 * BATT_MIN:
             # morning, low sun, low inverter efficiency - charge battery
             mode = "low sun, low battery, charge it"
             i = 0
             
-        elif hour < 14 and s < needed and b < 2.0 * BATT_MIN:
+        elif self.hourFloat < 14 and s < needed and b < 2.0 * BATT_MIN:
             # morning, sun there and completely needed
             # keep RESW for zendure itself
             mode = f"low sun {p},{s},{i}"
             i = s - RESW
 
-        elif hour >= 14 and b < 1.3 * BATT_MIN and s < 20:
+        elif self.hourFloat >= 14 and b < 1.3 * BATT_MIN and s < 20:
             # afternoon, everything low
             mode = f"afternoon, low sun {s} and battery"
             i = 0
