@@ -12,6 +12,7 @@ services:
       DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET}
       DOCKER_INFLUXDB_INIT_RETENTION: ${INFLUX_RETENTION}
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN}
+      TZ: Europe/Berlin
     volumes:
       - ./data/influxdb:/var/lib/influxdb2
       - ./data/secrets:/etc/smarthome-secrets
@@ -39,6 +40,7 @@ services:
       GF_PUBLIC_DASHBOARDS_ENABLED: true
       GF_SECURITY_ALLOW_EMBEDDING: true
       GF_TIME_PICKER_QUICK_RANGES: '[ {"from":"now-3h","to":"now","display":"Last 3 hours"}, {"from":"now-6h","to":"now","display":"Last 6 hours"}, {"from":"now-12h","to":"now","display":"Last 12 hours"}, {"from":"now-24h","to":"now","display":"Last 24 hours"}, {"from":"now-3d","to":"now","display":"Last 3 days"}, {"from":"now-7d","to":"now","display":"Last 7 days"}, {"from":"now-31d","to":"now","display":"Last month"}, {"from":"now-3y","to":"now","display":"Last 3 years"} ]'
+      TZ: Europe/Berlin
     restart: unless-stopped
 
   mqtt:
@@ -59,6 +61,8 @@ services:
   sensors:
     container_name: sh-sensors
     image: ghcr.io/geostag/smarthome-sensors:latest
+    environment:
+      - TZ=Europe/Berlin
     env_file:
       - .env
     depends_on:
