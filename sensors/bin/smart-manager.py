@@ -175,7 +175,7 @@ class ZendureManager:
 
         if datetime.datetime.now().minute < 2:
             t = str(datetime.datetime.now())
-            print(f"{t}: h: {self.hratio} b: {self.bratio} g: {self.generosity}")
+            print(f"{t}: h: {self.hourFloat}/{self.hratio} b: {self.bratio} g: {self.generosity}")
         
         needed = i+p
         mode = ""
