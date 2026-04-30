@@ -27,12 +27,27 @@ def measure(device):
         if DEBUG:
             print(d)
 
-        t = d["components"]["main"]["temperatureMeasurement"]["temperature"]["value"]
-        INFLUX.write("smarthings","temperature",t,{"room": device["label"], "domain": "temperature"})
+        cd = d["components"]["main"]
+
+        if "temperatureMeasurement" in cd:
+            t = cd["temperatureMeasurement"]["temperature"]["value"]
+            INFLUX.write("smarthings","temperature",t,{"room": device["label"], "domain": "temperature"})
         
-        if "relativeHumidityMeasurement" in d["components"]["main"]:
-            h = d["components"]["main"]["relativeHumidityMeasurement"]["humidity"]["value"]
+        if "relativeHumidityMeasurement" in cd:
+            h = cd["relativeHumidityMeasurement"]["humidity"]["value"]
             INFLUX.write("smarthings","humidity",h,{"room": device["label"], "domain": "humidity"})
+
+        if "powerMeter" in cd:
+            p = cd["powerMeter"]["power"]["value"] * 1.0
+            INFLUX.write("smarthings","power",p, {"electric": "switch", "room": device["label"], "domain": "electricity" } )
+            
+        if "energyMeter" in cd:
+            p = cd["energyMeter"]["energy"]["value"] * 1.0
+            INFLUX.write("smarthings","energy",p, {"electric": "switch", "room": device["label"], "domain": "electricity" } )
+            
+        if "switch" in cd:
+            state = 1 if cd["switch"]["switch"]["value"] == "on" else 0
+            INFLUX.write("smarthings","state",state, {"electric": "switch", "room": device["label"], "domain": "electricity" } )
             
 while True:
     for d in ST_DEVICES:
