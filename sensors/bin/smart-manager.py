@@ -173,10 +173,6 @@ class ZendureManager:
         i = self.zen.outputLimit
         i_old = int(i)
 
-        if datetime.datetime.now().minute < 2:
-            t = str(datetime.datetime.now())
-            print(f"{t}: h: {self.hourFloat}/{self.hratio} b: {self.bratio} g: {self.generosity}")
-        
         needed = i+p
         mode = ""
         
@@ -196,12 +192,12 @@ class ZendureManager:
             mode = "hi sun"
             i = needed
             
-        elif self.hourFloat < 14 and s < 70 and b < 1.5 * BATT_MIN:
+        elif self.hourFloat < 14 and s > 0 and s < 70 and b < 1.5 * BATT_MIN:
             # morning, low sun, low inverter efficiency - charge battery
             mode = "low sun, low battery, charge it"
             i = 0
             
-        elif self.hourFloat < 14 and s < needed and b < 2.0 * BATT_MIN:
+        elif self.hourFloat < 14 and s > 0 and s < needed and b < 2.0 * BATT_MIN:
             # morning, sun there and completely needed
             # keep RESW for zendure itself
             mode = f"low sun {p},{s},{i}"
