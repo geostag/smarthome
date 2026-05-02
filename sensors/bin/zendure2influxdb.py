@@ -44,14 +44,27 @@ def measure(host,mqttconnection):
                 
             dcopy[k] = v
                 
+        dpack = {}
+        npack = 0
         for pack in d["packData"]:
             # loop over battery packs
             psn = pack["sn"]
+            npack += 1
             for k in REPORT_PACK_PROPERTIES:
                 v = pack.get(k,0)
+                if DEBUG:
+                    print(f"single pack data: {k} - {v}")
+
                 INFLUX.write("zendure", k, v, { "room": "2Stock", "domain": "electricity", "pack": psn })
-        
-            dcopy[k] = v
+                if not k in dpack:
+                    dpack[k] = 0
+
+                dpack[k] += v
+
+        for k in dpack:
+            dcopy[k] = dpack[k] / npack 
+            if DEBUG:
+                print(f"total  pack data: {k} - {dcopy[k]} (npack: {npack})")
             
         if mqttconnection:
             #print(dcopy)
@@ -151,6 +164,19 @@ while True:
 #         "maxVol":310,
 #         "minVol":308,
 #         "softVersion":4117
+#      },
+#      {
+#          "sn": "CO4ELNJ3N449044",
+#          "packType": 300,
+#          "socLevel": 75,
+#          "state": 1,
+#          "power": 455,
+#          "maxTemp": 2891,
+#          "totalVol": 5120,
+#          "batcur": 89,
+#          "maxVol": 342,
+#          "minVol": 341,
+#          "softVersion": 4117
 #      }
 #   ]
 #}
