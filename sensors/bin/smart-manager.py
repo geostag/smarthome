@@ -78,17 +78,18 @@ class Zendure:
             return True
         
 class ZendureManager:
-    def __init__(self,zen,tasmota,db):
+    def __init__(self,zen,tasmota):
         self.zen = zen
         self.tasmota = tasmota
-        self.db = db
         self.gridpower = []
         self.solarInputPower = []
         self.last_controller_update = 0
-        self.sunRaise = False
-        self.sunDown  = False
-        self.sunRaiseYesterday = False
-        self.sunDownYesterday  = False
+        self.db = mDb("/app/sensors/smart-manager-state.json")
+        self.db.read()
+        self.sunRaiseYesterday = self.db.get("sunRaiseYesterday")
+        self.sunDownYesterday  = self.db.get("sunDownYesterday")
+        self.sunRaise = self.sunRaiseYesterday if (self.sunRaiseYesterday and self.hourFloat > self.self.sunRaiseYesterday) else None
+        self.sunDown  = None
         
     def rememberGridPower(self,p):
         self.gridpower.append( { "t": time.time(), "v": p } )
@@ -110,16 +111,16 @@ class ZendureManager:
     
     def setSunRaiseDown(self,s):
         h = self.hourFloat
-        if self.sunRaise == False and s > 0:
+        if self.sunRaise == None and s > 0:
             self.sunRaise = h
             self.db.set("sunRaiseYesterday",h)
 
-        elif self.sunRaise != False and self.sunDown == False and h > 15 and s == 0:
+        elif self.sunRaise != None and self.sunDown == None and h > 15 and s == 0:
             self.sunRaiseYesterday = self.sunRaise
             self.sunDownYesterday  = h
             self.db.set("sunDownYesterday",h)
-            self.sunRaise = False
-            self.sunDown  = False
+            self.sunRaise = None
+            self.sunDown  = None
 
     @property
     def hratio(self):
@@ -210,7 +211,7 @@ class ZendureManager:
             
         else:
             # maximum discharge based on reserves in battery or sun (whatever is more)
-            minj = 1.0 * BASELOAD
+            minj = 2.0 * BASELOAD
             maxj = self.bratio * (INJECTION_MAX - minj) + minj
             maxtotal = max(maxj,s)
             mode = f"blow out {self.bratio}, {maxj}, {s}"
@@ -255,8 +256,6 @@ class ZendureManager:
 INFLUX = Iflx()
 # Whiteboard with recent data
 WB  = WhiteBoard()
-# a persistent database to store sunraise/down times
-DB = mDb("/app/sensors/smart-manager-state.json")
 # Zendure management
 ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB), DB )
 
