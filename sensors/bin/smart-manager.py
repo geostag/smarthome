@@ -257,7 +257,7 @@ INFLUX = Iflx()
 # Whiteboard with recent data
 WB  = WhiteBoard()
 # Zendure management
-ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB), DB )
+ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB) )
 
 def tasmotaCallback(data):
     if data.get("Power",0) < 0:
