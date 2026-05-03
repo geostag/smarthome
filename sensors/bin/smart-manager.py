@@ -88,7 +88,7 @@ class ZendureManager:
         self.db.read()
         self.sunRaiseYesterday = self.db.get("sunRaiseYesterday")
         self.sunDownYesterday  = self.db.get("sunDownYesterday")
-        self.sunRaise = self.sunRaiseYesterday if (self.sunRaiseYesterday and self.hourFloat > self.self.sunRaiseYesterday) else None
+        self.sunRaise = self.sunRaiseYesterday if (self.sunRaiseYesterday and self.hourFloat > self.sunRaiseYesterday) else None
         self.sunDown  = None
         
     def rememberGridPower(self,p):
