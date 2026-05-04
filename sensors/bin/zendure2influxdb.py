@@ -52,6 +52,9 @@ def measure(host,mqttconnection):
             npack += 1
             for k in REPORT_PACK_PROPERTIES:
                 v = pack.get(k,0)
+                if k == "maxTemp":
+                    v = ( v - 2731 ) / 10.0
+                    
                 if DEBUG:
                     print(f"single pack data: {k} - {v}")
 
