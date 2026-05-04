@@ -13,9 +13,9 @@ INJECTION_MAX = int(os.getenv("INJECTION_MAX",800))
 BATT_MIN      = int(os.getenv("MATT_MIN",10))
 BATT_MAX      = int(os.getenv("BATT_MAX",95))
 BASELOAD      = int(os.getenv("BASELOAD",90))
-GRIDPOWERREMEMBER_MINUTES = 4
+GRIDPOWERREMEMBER_MINUTES = 5
 
-INTERVAL = 60
+INTERVAL = 90
 
 DRYRUN = (os.getenv("DRYRUN","FALSE") == "TRUE")
 
@@ -99,6 +99,10 @@ class ZendureManager:
     def minRememberGridPower(self):
         return min( [ x["v"] for x in self.gridpower ] )
         
+    def avgRememberGridPower(self):
+        vs = [ x["v"] for x in self.gridpower ]
+        return sum(vs)/len(vs)
+        
     @property
     def isUpstream(self):
         return (self.tasmota.Power < 0)
@@ -156,24 +160,25 @@ class ZendureManager:
         self.last_controller_update = time.time()
         
         b = self.zen.electricLevel
+        i = self.zen.outputLimit
+        i_old = int(i)
                 
         lookback_items = 11 - int(5 * self.generosity + 0.5)
-        
-        p = self.tasmota.Power
-        self.rememberGridPower(p)
-        if p > 100:
-            p = self.minRememberGridPower()
-        
         s = self.zen.solarInputPower
         self.setSunRaiseDown(s)
-
         self.solarInputPower.append(s)
         self.solarInputPower = self.solarInputPower[(-1 * lookback_items):]
         s = int( 10 * sum(self.solarInputPower) / len(self.solarInputPower) + 0.5) / 10
         
-        i = self.zen.outputLimit
-        i_old = int(i)
+        p = self.tasmota.Power
+        self.rememberGridPower(p)
+        if p > 100:
+            if b > 35 and s > i:
+                p = self.avgRememberGridPower()
 
+            else:
+                p = self.minRememberGridPower()
+        
         needed = i+p
         mode = ""
         
@@ -223,10 +228,7 @@ class ZendureManager:
         # whereever we land, if we have enough energy, provide at least BASELOAD
         if b > 20:
             i = max(i,BASELOAD)
-        
-        else:
-            i = max(i,0)
-            
+                    
         if p > 0:
             # we use grid power
             if ( i > 10 and abs(i-i_old) < 3 ) or ( i > 100 and abs(i-i_old)/i < 0.03 ):
