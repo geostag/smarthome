@@ -20,6 +20,15 @@ class mDb:
         with open(self.path, 'r') as f:
             self.DB = json.load(f)
 
+    @property
+    def hash(self):
+        return self.DB
+
+    @hash.setter
+    def hash(self,h):
+        self.DB = h
+        self.write()
+
     def set(self,key,value):
         self.DB[key] = value
         self.write()

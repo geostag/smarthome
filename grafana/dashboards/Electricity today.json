@@ -33,7 +33,7 @@
           "custom": {
             "neutral": 0
           },
-          "decimals": 0,
+          "decimals": 1,
           "mappings": [],
           "max": 600,
           "min": 0,
@@ -377,7 +377,7 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": 4000,
+          "max": 7000,
           "min": 0,
           "thresholds": {
             "mode": "absolute",
@@ -429,7 +429,7 @@
               },
               {
                 "id": "max",
-                "value": 300
+                "value": 1000
               },
               {
                 "id": "displayName",
@@ -497,7 +497,7 @@
               },
               {
                 "id": "max",
-                "value": 2000
+                "value": 4000
               }
             ]
           },
@@ -520,7 +520,7 @@
               },
               {
                 "id": "max",
-                "value": 2000
+                "value": 4000
               }
             ]
           }
@@ -1260,7 +1260,7 @@
             "type": "influxdb",
             "uid": "df8oltzu756o0e"
           },
-          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => (r._measurement == \"zendure\" and r._field == \"solarInputPower\") or (r._measurement == \"tasmota\" and r._field == \"upstream\"))\r\n|> map(fn: (r) => ({r with _value: if r._field == \"upstream\" then -1 * r._value else r._value}))\r\n",
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => (r._measurement == \"zendure\" and r._field == \"solarInputPower\") or (r._measurement == \"tasmota\" and r._field == \"upstream\"))\r\n|> map(fn: (r) => ({r with _value: if r._field == \"upstream\" then -1 * r._value else r._value}))\r\n|> aggregateWindow(every: 1m, fn: max, createEmpty: false)\r\n\r\n",
           "refId": "B"
         }
       ],
@@ -2045,6 +2045,6 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 225,
+  "version": 229,
   "weekStart": ""
 }

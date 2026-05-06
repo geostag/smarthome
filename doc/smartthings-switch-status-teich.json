@@ -1,0 +1,62 @@
+{
+    "components": {
+        "main": {
+            "powerMeter": {
+                "power": {
+                    "value": 0.0,
+                    "unit": "W",
+                    "timestamp": "2026-05-03T05:05:21.180Z"
+                }
+            },
+            "energyMeter": {
+                "energy": {
+                    "value": 3013.0,
+                    "unit": "kWh",
+                    "timestamp": "2026-05-03T05:05:20.990Z"
+                }
+            },
+            "refresh": {},
+            "firmwareUpdate": {
+                "lastUpdateStatusReason": {
+                    "value": null
+                },
+                "imageTransferProgress": {
+                    "value": null
+                },
+                "availableVersion": {
+                    "value": null
+                },
+                "lastUpdateStatus": {
+                    "value": null
+                },
+                "supportedCommands": {
+                    "value": null
+                },
+                "state": {
+                    "value": null
+                },
+                "estimatedTimeRemaining": {
+                    "value": null
+                },
+                "updateAvailable": {
+                    "value": null
+                },
+                "currentVersion": {
+                    "value": null
+                },
+                "lastUpdateTime": {
+                    "value": null
+                },
+                "supportsProgressReports": {
+                    "value": null
+                }
+            },
+            "switch": {
+                "switch": {
+                    "value": "off",
+                    "timestamp": "2026-05-03T04:55:27.119Z"
+                }
+            }
+        }
+    }
+}
