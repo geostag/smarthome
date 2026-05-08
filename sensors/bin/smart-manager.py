@@ -69,7 +69,12 @@ class Zendure:
             "sn": self.sn,
             "properties": { "outputLimit": int(value) }
         }
-        r = requests.post(self.url, json=data)
+        try:
+            r = requests.post(self.url, json=data)
+
+        except:
+            return False
+        
         if r.status_code != 200:
             print(f"ERROR setting outputlimit: {r.status_code}")
             return False

@@ -1,5 +1,4 @@
-from lib.myDatabase import mDb
-import os, requests, json, datetime, re
+import os, requests, json, datetime, re, time
 
 # usage:
 #   f = Forecast()
@@ -17,6 +16,7 @@ class SunForecast:
         self.rawdata = None
         self.data = {}
         self.today = None
+        self.lastwrite = 0
         
     def query(self):
         r = requests.get(FORECASTURL)
@@ -104,4 +104,8 @@ class HistoryMaker:
         self.memory[d][h]["solarsum"] += s
         self.memory[d][h]["solarnumber"] += 1
         self.memory[d][h]["sun"] = self.sunforecast.getHoursSunMinutes(h)
+
+        if self.lastwrite < time.time() - 300:
+            self.db.hash = self.memory
+            self.lastwrite = time.time()
     
