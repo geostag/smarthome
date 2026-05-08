@@ -16,7 +16,6 @@ class SunForecast:
         self.rawdata = None
         self.data = {}
         self.today = None
-        self.lastwrite = 0
         
     def query(self):
         r = requests.get(FORECASTURL)
@@ -65,6 +64,7 @@ class HistoryMaker:
         self.memory = self.db.hash
         self.today = None
         self.sunforecast = FC
+        self.lastwrite = 0
         
     def purge(self):
         days = sorted(self.memory.keys())[-DAYSBACK:]
