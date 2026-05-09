@@ -35,7 +35,7 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": 600,
+          "max": 1000,
           "min": 0,
           "thresholds": {
             "mode": "absolute",
@@ -49,22 +49,6 @@
           "unit": "watt"
         },
         "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "zendure outputHomePower {domain=\"electricity\", electric=\"solar\", room=\"2Stock\"}"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "green injection"
-              },
-              {
-                "id": "max",
-                "value": 400
-              }
-            ]
-          },
           {
             "matcher": {
               "id": "byName",
@@ -124,7 +108,7 @@
               },
               {
                 "id": "max",
-                "value": 400
+                "value": 1000
               }
             ]
           },
@@ -140,7 +124,23 @@
               },
               {
                 "id": "max",
-                "value": 400
+                "value": 800
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "zendure outputHomePower {domain=\"electricity\", electric=\"solar\", room=\"2Stock\"}"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "green injection"
+              },
+              {
+                "id": "max",
+                "value": 800
               }
             ]
           }
@@ -2045,6 +2045,6 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 229,
+  "version": 230,
   "weekStart": ""
 }

@@ -182,12 +182,11 @@ class ZendureManager:
         
         p = self.tasmota.Power
         self.rememberGridPower(p)
-        if p > 100:
-            if b > 35 and s > i:
-                p = self.avgRememberGridPower()
+        if b > 20 and s > i:
+            p = self.avgRememberGridPower()
 
-            else:
-                p = self.minRememberGridPower()
+        else:
+            p = self.minRememberGridPower()
         
         needed = i+p
         mode = ""
