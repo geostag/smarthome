@@ -9,7 +9,7 @@ class mDb:
         except:
             print(f"WARNING: could not read database from '{self.path}', starting with defaults")
 
-    def __del__(self):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.write()
 
     def write(self):

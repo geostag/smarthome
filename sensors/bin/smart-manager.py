@@ -98,6 +98,25 @@ class ZendureManager:
         self.sunDown  = None
         self.sunforecast = sfc
         self.sunhistory = shist
+        self.parameterurl      = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_URL","")
+        self.parameteruser     = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_USER","")
+        self.parameterpassword = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PASSWORD","")
+        self.parameterfile     = "/app/sensors/smart-manager-parameters.txt"
+        self.paramterlast      = 0
+
+    def downloadParameter(self):
+        response = requests.get(self.parameterurl, auth=(self.parameteruser, self.parameterpassword), stream=True)
+        if response.status_code == 200:
+            with open(self.parameterfile, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+
+        else:
+            print(f"Fail download parameterfile: {response.status_code}")
+
+    def dynamicParameterUpdate(self):
+        if time.time() > self.paramterlast + 1800:
+            self.downloadParameter()
         
     def rememberGridPower(self,p):
         self.gridpower.append( { "t": time.time(), "v": p } )
@@ -166,6 +185,8 @@ class ZendureManager:
             return True
         
         self.last_controller_update = time.time()
+
+        self.dynamicParameterUpdate()
         
         b = self.zen.electricLevel
         i = self.zen.outputLimit
