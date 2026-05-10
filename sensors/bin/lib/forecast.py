@@ -67,21 +67,23 @@ class HistoryMaker:
         self.lastwrite = 0
         
     def purge(self):
+        today_d = datetime.datetime.now().strftime('%Y-%m-%d')
         days = sorted(self.memory.keys())[-DAYSBACK:]
         m = {}
         for d,r in self.memory.items():
-            for h,s in r.items():
-                if type(s).__name__ == "dict" and "solarsum" in s:
-                    try:
-                        s = s["solarsum"] / s["solarnumber"] / s["sun"]
+            if d != today_d:
+                for h,s in r.items():
+                    if type(s).__name__ == "dict" and "solarsum" in s:
+                        try:
+                            s = s["solarsum"] / s["solarnumber"] / s["sun"]
 
-                    except ZeroDivisionError:
-                        s = 0
+                        except ZeroDivisionError:
+                            s = 0
 
-                    r[h] = s
+                        r[h] = s
 
-            if d in days:
-                m[d] = r
+                if d in days:
+                    m[d] = r
 
         self.memory = m
         self.db.hash = self.memory
@@ -107,7 +109,7 @@ class HistoryMaker:
             self.memory[d][h]["sun"] = self.sunforecast.getHoursSunMinutes(h)
 
         else:
-            print("dict error: {d} / {h}")
+            print(f"dict error: {d} / {h}")
             print(self.memory)
 
         if self.lastwrite < time.time() - 300:
