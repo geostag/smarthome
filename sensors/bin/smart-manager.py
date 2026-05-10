@@ -120,6 +120,7 @@ class ZendureManager:
 
     def dynamicParameterUpdate(self):
         if time.time() > self.paramterlast + 900:
+            self.paramterlast = time.time()
             try:
                 self.downloadParameter()
 
