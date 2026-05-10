@@ -105,14 +105,17 @@ class ZendureManager:
         self.paramterlast      = 0
 
     def downloadParameter(self):
-        response = requests.get(self.parameterurl, auth=(self.parameteruser, self.parameterpassword), stream=True)
-        if response.status_code == 200:
-            with open(self.parameterfile, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
+        if self.parameterurl != "":
+            response = requests.get(self.parameterurl, auth=(self.parameteruser, self.parameterpassword), stream=True)
+            if response.status_code == 200:
+                with open(self.parameterfile, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
 
-        else:
-            print(f"Fail download parameterfile: {response.status_code}")
+            else:
+                print(f"Fail download parameterfile: {response.status_code}")
+                print(f"{self.parameterurl}  -  {self.parameteruser}:{self.parameterpassword}")
+
 
     def dynamicParameterUpdate(self):
         if time.time() > self.paramterlast + 1800:
