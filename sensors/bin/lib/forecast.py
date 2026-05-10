@@ -62,7 +62,7 @@ class HistoryMaker:
     def __init__(self,DB,FC):
         self.db = DB
         self.memory = self.db.hash
-        self.today = None
+        self.today = datetime.datetime.now().strftime('%Y-%m-%d')
         self.sunforecast = FC
         self.lastwrite = 0
         
