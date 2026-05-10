@@ -101,9 +101,14 @@ class HistoryMaker:
         if h not in self.memory[d]:
             self.memory[d][h] = { "solarsum": 0, "solarnumber": 0, "sun": 0 }
             
-        self.memory[d][h]["solarsum"] += s
-        self.memory[d][h]["solarnumber"] += 1
-        self.memory[d][h]["sun"] = self.sunforecast.getHoursSunMinutes(h)
+        if type(self.memory[d][h]).__name__ == "dict":
+            self.memory[d][h]["solarsum"] += s
+            self.memory[d][h]["solarnumber"] += 1
+            self.memory[d][h]["sun"] = self.sunforecast.getHoursSunMinutes(h)
+
+        else:
+            print("dict error: {d} / {h}")
+            print(self.memory)
 
         if self.lastwrite < time.time() - 300:
             self.db.hash = self.memory
