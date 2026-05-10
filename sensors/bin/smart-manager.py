@@ -103,6 +103,7 @@ class ZendureManager:
         self.parameterpassword = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PASSWORD","")
         self.parameterfile     = "/app/sensors/smart-manager-parameters.txt"
         self.paramterlast      = 0
+        self.baseload = BASELOAD
 
     def downloadParameter(self):
         if self.parameterurl != "":
@@ -118,8 +119,31 @@ class ZendureManager:
 
 
     def dynamicParameterUpdate(self):
-        if time.time() > self.paramterlast + 1800:
-            self.downloadParameter()
+        if time.time() > self.paramterlast + 900:
+            try:
+                self.downloadParameter()
+
+            except:
+                pass
+
+            p = {}
+            if os.path.isfile(self.parameterfile):
+                with open(self.parameterfile, "r", encoding="utf-8") as f:
+                    for l in f:
+                        l = l.strip()
+                        if not l:
+                            continue
+
+                        k,v = l.split(":",1)
+                        k = k.strip()
+                        v = v.strip()
+                        if v.isdigit():
+                            v = int(v)
+
+                        p[k] = v
+
+                self.baseload = p.get("BASELOAD", BASELOAD)
+                print(f"BASELOAD: {self.baseload}")
         
     def rememberGridPower(self,p):
         self.gridpower.append( { "t": time.time(), "v": p } )
@@ -249,7 +273,7 @@ class ZendureManager:
             
         else:
             # maximum discharge based on reserves in battery or sun (whatever is more)
-            minj = 2.0 * BASELOAD
+            minj = 2.0 * self.baseload
             maxj = self.bratio * (INJECTION_MAX - minj) + minj
             maxtotal = max(maxj,s)
             mode = f"blow out {self.bratio}, {maxj}, {s}"
@@ -260,7 +284,7 @@ class ZendureManager:
         
         # whereever we land, if we have enough energy, provide at least BASELOAD
         if b > 20:
-            i = max(i,BASELOAD)
+            i = max(i,self.baseload)
                     
         if p > 0:
             # we use grid power
