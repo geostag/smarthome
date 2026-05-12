@@ -143,8 +143,11 @@ class ZendureManager:
 
                         p[k] = v
 
-                self.baseload = p.get("BASELOAD", BASELOAD)
-                print(f"BASELOAD: {self.baseload}")
+                #self.baseload = p.get("BASELOAD", BASELOAD)
+                bl = p.get("BASELOAD", BASELOAD)
+                if self.baseload != bl:
+                    print(f"BASELOAD: {self.baseload} > {bl}")
+                    self.baseload = p.get("BASELOAD", BASELOAD)
         
     def rememberGridPower(self,p):
         self.gridpower.append( { "t": time.time(), "v": p } )
