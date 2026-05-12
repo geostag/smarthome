@@ -1,4 +1,4 @@
-import os, requests, json, datetime, re, time
+import os, requests, json, datetime, re, time, traceback
 
 # usage:
 #   f = Forecast()
@@ -38,8 +38,6 @@ class SunForecast:
                 
         for r in d:
             self.data[r["hour"]] = r
-
-        print(self.data)
             
     @property
     def todayData(self):
@@ -62,9 +60,35 @@ class HistoryMaker:
     def __init__(self,DB,FC):
         self.db = DB
         self.memory = self.db.hash
+        self.normalizedSun = {}
         self.today = datetime.datetime.now().strftime('%Y-%m-%d')
         self.sunforecast = FC
         self.lastwrite = 0
+
+    def getTodaysSunPOwerPrediction(self):
+        p = 0
+        for h in range(0,24):
+            h = f"{h:02d}"
+            p += self.nomalizedSun.get(h,0) * self.sunforecast.getHoursSunMinutes(h)
+
+        return p
+
+    def nomalizeSunProfile(self):
+        # create an over days averaged daily hourly sunshine profile
+        n = {}
+        for d,c in self.memory.items():
+            for h,s in c.items():
+                if not h in n:
+                    n[h] = { "s": 0, "n": 0 }
+
+                if type(s).__name__ == "int":
+                    n[h]["s"] += s
+                    n[h]["n"] += 1
+
+        for h,d in n.items():
+            n[h] = (d["s"] / d["n"]) if d["n"] > 0 else 0
+
+        self.nomalizedSun = n
         
     def purge(self):
         today_d = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -87,6 +111,15 @@ class HistoryMaker:
 
         self.memory = m
         self.db.hash = self.memory
+
+        try:
+            self.nomalizeSunProfile()
+            print(self.normalizedSun)
+            print(">> today sun predict: %.2f" % self.getTodaysSunPOwerPrediction() )
+
+        except:
+            print(traceback.format_exc())
+            print("went wrong!!")
         
     def storeSolarValue(self,s):
         n = datetime.datetime.now()
