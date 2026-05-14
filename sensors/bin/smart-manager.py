@@ -166,9 +166,13 @@ class ZendureManager:
     def weightedAvgRememberGridPower(self):
         vs = [ x["v"] for x in self.gridpower ]
         n = len(vs)
-        weights = [i / (n - 1) for i in range(n)]
-        weighted_sum = sum(v * w for v, w in zip(vs, weights))
-        return weighted_sum / sum(weights)
+        if n > 1:
+            weights = [i / (n - 1) for i in range(n)]
+            weighted_sum = sum(v * w for v, w in zip(vs, weights))
+            return weighted_sum / sum(weights)
+        
+        else:
+            return vs[0]
 
     @property
     def isUpstream(self):
