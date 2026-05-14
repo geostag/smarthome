@@ -14,7 +14,9 @@ INJECTION_MAX = int(os.getenv("INJECTION_MAX",800))
 BATT_MIN      = int(os.getenv("MATT_MIN",10))
 BATT_MAX      = int(os.getenv("BATT_MAX",95))
 BASELOAD      = int(os.getenv("BASELOAD",90))
-GRIDPOWERREMEMBER_MINUTES = 5
+GRIDPOWERREMEMBER_MINUTES = 7
+
+DATADIR=os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
 
 INTERVAL = 90
 
@@ -90,7 +92,7 @@ class ZendureManager:
         self.gridpower = []
         self.solarInputPower = []
         self.last_controller_update = 0
-        self.db = mDb("/app/sensors/smart-manager-state.json")
+        self.db = mDb(f"{DATADIR}/smart-manager-state.json")
         self.db.read()
         self.sunRaiseYesterday = self.db.get("sunRaiseYesterday")
         self.sunDownYesterday  = self.db.get("sunDownYesterday")
@@ -101,7 +103,7 @@ class ZendureManager:
         self.parameterurl      = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_URL","")
         self.parameteruser     = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_USER","")
         self.parameterpassword = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PASSWORD","")
-        self.parameterfile     = "/app/sensors/smart-manager-parameters.txt"
+        self.parameterfile     = f"{DATADIR}/smart-manager-parameters.txt"
         self.paramterlast      = 0
         self.baseload = BASELOAD
 
@@ -321,7 +323,7 @@ INFLUX = Iflx()
 WB  = WhiteBoard()
 
 # Database for sun history
-SDB = mDb('/app/sensors/smart-manager-sunhistory.json')
+SDB = mDb(f"{DATADIR}/smart-manager-sunhistory.json")
 # sun forecast
 SFC = SunForecast()
 # sun history 

@@ -1,3 +1,4 @@
+from lib.toinflux import Iflx
 import os, requests, json, datetime, re, time, traceback
 
 # usage:
@@ -10,6 +11,8 @@ FORECASTURL = os.getenv("SUNFORECASTURL")
 # https://open-meteo.com/en/docs?forecast_days=1&timezone=Europe%2FBerlin&bounding_box=-90,-180,90,180&latitude=48.137&longitude=11
 
 DAYSBACK = 10
+
+INFLUX = Iflx()
 
 class SunForecast:
     def __init__(self):
@@ -65,12 +68,14 @@ class HistoryMaker:
         self.sunforecast = FC
         self.lastwrite = 0
 
-    def getTodaysSunPOwerPrediction(self):
+    @property
+    def todaysSunPowerPrediction(self):
         p = 0
         for h in range(0,24):
             h = f"{h:02d}"
-            p += self.nomalizedSun.get(h,0) * self.sunforecast.getHoursSunMinutes(h)
+            p += self.normalizedSun.get(h,0) * self.sunforecast.getHoursSunMinutes(h)
 
+        # unit: Wh
         return p
 
     def nomalizeSunProfile(self):
@@ -81,14 +86,14 @@ class HistoryMaker:
                 if not h in n:
                     n[h] = { "s": 0, "n": 0 }
 
-                if type(s).__name__ == "int":
+                if type(s).__name__ in ["int","float"]:
                     n[h]["s"] += s
                     n[h]["n"] += 1
 
         for h,d in n.items():
             n[h] = (d["s"] / d["n"]) if d["n"] > 0 else 0
 
-        self.nomalizedSun = n
+        self.normalizedSun = n
         
     def purge(self):
         today_d = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -114,8 +119,9 @@ class HistoryMaker:
 
         try:
             self.nomalizeSunProfile()
+            #TODO
             print(self.normalizedSun)
-            print(">> today sun predict: %.2f" % self.getTodaysSunPOwerPrediction() )
+            print(">> today sun predict: %.2f" % self.todaysSunPowerPrediction )
 
         except:
             print(traceback.format_exc())
@@ -125,7 +131,7 @@ class HistoryMaker:
         n = datetime.datetime.now()
         d = n.strftime('%Y-%m-%d')
         h = n.strftime('%H')
-        
+
         if not self.today or self.today != d:
             self.purge()
             self.today = d
@@ -148,4 +154,7 @@ class HistoryMaker:
         if self.lastwrite < time.time() - 300:
             self.db.hash = self.memory
             self.lastwrite = time.time()
+            #TODO
+            self.nomalizeSunProfile()
+            INFLUX.write("smart-manager","sunpredict",self.todaysSunPowerPrediction,{"synthetic": "yes"})
     
