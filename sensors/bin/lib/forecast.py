@@ -19,12 +19,14 @@ class SunForecast:
         self.rawdata = None
         self.data = {}
         self.today = None
+        self.lastquery = 0
         
     def query(self):
         r = requests.get(FORECASTURL)
         if r.status_code == 200:
             self.rawdata = json.loads(r.text)
             self.parse()
+            self.lastquery = time.time()
             
         else:
             self.rawdata = None
@@ -45,7 +47,7 @@ class SunForecast:
     @property
     def todayData(self):
         t = datetime.datetime.today().strftime('%Y-%m-%d')
-        if not self.today or self.today != t:
+        if not self.today or self.today != t or self.lastquery < time.time() - 3600:
             self.query()
             self.today = t
             
