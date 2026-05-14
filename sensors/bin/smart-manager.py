@@ -14,7 +14,7 @@ INJECTION_MAX = int(os.getenv("INJECTION_MAX",800))
 BATT_MIN      = int(os.getenv("MATT_MIN",10))
 BATT_MAX      = int(os.getenv("BATT_MAX",95))
 BASELOAD      = int(os.getenv("BASELOAD",90))
-GRIDPOWERREMEMBER_MINUTES = 7
+GRIDPOWERREMEMBER_MINUTES = 3
 
 DATADIR=os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
 
