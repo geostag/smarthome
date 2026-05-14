@@ -14,7 +14,7 @@ INJECTION_MAX = int(os.getenv("INJECTION_MAX",800))
 BATT_MIN      = int(os.getenv("MATT_MIN",10))
 BATT_MAX      = int(os.getenv("BATT_MAX",95))
 BASELOAD      = int(os.getenv("BASELOAD",90))
-GRIDPOWERREMEMBER_MINUTES = 3
+GRIDPOWERREMEMBER_MINUTES = 6
 
 DATADIR=os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
 
@@ -163,6 +163,13 @@ class ZendureManager:
         vs = [ x["v"] for x in self.gridpower ]
         return sum(vs)/len(vs)
         
+    def weightedAvgRememberGridPower(self):
+        vs = [ x["v"] for x in self.gridpower ]
+        n = len(vs)
+        weights = [i / (n - 1) for i in range(n)]
+        weighted_sum = sum(v * w for v, w in zip(vs, weights))
+        return weighted_sum / sum(weights)
+
     @property
     def isUpstream(self):
         return (self.tasmota.Power < 0)
@@ -236,8 +243,8 @@ class ZendureManager:
         
         p = self.tasmota.Power
         self.rememberGridPower(p)
-        if b > 20 and s > i:
-            p = self.avgRememberGridPower()
+        if b > 20:
+            p = self.weightedAvgRememberGridPower()
 
         else:
             p = self.minRememberGridPower()
