@@ -13,7 +13,7 @@ jobs:
       - uses: snok/container-retention-policy@v3.0.0
         with:
           account: user
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT }}
           image-names: "smarthome-sensors*"  # smarthome-sensor packages owned by the account
           tag-selection: untagged
           cut-off: 7d
