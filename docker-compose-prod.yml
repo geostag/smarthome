@@ -57,6 +57,7 @@ services:
       influxdb:
         condition: service_healthy
     entrypoint: ["/mosquitto/config/entrypoint-mqtt.sh"]
+    restart: unless-stopped
 
   sensors:
     container_name: sh-sensors
