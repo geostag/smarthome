@@ -8,16 +8,17 @@ on:
   #  - cron: "0 1 * * *"
 
 jobs:
-  delete-package-versions:
-    name: Delete old packages
+  cleanup:
     runs-on: ubuntu-latest
-    steps:
-      - uses: snok/container-retention-policy@v3.0.0
-        with:
-          account: user
-          token: ${{ secrets.PAT }}
-          image-names: "smarthome-sensors*"  # smarthome-sensor packages owned by the account
-          tag-selection: untagged
-          keep-n-most-recent: 7
-          #cut-off: 7d
 
+    permissions:
+      packages: write
+
+    steps:
+      - name: Delete old container versions
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: smarthome-sensors
+          package-type: container
+          min-versions-to-keep: 7
+          delete-only-untagged-versions: false
