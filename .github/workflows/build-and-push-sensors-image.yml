@@ -2,8 +2,7 @@ name: Build And Push Scripts Image
 
 on:
   push:
-    branches:
-      - "**"
+    branches: ["main"]
     tags:
       - "v*"
     paths:
