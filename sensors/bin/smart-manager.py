@@ -2,7 +2,7 @@ from lib.mqttconn import WhiteBoard
 from lib.myLog import mLog
 from lib.toinflux import Iflx
 from lib.myDatabase import mDb
-from lib.forecast import SunForecast, HistoryMaker
+from lib.forecast import HistoryMaker
 import datetime, time, os, requests
 
 DEBUG = False
@@ -86,19 +86,17 @@ class Zendure:
             return True
         
 class ZendureManager:
-    def __init__(self,zen,tasmota, sfc, shist):
+    def __init__(self,zen,tasmota, shist):
         self.zen = zen
         self.tasmota = tasmota
         self.gridpower = []
         self.solarInputPower = []
         self.last_controller_update = 0
         self.db = mDb(f"{DATADIR}/smart-manager-state.json")
-        self.db.read()
         self.sunRaiseYesterday = self.db.get("sunRaiseYesterday")
         self.sunDownYesterday  = self.db.get("sunDownYesterday")
         self.sunRaise = self.sunRaiseYesterday if (self.sunRaiseYesterday and self.hourFloat > self.sunRaiseYesterday) else None
         self.sunDown  = None
-        self.sunforecast = sfc
         self.sunhistory = shist
         self.parameterurl      = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_URL","")
         self.parameteruser     = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_USER","")
@@ -332,16 +330,10 @@ class ZendureManager:
 INFLUX = Iflx()
 # Whiteboard with recent data
 WB  = WhiteBoard()
-
-# Database for sun history
-SDB = mDb(f"{DATADIR}/smart-manager-sunhistory.json")
-# sun forecast
-SFC = SunForecast()
 # sun history 
-SHIST = HistoryMaker(SDB,SFC)
-
+SHIST = HistoryMaker()
 # Zendure management
-ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB), SFC, SHIST )
+ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB), SHIST )
 
 def tasmotaCallback(data):
     if data.get("Power",0) < 0:

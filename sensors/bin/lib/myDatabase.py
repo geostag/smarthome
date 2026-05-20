@@ -1,8 +1,9 @@
 import json
 
 class mDb:
-    def __init__(self,path):
+    def __init__(self,path,**kwargs):
         self.path = path
+        self.autoflush = kwargs.get("autoflush",True)
         self.DB = {}
         try:
             self.read()
@@ -27,16 +28,14 @@ class mDb:
     @hash.setter
     def hash(self,h):
         self.DB = h
-        self.write()
+        if self.autoflush:
+            self.write()
 
     def set(self,key,value):
         self.DB[key] = value
-        self.write()
+        if self.autoflush:
+            self.write()
 
-    def get(self,key):
-        if key in self.DB:
-            return self.DB[key]
-
-        else:
-            return None
+    def get(self,key,default=None):
+        return self.DB.get(key,default)
 
