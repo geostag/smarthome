@@ -241,7 +241,11 @@ class ZendureManager:
         self.solarInputPower = self.solarInputPower[(-1 * lookback_items):]
         s = int( 10 * sum(self.solarInputPower) / len(self.solarInputPower) + 0.5) / 10
 
-        self.sunhistory.storeSolarValue(s)
+        try:
+            self.sunhistory.storeSolarValue(s)
+
+        except:
+            print("update solarhistory failed")
         
         p = self.tasmota.Power
         self.rememberGridPower(p)

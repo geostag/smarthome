@@ -7,12 +7,13 @@ import os, requests, json, datetime, re, time, traceback
 #   print(json.dumps(f.todayData,indent=2))
 #   print(f.todaySunMinutes)
 
-FORECASTURL = os.getenv("SUNFORECASTURL")
-# https://api.open-meteo.com/v1/forecast?latitude=48.137&longitude=11.575&hourly=temperature_2m,weather_code,cloud_cover,sunshine_duration&direct_radiation,diffuse_radiation,direct_normal_irradiance&timezone=Europe%2FBerlin&forecast_days=1
+#FORECASTURL = os.getenv("SUNFORECASTURL")
+FORECASTURL = 'https://api.open-meteo.com/v1/forecast?latitude=48.137&longitude=11.575&hourly=temperature_2m,weather_code,cloud_cover,sunshine_duration,direct_radiation,diffuse_radiation,direct_normal_irradiance&timezone=Europe%2FBerlin&forecast_days=1'
+# https://api.open-meteo.com/v1/forecast?latitude=48.137&longitude=11.575&hourly=temperature_2m,weather_code,cloud_cover,sunshine_duration,direct_radiation,diffuse_radiation,direct_normal_irradiance&timezone=Europe%2FBerlin&forecast_days=1
 # https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m,direct_radiation,diffuse_radiation,direct_normal_irradiance&timezone=Europe%2FBerlin&forecast_days=1
 # https://open-meteo.com/en/docs?forecast_days=1&timezone=Europe%2FBerlin&bounding_box=-90,-180,90,180&latitude=48.137&longitude=11
 
-APPDIR = os.getenv("APPDIR","/app/sensors")
+APPDIR = os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
 
 # days back we remember measured pv values
 DAYSBACK = 10
@@ -31,7 +32,7 @@ class SunForecast:
         self.today = None
         self.lastquery = 0
         self.url = kwargs.get("url",FORECASTURL)
-        self.db = mDb(f"{APPDIR}/smart-manager-sunforecast.json")
+        self.db = mDb(f"{APPDIR}/smart-manager-sunforecast2.json")
         
     def parse(self):
         hourly = self.rawdata.pop("hourly")
@@ -40,6 +41,13 @@ class SunForecast:
         for t,vs in hourly.items():
             for i,v in enumerate(vs):
                 d[i][t] = v
+
+        # add derived forecast value: cloud_cover * sunshine_duration
+        cc = hourly.get("cloud_cover",None)
+        sd = hourly.get("sunshine_duration",None)
+        if cc and sd:
+            for i,(a,b) in enumerate(zip(cc,sd)):
+                d[i]["cc_by_sd"] = (100-a)*b/100
                 
         self.db.hash = { "meta": meta, "hourly": d }
         self.db.write()
@@ -58,7 +66,7 @@ class SunForecast:
     @property
     def hourlyData(self):
         t = datetime.datetime.today().strftime('%Y-%m-%d')
-        if not self.today or self.today != t or self.lastquery < time.time() - 3600:
+        if not self.today or self.today != t or self.lastquery < time.time() - 300:
             self.query()
 
         return self.db.hash["hourly"]
@@ -98,7 +106,7 @@ class HistoryMaker:
     #
     def __init__(self, **kwargs):
         self.sunforecast = kwargs.get("sunforecast",SunForecast())
-        self.db = kwargs.get("database",mDb(f"{APPDIR}/smart-manager-solarhistory.json",autoflush=False))
+        self.db = kwargs.get("database",mDb(f"{APPDIR}/smart-manager-solarhistory2.json",autoflush=False))
         self._normalizedEnergyProfileData = {}
         self.lastwrite = 0
         
@@ -130,8 +138,9 @@ class HistoryMaker:
             if self.dataHistory:
                 for day,ddata in self.dataHistory.items():
                     for i,hdata in enumerate(ddata):
-                        if hdata[dim] > 0:
-                            energy[i] += hdata["pvenergy"] / hdata[dim]
+                        c = hdata.get(dim,0)
+                        if c > 0:
+                            energy[i] += hdata["pvenergy"] / c
 
                 num = len(self.dataHistory.keys())
                 if num > 0:
@@ -207,5 +216,6 @@ class HistoryMaker:
     def predictedTodaysPower(self):
         for dim in self.sunforecast.forecastDimensions:
             e = self._predictedTodaysPowerDim(dim)
+            #print(f"sunpredict: {dim}: {e}")
             INFLUX.write("smart-manager","sunpredict",e,{"synthetic": "yes", "dimension": dim})
     
