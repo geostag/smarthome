@@ -86,7 +86,7 @@ class Zendure:
             return True
         
 class ZendureManager:
-    def __init__(self,zen,tasmota, shist):
+    def __init__(self,zen,tasmota):
         self.zen = zen
         self.tasmota = tasmota
         self.gridpower = []
@@ -97,7 +97,7 @@ class ZendureManager:
         self.sunDownYesterday  = self.db.get("sunDownYesterday")
         self.sunRaise = self.sunRaiseYesterday if (self.sunRaiseYesterday and self.hourFloat > self.sunRaiseYesterday) else None
         self.sunDown  = None
-        self.sunhistory = shist
+        self.sunhistory = HistoryMaker()
         self.parameterurl      = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_URL","")
         self.parameteruser     = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_USER","")
         self.parameterpassword = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PASSWORD","")
@@ -334,10 +334,8 @@ class ZendureManager:
 INFLUX = Iflx()
 # Whiteboard with recent data
 WB  = WhiteBoard()
-# sun history 
-SHIST = HistoryMaker()
 # Zendure management
-ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB), SHIST )
+ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB) )
 
 def tasmotaCallback(data):
     if data.get("Power",0) < 0:
