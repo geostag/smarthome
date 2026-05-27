@@ -66,7 +66,7 @@ class SunForecast:
     @property
     def hourlyData(self):
         t = datetime.datetime.today().strftime('%Y-%m-%d')
-        if not self.today or self.today != t or self.lastquery < time.time() - 300:
+        if not self.today or self.today != t or self.lastquery < time.time() - 3600:
             self.query()
 
         return self.db.hash["hourly"]
