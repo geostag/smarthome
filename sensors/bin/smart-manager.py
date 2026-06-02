@@ -274,12 +274,12 @@ class ZendureManager:
             mode = "hi sun"
             i = needed
             
-        elif self.hourFloat < 12 and s > 0 and s < 70 and b < 1.5 * BATT_MIN:
+        elif self.hourFloat > self.sunRaise and self.hourFloat < 12 and s > 0 and s < 70 and b < 1.5 * BATT_MIN:
             # morning, low sun, low inverter efficiency - charge battery
             mode = "low sun, low battery, charge it"
             i = 0
             
-        elif self.hourFloat < 12 and s > 0 and s < needed and b < 2.0 * BATT_MIN:
+        elif self.hourFloat > self.sunRaise and self.hourFloat < 12 and s > 0 and s < needed and b < 2.0 * BATT_MIN:
             # morning, sun there and completely needed
             # keep RESW for zendure itself
             mode = f"low sun {p},{s},{i}"
@@ -302,7 +302,7 @@ class ZendureManager:
         i = int(min(INJECTION_MAX,i) + 0.5) * 1.0
         
         # whereever we land, if we have enough energy, provide at least BASELOAD
-        if b > 20:
+        if b > 1.5 * BATT_MIN:
             i = max(i,self.baseload)
                     
         if p > 0:
