@@ -104,6 +104,7 @@ class ZendureManager:
         self.parameterfile     = f"{DATADIR}/smart-manager-parameters.txt"
         self.paramterlast      = 0
         self.baseload = BASELOAD
+        self.chargefrombase = True
 
     def downloadParameter(self):
         if self.parameterurl != "":
@@ -257,12 +258,16 @@ class ZendureManager:
         
         needed = i+p
         mode = ""
+
+        if b >= 2.0 * BATT_MIN:
+            self.chargefrombase = False
         
         # values ready, lets do logic
         if b <= BATT_MIN:
             # first load battery
             mode = "super low batt"
             i = 0
+            self.chargefrombase = True
             
         elif b >= 0.98 * BATT_MAX and s > i + 5:
             # input = output
@@ -274,22 +279,11 @@ class ZendureManager:
             mode = "hi sun"
             i = needed
             
-        elif self.hourFloat > self.sunRaise and self.hourFloat < 12 and s > 0 and s < 70 and b < 1.5 * BATT_MIN:
-            # morning, low sun, low inverter efficiency - charge battery
-            mode = "low sun, low battery, charge it"
+        elif self.chargefrombase and b < 1.5 * BATT_MIN:
+            # we were discharged, first charge significant
+            mode = "charge from base"
             i = 0
-            
-        elif self.hourFloat > self.sunRaise and self.hourFloat < 12 and s > 0 and s < needed and b < 2.0 * BATT_MIN:
-            # morning, sun there and completely needed
-            # keep RESW for zendure itself
-            mode = f"low sun {p},{s},{i}"
-            i = s - RESW
-
-        elif self.hourFloat >= 14 and b < 1.3 * BATT_MIN and s < 20:
-            # afternoon, everything low
-            mode = f"afternoon, low sun {s} and battery"
-            i = 0
-            
+                        
         else:
             # maximum discharge based on reserves in battery or sun (whatever is more)
             minj = 2.0 * self.baseload
