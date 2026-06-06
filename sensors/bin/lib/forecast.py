@@ -1,5 +1,6 @@
 from lib.toinflux import Iflx
 from lib.myDatabase import mDb
+from lib.ncConnect import myNextcloud
 import os, requests, json, datetime, re, time, traceback
 
 # usage:
@@ -109,6 +110,7 @@ class HistoryMaker:
         self.db = kwargs.get("database",mDb(f"{APPDIR}/smart-manager-solarhistory2.json",autoflush=False))
         self._normalizedEnergyProfileData = {}
         self.lastwrite = 0
+        self.nextcloud = myNextcloud()
         
     @property
     def dataHistory(self):
@@ -187,6 +189,13 @@ class HistoryMaker:
         # reset memorized energy profiles
         self._normalizedEnergyProfileData = {}
         self.db.write()
+
+        # log to nextcloud
+        try:
+            self.nextcloud.putFileFromFile("/cproj/Home-IT/smarthome/smart-manager-solarhistory2.json",f"{APPDIR}/smart-manager-solarhistory2.json")
+            self.nextcloud.putFileFromFile("/cproj/Home-IT/smarthome/smart-manager-sunforecast2.json",f"{APPDIR}/smart-manager-sunforecast2.json")
+        except:
+            pass
 
     def storeSolarValue(self,s):
         n = datetime.datetime.now()
