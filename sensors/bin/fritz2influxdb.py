@@ -2,13 +2,16 @@ from fritzconnection import FritzConnection
 from fritzconnection.lib.fritzstatus   import FritzStatus
 from fritzconnection.lib.fritzhomeauto import FritzHomeAutomation
 from fritzconnection.lib.fritzhosts    import FritzHosts
-import json, time, os, datetime, re, requests
+import json, time, os, re, requests
 from lib.toinflux import Iflx
+from lib.ncConnect import myNextcloud
 
 DEBUG = False
 
 INTERVAL = int(os.getenv("FRITZ_QUERY_INTERVAL"))
 INFLUX = Iflx()
+DEVICEMAPCACHETIME = 3600
+DEVICEMAP = os.getenv("FRITZ_DEVICEMAP","cproj/Home-IT/smarthome/device-map.json")
 
 class Mapdevice:
     def __init__(self,mapurl,mapuser,mappassword):
@@ -19,26 +22,12 @@ class Mapdevice:
         self.mapfile = "/app/sensors/device-map.txt"
         self.devices = {}
         self.alwayson = []
+        self.nextcloud = myNextcloud()
         self.read_devicemap_last = 0
         self.readmap()
 
-    def downloadmap(self):
-        response = requests.get(self.mapurl, auth=(self.mapuser, self.mappassword), stream=True)
-        if response.status_code == 200:
-            with open(self.mapfile, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
-
-        else:
-            print(f"Fail download mapfile: {response.status_code}")
-            print(f"{self.mapurl}  -  {self.mapuser}:{self.mappassword}")
-
     def readmap(self):
-        try:
-            self.downloadmap()
-        except:
-            print("failed to download devicemap")
-            
+        t = self.nextcloud.getFile(DEVICEMAP,DEVICEMAPCACHETIME - 2)
         if self.mapfile:
             with open(self.mapfile,"r") as f:
                 t = json.load(f)
@@ -49,10 +38,10 @@ class Mapdevice:
                 for mac,info in self.devices.items():
                     self.macmap[mac] = info["name"]
                     
-                self.read_devicemap_last = datetime.datetime.now()
+                self.read_devicemap_last = time.time()
             
     def getMappedName(self,mac,default=""):
-        if self.read_devicemap_last < datetime.datetime.now() - datetime.timedelta(hours=1):
+        if self.read_devicemap_last < time.time() - DEVICEMAPCACHETIME:
             self.readmap()
             
         return self.macmap.get(mac,default)
