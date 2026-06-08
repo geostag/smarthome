@@ -11,7 +11,7 @@ DEBUG = False
 INTERVAL = int(os.getenv("FRITZ_QUERY_INTERVAL"))
 INFLUX = Iflx()
 DEVICEMAPCACHETIME = 3600
-DEVICEMAP = os.getenv("FRITZ_DEVICEMAP","cproj/Home-IT/smarthome/device-map.json")
+DEVICEMAP = os.getenv("FRITZ_DEVICEMAP","/cproj/Home-IT/smarthome/device-map.json")
 
 class Mapdevice:
     def __init__(self,mapurl,mapuser,mappassword):
@@ -27,7 +27,7 @@ class Mapdevice:
         self.readmap()
 
     def readmap(self):
-        t = self.nextcloud.getFile(DEVICEMAP,DEVICEMAPCACHETIME - 2)
+        t = self.nextcloud.getFile(DEVICEMAP,cachetime = DEVICEMAPCACHETIME - 2)
         if self.mapfile:
             with open(self.mapfile,"r") as f:
                 t = json.load(f)
@@ -69,8 +69,9 @@ class myFritz:
                 self.do_ha = True
                 
     def connect(self):
-        if not self.connect_last or self.connect_last < datetime.datetime.now() - datetime.timedelta(hours=1):
-            self.connect_last = datetime.datetime.now()
+        now = time.time()
+        if not self.connect_last or self.connect_last < now - 3600:
+            self.connect_last = now
             try:
                 self.fc = FritzConnection(address=self.host, password=self.password, user=self.user)
                 
