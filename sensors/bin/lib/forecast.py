@@ -17,7 +17,7 @@ FORECASTURL = 'https://api.open-meteo.com/v1/forecast?latitude=48.137&longitude=
 APPDIR = os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
 
 # days back we remember measured pv values
-DAYSBACK = 10
+DAYSBACK = 20
 
 INFLUX = Iflx()
 
