@@ -8,11 +8,8 @@ import os, requests, json, datetime, re, time, traceback
 #   print(json.dumps(f.todayData,indent=2))
 #   print(f.todaySunMinutes)
 
-#FORECASTURL = os.getenv("SUNFORECASTURL")
-FORECASTURL = 'https://api.open-meteo.com/v1/forecast?latitude=48.137&longitude=11.575&hourly=temperature_2m,weather_code,cloud_cover,sunshine_duration,direct_radiation,diffuse_radiation,direct_normal_irradiance&timezone=Europe%2FBerlin&forecast_days=1'
-# https://api.open-meteo.com/v1/forecast?latitude=48.137&longitude=11.575&hourly=temperature_2m,weather_code,cloud_cover,sunshine_duration,direct_radiation,diffuse_radiation,direct_normal_irradiance&timezone=Europe%2FBerlin&forecast_days=1
-# https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m,direct_radiation,diffuse_radiation,direct_normal_irradiance&timezone=Europe%2FBerlin&forecast_days=1
-# https://open-meteo.com/en/docs?forecast_days=1&timezone=Europe%2FBerlin&bounding_box=-90,-180,90,180&latitude=48.137&longitude=11
+FORECASTURL = os.getenv("SUNFORECASTURL")
+#FORECASTURL = 'https://api.open-meteo.com/v1/forecast?latitude=48.137&longitude=11.575&hourly=temperature_2m,weather_code,cloud_cover,sunshine_duration,direct_radiation,diffuse_radiation,direct_normal_irradiance&timezone=Europe%2FBerlin&forecast_days=1'
 
 APPDIR = os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
 
