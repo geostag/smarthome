@@ -14,12 +14,8 @@ DEVICEMAPCACHETIME = 3600
 DEVICEMAP = os.getenv("FRITZ_DEVICEMAP","/cproj/Home-IT/smarthome/device-map.json")
 
 class Mapdevice:
-    def __init__(self,mapurl,mapuser,mappassword):
+    def __init__(self):
         self.macmap = {}
-        self.mapurl = mapurl
-        self.mapuser = mapuser
-        self.mappassword = mappassword
-        self.mapfile = "/app/sensors/device-map.txt"
         self.devices = {}
         self.alwayson = []
         self.nextcloud = myNextcloud()
@@ -27,18 +23,18 @@ class Mapdevice:
         self.readmap()
 
     def readmap(self):
-        t = self.nextcloud.getFile(DEVICEMAP,cachetime = DEVICEMAPCACHETIME - 2)
-        if self.mapfile:
-            with open(self.mapfile,"r") as f:
-                t = json.load(f)
-                f.close()
-                self.devices = t["devices"]
-                self.alwayson = t["alwayson"]
-                self.macmap = {}
-                for mac,info in self.devices.items():
-                    self.macmap[mac] = info["name"]
-                    
-                self.read_devicemap_last = time.time()
+        try:
+            t = json.loads(self.nextcloud.getFile(DEVICEMAP,cachetime = DEVICEMAPCACHETIME - 2))
+            self.devices = t["devices"]
+            self.alwayson = t["alwayson"]
+            self.macmap = {}
+            for mac,info in self.devices.items():
+                self.macmap[mac] = info["name"]
+                
+            self.read_devicemap_last = time.time()
+
+        except:
+            print(f"failed to download DEVIEMAP 'DEVICEMAP'")
             
     def getMappedName(self,mac,default=""):
         if self.read_devicemap_last < time.time() - DEVICEMAPCACHETIME:
@@ -136,9 +132,9 @@ for s in DEVLIST.split():
         i[k] = os.getenv(f"FRITZ_{s}_{k}",False)
         
     devices.append(i)
-    
-DEVICEMAP = Mapdevice(os.getenv('FRITZ_DEVICEMAP_URL'),os.getenv('FRITZ_DEVICEMAP_USER'),os.getenv('FRITZ_DEVICEMAP_PASSWORD'))
-fritzes = [ myFritz(dev,DEVICEMAP) for dev in devices ]
+
+MD = Mapdevice()    
+fritzes = [ myFritz(dev,MD) for dev in devices ]
 
 while True:
     hosts = {}
