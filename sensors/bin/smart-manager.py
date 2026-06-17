@@ -3,6 +3,7 @@ from lib.myLog import mLog
 from lib.toinflux import Iflx
 from lib.myDatabase import mDb
 from lib.forecast import HistoryMaker
+from lib.ncConnect import myNextcloud
 import datetime, time, os, requests
 
 DEBUG = False
@@ -16,7 +17,8 @@ BATT_MAX      = int(os.getenv("BATT_MAX",95))
 BASELOAD      = int(os.getenv("BASELOAD",90))
 GRIDPOWERREMEMBER_MINUTES = 6
 
-DATADIR=os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
+DATADIR = os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
+DYNAMIC_PARAMETER_PATH = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PATH","")
 
 INTERVAL = 90
 
@@ -98,57 +100,35 @@ class ZendureManager:
         self.sunRaise = self.sunRaiseYesterday if (self.sunRaiseYesterday and self.hourFloat > self.sunRaiseYesterday) else None
         self.sunDown  = None
         self.sunhistory = HistoryMaker()
-        self.parameterurl      = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_URL","")
-        self.parameteruser     = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_USER","")
-        self.parameterpassword = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PASSWORD","")
-        self.parameterfile     = f"{DATADIR}/smart-manager-parameters.txt"
-        self.paramterlast      = 0
         self.baseload = BASELOAD
         self.chargefrombase = True
-
-    def downloadParameter(self):
-        if self.parameterurl != "":
-            response = requests.get(self.parameterurl, auth=(self.parameteruser, self.parameterpassword), stream=True)
-            if response.status_code == 200:
-                with open(self.parameterfile, "wb") as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
-
-            else:
-                print(f"Fail download parameterfile: {response.status_code}")
-                print(f"{self.parameterurl}  -  {self.parameteruser}:{self.parameterpassword}")
-
+        self.parameterurl = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PATH","")
+        self.paramterlast = 0
+        self.nextcloud = myNextcloud()
 
     def dynamicParameterUpdate(self):
-        if time.time() > self.paramterlast + 900:
+        if time.time() > self.paramterlast + 900 and DYNAMIC_PARAMETER_PATH:
             self.paramterlast = time.time()
-            try:
-                self.downloadParameter()
-
-            except:
-                pass
-
+            ptext = self.nextcloud.getFile(DYNAMIC_PARAMETER_PATH)
             p = {}
-            if os.path.isfile(self.parameterfile):
-                with open(self.parameterfile, "r", encoding="utf-8") as f:
-                    for l in f:
-                        l = l.strip()
-                        if not l:
-                            continue
+            for l in ptext.splitlines():
+                l = l.strip()
+                if not l:
+                    continue
 
-                        k,v = l.split(":",1)
-                        k = k.strip()
-                        v = v.strip()
-                        if v.isdigit():
-                            v = int(v)
+                k,v = l.split(":",1)
+                k = k.strip()
+                v = v.strip()
+                if v.isdigit():
+                    v = int(v)
 
-                        p[k] = v
+                p[k] = v
 
-                #self.baseload = p.get("BASELOAD", BASELOAD)
-                bl = p.get("BASELOAD", BASELOAD)
-                if self.baseload != bl:
-                    print(f"BASELOAD: {self.baseload} > {bl}")
-                    self.baseload = p.get("BASELOAD", BASELOAD)
+            #self.baseload = p.get("BASELOAD", BASELOAD)
+            bl = p.get("BASELOAD", BASELOAD)
+            if self.baseload != bl:
+                print(f"BASELOAD: {self.baseload} > {bl}")
+                self.baseload = p.get("BASELOAD", BASELOAD)
         
     def rememberGridPower(self,p):
         self.gridpower.append( { "t": time.time(), "v": p } )
