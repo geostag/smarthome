@@ -2,7 +2,7 @@ from fritzconnection import FritzConnection
 from fritzconnection.lib.fritzstatus   import FritzStatus
 from fritzconnection.lib.fritzhomeauto import FritzHomeAutomation
 from fritzconnection.lib.fritzhosts    import FritzHosts
-import json, time, os, re, requests
+import json, time, os, re, requests, traceback
 from lib.toinflux import Iflx
 from lib.ncConnect import myNextcloud
 
@@ -34,7 +34,8 @@ class Mapdevice:
             self.read_devicemap_last = time.time()
 
         except:
-            print(f"failed to download DEVIEMAP 'DEVICEMAP'")
+            print(traceback.format_exc())
+            print(f"failed to download DEVICEMAP '{DEVICEMAP}'")
             
     def getMappedName(self,mac,default=""):
         if self.read_devicemap_last < time.time() - DEVICEMAPCACHETIME:
