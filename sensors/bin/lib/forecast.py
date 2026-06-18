@@ -66,6 +66,7 @@ class SunForecast:
         t = datetime.datetime.today().strftime('%Y-%m-%d')
         if not self.today or self.today != t or self.lastquery < time.time() - 3600:
             self.query()
+            self.today = t
 
         return self.db.hash["hourly"]
             
