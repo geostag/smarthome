@@ -60,6 +60,7 @@ class SunForecast:
         else:
             self.rawdata = None
             print(f"could not get SUNFORECAST data '{self.url}'")
+            self.lastquery = time.time()
 
     @property
     def hourlyData(self):
