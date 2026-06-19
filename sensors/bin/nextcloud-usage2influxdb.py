@@ -2,7 +2,7 @@ from xml.etree import ElementTree
 from zoneinfo import ZoneInfo
 from datetime import datetime
 from lib.toinflux import Iflx
-import requests, os, time
+import requests, os, time, traceback
 
 NEXTCLOUD_URL = os.getenv("NEXTCLOUD_URL")
 ADMIN_USER    = os.getenv("NEXTCLOUD_USER")
@@ -28,6 +28,7 @@ def queryNc():
     INFLUX = Iflx(bucket="longrange",token=TOKEN)
 
     for user in user_list:
+        time.sleep(10)
         r = requests.get(
             f"{NEXTCLOUD_URL}/ocs/v1.php/cloud/users/{user}",
             auth=(ADMIN_USER, APP_PASSWORD),
@@ -36,11 +37,17 @@ def queryNc():
         tree = ElementTree.fromstring(r.content)
         used = tree.find(".//quota/used").text
         total = tree.find(".//quota/total").text
-        #print(f"{user}: {int(used)/(1024**3):.2f} GB used of {int(total)/(1024**3):.2f} GB")
+        print(f"{user}: {int(used)/(1024**3):.2f} GB used of {int(total)/(1024**3):.2f} GB")
         
         INFLUX.write("nextcloud","used",int(used),{"domain": "storage", "user": user},dt)
 
 while True:
-    queryNc()
-    time.sleep(86400)
+    try:
+        queryNc()
+        time.sleep(86400)
+    except:
+        print("%s NEXTCLOUD query failed:" % time.ctime())
+        print(traceback.format_exc())
+        time.sleep(3600)
+    
     
