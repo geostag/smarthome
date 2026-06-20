@@ -14,7 +14,7 @@ FORECASTURL = os.getenv("SUNFORECASTURL")
 APPDIR = os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
 
 # days back we remember measured pv values
-DAYSBACK = 20
+DAYSBACK = 10
 
 INFLUX = Iflx()
 
