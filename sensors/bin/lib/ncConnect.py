@@ -14,8 +14,8 @@ class myNextcloud:
         cached = self.cache.get(path,None)
         if not cached or cached["last"] < now - cachetime:
             url = f"{self.url}/remote.php/dav/files/{self.user}{path}"
-            response = requests.get(url, auth=(self.user, self.apitoken))
             try:
+                response = requests.get(url, auth=(self.user, self.apitoken))
                 response.raise_for_status()
                 result = response.text
                 self.cache[path] = {
@@ -23,12 +23,17 @@ class myNextcloud:
                     "data": result
                 }
 
-            except requests.RequestException as e:
-                print(f"Fail download {url}: {e}")
-                result = ""
+            except:
+                print(f"Failed to download {url}")
+                if cached:
+                    print("using cached data")
+                    self.cache[path]["last"] = now
+                    result = cached["data"]
+                else:
+                    result = ""
 
         else:
-            return cached["data"]
+            result = cached["data"]
 
         return result
     
