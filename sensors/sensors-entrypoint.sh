@@ -65,6 +65,7 @@ while true; do
   status=$?
   set -e
 
+  date
   echo "A daemon script exited with status ${status}. Stopping the scripts container."
   terminate_children
   exit "${status}"

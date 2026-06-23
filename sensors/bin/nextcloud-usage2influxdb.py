@@ -28,7 +28,7 @@ def queryNc():
     INFLUX = Iflx(bucket="longrange",token=TOKEN)
 
     for user in user_list:
-        time.sleep(10)
+        time.sleep(5)
         r = requests.get(
             f"{NEXTCLOUD_URL}/ocs/v1.php/cloud/users/{user}",
             auth=(ADMIN_USER, APP_PASSWORD),
@@ -36,8 +36,8 @@ def queryNc():
         )
         tree = ElementTree.fromstring(r.content)
         used = tree.find(".//quota/used").text
-        total = tree.find(".//quota/total").text
-        print(f"{user}: {int(used)/(1024**3):.2f} GB used of {int(total)/(1024**3):.2f} GB")
+        #total = tree.find(".//quota/total").text
+        #print(f"{user}: {int(used)/(1024**3):.2f} GB used of {int(total)/(1024**3):.2f} GB")
         
         INFLUX.write("nextcloud","used",int(used),{"domain": "storage", "user": user},dt)
 
