@@ -1,5 +1,5 @@
 import paho.mqtt.client as mqtt
-import os, json
+import os, json, time
 
 DEBUG = False
 
@@ -34,12 +34,18 @@ class WhiteBoard:
         self.db = {}
         self.mqtt = MqttConn(topic = "tele/+/SENSOR",on_message=onMessage)
         self.listener = {}
+        if not self.mqtt.client:
+            print("MQTT subscription failed!")
 
     def addDeviceListener(self,device,callback):
         self.listener[device] = callback
         
     def dataGet(self,device,key):
         return self.db.get(device,{}).get(key,0)
+
+    @property
+    def healthy(self):
+        return self.mqtt.healthy
         
 class MqttConn:
     def __init__(self, **kwargs):
@@ -71,8 +77,21 @@ class MqttConn:
         self.client.username_pw_set(self.user,self.password)
         self.client.on_connect = self.onConnect
         self.client.on_message = self.onMessage
-        self.client.connect(self.broker,self.port,60)
+        try:
+            self.client.connect(self.broker,self.port,60)
+        except:
+            print("MQTT connect failed")
+            self.client = None
+            time.sleep(60)
+            
         self.client.loop_start()
+
+    @property
+    def healthy(self):
+        if not self.client:
+            self.openClient()
+
+        return self.client != None
         
     def reset(self):
         try:
