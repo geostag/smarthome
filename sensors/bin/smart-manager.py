@@ -252,7 +252,7 @@ class ZendureManager:
         elif b >= 0.98 * BATT_MAX and s > i + 5:
             # input = output
             mode = "super hi batt"
-            i = s
+            i = max(s,needed)
             
         elif s > needed:
             # more sun than needed

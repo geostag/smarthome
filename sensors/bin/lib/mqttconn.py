@@ -32,15 +32,23 @@ class WhiteBoard:
                 self.listener[k](d)
                 
         self.db = {}
-        self.mqtt = MqttConn(topic = "tele/+/SENSOR",on_message=onMessage)
+        self.mqtt = None
+        self.mqttMasterListener = onMessage
         self.listener = {}
-        if not self.mqtt.client:
+        self.mqttSubscribe()
+
+    def mqttSubscribe(self):
+        self.mqtt = MqttConn(topic = "tele/+/SENSOR",on_message=self.mqttMasterListener)
+        if not self.healthy:
             print("MQTT subscription failed!")
 
     def addDeviceListener(self,device,callback):
         self.listener[device] = callback
         
     def dataGet(self,device,key):
+        if not self.healthy:
+            self.mqttSubscribe()
+
         return self.db.get(device,{}).get(key,0)
 
     @property
