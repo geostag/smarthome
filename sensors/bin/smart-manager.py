@@ -249,10 +249,13 @@ class ZendureManager:
             i = 0
             self.chargefrombase = True
             
-        elif b >= 0.98 * BATT_MAX and s > i + 5:
-            # input = output
+        elif b >= 0.95 * BATT_MAX and s > i_old:
+            # batt full, still charging
+            # approach: input = output; slow changes; at least needed power
             mode = "super hi batt"
-            i = max(s,needed)
+            i = BASELOAD + self.bratio * INJECTION_MAX
+            i = 0.5 * (i - i_old) + i_old
+            i = max(i,needed)
             
         elif s > needed:
             # more sun than needed
