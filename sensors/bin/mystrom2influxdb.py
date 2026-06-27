@@ -18,9 +18,12 @@ INFLUX = Iflx()
 def measure(host, token, room, electric, label):
     url = f"{host}report"
     header = { "Token": token }
-    r = requests.get(url, headers=header)
-    
-    hour = datetime.datetime.now().hour
+    try:
+        r = requests.get(url, headers=header)
+
+    except:
+        print(f"Failed to query myStrom '{url}'")
+        return False
     
     if r.status_code == 200:
         d = json.loads(r.text)
@@ -31,7 +34,6 @@ def measure(host, token, room, electric, label):
             if k == "power":
                 domain = "electricity"
                 v = v * 1.0
-                
             elif k == "Ws":
                 domain = "electricity"
                 v = v * 1.0
@@ -52,6 +54,7 @@ def measure(host, token, room, electric, label):
             if DEBUG:
                 print(f"{k} > {v} / {domain} / {electric}")
             
+    return True
 
 while True:
     for dev in devices:
