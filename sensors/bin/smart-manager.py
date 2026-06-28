@@ -5,7 +5,7 @@ from lib.myDatabase import mDb
 from lib.ncConnect import myNextcloud
 import datetime, time, os, requests
 
-DEBUG = False
+DEBUG = True
 
 ZENDURE_HOST = os.getenv("ZENDURE_HOST")
 ZENDURE_SN   = os.getenv("ZENDURE_SN")

@@ -11,7 +11,7 @@ INTERVAL = int(os.getenv("QUERY_INTERVAL"))
 # days back we remember measured pv values
 DAYSBACK = 10
 
-DEBUG = True
+DEBUG = False
 
 class SunForecast:
     #

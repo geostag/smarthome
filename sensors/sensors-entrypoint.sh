@@ -64,7 +64,7 @@ while true; do
   wait -n "${daemon_pids[@]}"
   status=$?
   set -e
-
+  sleep 60
   date
   echo "A daemon script exited with status ${status}. Stopping the scripts container."
   terminate_children
