@@ -220,7 +220,7 @@ class ZendureManager:
         self.setSunRaiseDown(s)
         self.solarInputPower.append(s)
         self.solarInputPower = self.solarInputPower[(-1 * lookback_items):]
-        s = int( 10 * sum(self.solarInputPower) / len(self.solarInputPower) + 0.5) / 10
+        s10 = int( 10 * sum(self.solarInputPower) / len(self.solarInputPower) + 0.5) / 10
         p = self.tasmota.Power
         self.rememberGridPower(p)
         if b > 20:
@@ -242,7 +242,7 @@ class ZendureManager:
             i = 0
             self.chargefrombase = True
             
-        elif b >= 0.95 * BATT_MAX and s > i_old:
+        elif b >= 0.95 * BATT_MAX and s10 > 0.5 * i_old:
             # batt full, still charging
             # approach: input = output; slow changes; at least needed power
             mode = "super hi batt"
@@ -250,7 +250,7 @@ class ZendureManager:
             i = 0.5 * (i - i_old) + i_old
             i = max(i,needed)
             
-        elif s > needed:
+        elif s10 > needed:
             # more sun than needed
             mode = "hi sun"
             i = needed
@@ -264,8 +264,8 @@ class ZendureManager:
             # maximum discharge based on reserves in battery or sun (whatever is more)
             minj = 2.0 * self.baseload
             maxj = self.bratio * (INJECTION_MAX - minj) + minj
-            maxtotal = max(maxj,s)
-            mode = f"blow out {self.bratio}, {maxj}, {s}"
+            maxtotal = max(maxj,s10)
+            mode = f"blow out {self.bratio}, {maxj}, {s}({s10})"
             i = min(maxtotal,needed)
 
         # round and limit to INJECTION_MAX
@@ -289,16 +289,16 @@ class ZendureManager:
         
         if i != i_old:
             if ML:
-                ML.log(f"p: {p}, s: {s}, b: {b} do i {i_old} -> {i} ({mode})")
+                ML.log(f"p: {p}, s: {s}({s10}), b: {b} do i {i_old} -> {i} ({mode})")
 
             if DEBUG:
-                print(f"p: {p}, s: {s}, b: {b} do i {i_old} -> {i} ({mode})")
+                print(f"p: {p}, s: {s}({s10}), b: {b} do i {i_old} -> {i} ({mode})")
                 
             self.zen.outputLimit = i
             
         else:
             if ML: 
-                ML.log(f"p: {p}, s: {s}, b: {b}, i: {i} ({mode})")
+                ML.log(f"p: {p}, s: {s}({s10}), b: {b}, i: {i} ({mode})")
 
 
 # ----------------------------- main -------------------------------
