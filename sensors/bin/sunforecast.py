@@ -40,7 +40,7 @@ class SunForecast:
         sd = hourly.get("sunshine_duration",None)
         if cc and sd:
             for i,(a,b) in enumerate(zip(cc,sd)):
-                d[i]["cc_by_sd"] = (100-a)*b/100
+                d[i]["cc_by_sd"] = b * (0.75 + 0.25 * (100-a)/100)
                 
         self.db.hash = { "meta": meta, "hourly": d }
         self.db.write()
