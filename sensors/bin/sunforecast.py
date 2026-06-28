@@ -7,6 +7,9 @@ import os, requests, json, datetime, re, time, traceback
 FORECASTURL = os.getenv("SUNFORECASTURL")
 APPDIR = os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
 INTERVAL = int(os.getenv("QUERY_INTERVAL"))
+DRYRUN = (os.getenv("DRYRUN","FALSE") == "TRUE")
+if DRYRUN:
+    print("------- DRYRUN (sunforecast) --------")
 
 # days back we remember measured pv values
 DAYSBACK = 10
@@ -194,11 +197,12 @@ class HistoryMaker:
         self.db.write()
 
         # log to nextcloud
-        try:
-            self.nextcloud.putFileFromFile("/cproj/Home-IT/smarthome/smart-manager-solarhistory2.json",f"{APPDIR}/smart-manager-solarhistory2.json")
-            self.nextcloud.putFileFromFile("/cproj/Home-IT/smarthome/smart-manager-sunforecast2.json",f"{APPDIR}/smart-manager-sunforecast2.json")
-        except:
-            pass
+        if not DRYRUN:
+            try:
+                self.nextcloud.putFileFromFile("/cproj/Home-IT/smarthome/smart-manager-solarhistory2.json",f"{APPDIR}/smart-manager-solarhistory2.json")
+                self.nextcloud.putFileFromFile("/cproj/Home-IT/smarthome/smart-manager-sunforecast2.json",f"{APPDIR}/smart-manager-sunforecast2.json")
+            except:
+                pass
 
     def storeSolarValue(self,s):
         n = datetime.datetime.now()

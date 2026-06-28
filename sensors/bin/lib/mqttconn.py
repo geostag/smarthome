@@ -12,6 +12,7 @@ class WhiteBoard:
     def __init__(self):
         def onMessage(client,userdata,msg):
             payload = msg.payload.decode()
+            topic   = msg.topic
             try:
                 d = json.loads(payload)
                 
@@ -19,13 +20,19 @@ class WhiteBoard:
                 print(f"Whiteboard: could not decode '{payload}'")
                 d = {}
                 
-            if d.get("ENERGY"):
+            if "tele/tasmota" in topic:
                 # this is tasmota message
                 d = d.get("ENERGY")
                 k = "tasmota"
                 
-            else:
+            elif "tele/sunforecast" in topic:
+                k = "sunforecast"
+
+            elif "tele/zendure" in topic:
                 k = "zendure"
+
+            else:
+                k = "lost+found"
                 
             self.db[k] = d
             if k in self.listener:
