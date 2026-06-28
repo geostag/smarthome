@@ -290,6 +290,9 @@ class ZendureManager:
         if i != i_old:
             if ML:
                 ML.log(f"p: {p}, s: {s}, b: {b} do i {i_old} -> {i} ({mode})")
+
+            if DEBUG:
+                print(f"p: {p}, s: {s}, b: {b} do i {i_old} -> {i} ({mode})")
                 
             self.zen.outputLimit = i
             
