@@ -2,7 +2,6 @@ from lib.mqttconn import WhiteBoard
 from lib.myLog import mLog
 from lib.toinflux import Iflx
 from lib.myDatabase import mDb
-from lib.forecast import HistoryMaker
 from lib.ncConnect import myNextcloud
 import datetime, time, os, requests
 
@@ -23,6 +22,8 @@ DYNAMIC_PARAMETER_PATH = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PATH","")
 INTERVAL = 90
 
 DRYRUN = (os.getenv("DRYRUN","FALSE") == "TRUE")
+if DRYRUN:
+    print("------- DRYRUN --------")
 
 # how many watt to reserve for zendure itself
 RESW = 8
@@ -99,7 +100,6 @@ class ZendureManager:
         self.sunDownYesterday  = self.db.get("sunDownYesterday")
         self.sunRaise = self.sunRaiseYesterday if (self.sunRaiseYesterday and self.hourFloat > self.sunRaiseYesterday) else None
         self.sunDown  = None
-        self.sunhistory = HistoryMaker()
         self.baseload = BASELOAD
         self.chargefrombase = True
         self.parameterurl = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PATH","")
@@ -221,13 +221,6 @@ class ZendureManager:
         self.solarInputPower.append(s)
         self.solarInputPower = self.solarInputPower[(-1 * lookback_items):]
         s = int( 10 * sum(self.solarInputPower) / len(self.solarInputPower) + 0.5) / 10
-
-        try:
-            self.sunhistory.storeSolarValue(s)
-
-        except:
-            print("update solarhistory failed")
-        
         p = self.tasmota.Power
         self.rememberGridPower(p)
         if b > 20:
