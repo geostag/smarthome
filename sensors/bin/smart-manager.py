@@ -242,6 +242,11 @@ class ZendureManager:
             i = 0
             self.chargefrombase = True
             
+        elif self.chargefrombase and b < 1.5 * BATT_MIN:
+            # we were discharged, first charge significant
+            mode = "charge from base"
+            i = 0
+                        
         elif b >= 0.95 * BATT_MAX and s10 > 0.5 * i_old:
             # batt full, still charging
             # approach: input = output; slow changes; at least needed power
@@ -255,11 +260,6 @@ class ZendureManager:
             mode = "hi sun"
             i = needed
             
-        elif self.chargefrombase and b < 1.5 * BATT_MIN:
-            # we were discharged, first charge significant
-            mode = "charge from base"
-            i = 0
-                        
         else:
             # maximum discharge based on reserves in battery or sun (whatever is more)
             minj = 2.0 * self.baseload

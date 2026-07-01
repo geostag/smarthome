@@ -136,7 +136,16 @@ class HistoryMaker:
     @dataToday.setter
     def dataToday(self,pv):
         self.db.set("dataToday",pv)
-        
+
+    @property
+    def todaysEnergySoFar(self):
+        e = 0
+        for i in self.dataToday:
+            if i["pvnum"] > 0:
+                e += i["pvsum"] / i["pvnum"]
+
+        return e
+
     def _normalizedEnergyProfile(self,dim):
         # returns an hourly array of energy under perfect conditions in specified dimenson
         if dim not in self._normalizedEnergyProfileData:
@@ -241,6 +250,7 @@ class HistoryMaker:
             data[dim] = e
 
         if self.mqttconnection:
+            data["energyEarnedToday"] = self.todaysEnergySoFar
             self.mqttconnection.publish("tele/sunforecast/SENSOR",json.dumps(data))
 
 class SolarInput:
