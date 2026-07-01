@@ -276,7 +276,7 @@ class ZendureManager:
                 ML.log(f"p: {p}, s: {s}({s10}), b: {b} do i {i_old} -> {i} ({mode})")
 
             if DEBUG:
-                print(f"p: {p}, s: {s}({s10}), b: {b} do i {i_old} -> {i} ({mode})")
+                print(f"p: {p}, s: {s}({s10}), b: {b} do i {i_old} -> {i} ({mode}; CFB:{self.chargefrombase})")
                 
             self.zen.outputLimit = i
             
