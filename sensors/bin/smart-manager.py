@@ -28,6 +28,22 @@ if DRYRUN:
 # how many watt to reserve for zendure itself
 RESW = 8
 
+class Forecast:
+    def __init__(self,wb):
+        self.wb = wb
+
+    @property
+    def predictedEnergy(self):
+        return self.wb.dataGet("sunforecast","sunshine_duration")
+
+    @property
+    def earnedEnergy(self):
+        return self.wb.dataGet("sunforecast","energyEarnedToday")
+    
+    @property
+    def energyToCome(self):
+        return max(0,self.predictedEnergy - self.earnedEnergy)
+
 class Tasmota:
     def __init__(self,wb):
         self.wb = wb
@@ -89,17 +105,14 @@ class Zendure:
             return True
         
 class ZendureManager:
-    def __init__(self,zen,tasmota):
+    def __init__(self,zen,tasmota,forecast):
         self.zen = zen
         self.tasmota = tasmota
+        self.forecast = forecast
         self.gridpower = []
         self.solarInputPower = []
         self.last_controller_update = 0
         self.db = mDb(f"{DATADIR}/smart-manager-state.json")
-        self.sunRaiseYesterday = self.db.get("sunRaiseYesterday")
-        self.sunDownYesterday  = self.db.get("sunDownYesterday")
-        self.sunRaise = self.sunRaiseYesterday if (self.sunRaiseYesterday and self.hourFloat > self.sunRaiseYesterday) else None
-        self.sunDown  = None
         self.baseload = BASELOAD
         self.chargefrombase = True
         self.parameterurl = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PATH","")
@@ -163,29 +176,6 @@ class ZendureManager:
         minute = datetime.datetime.now().minute
         return hour + minute / 60
     
-    def setSunRaiseDown(self,s):
-        h = self.hourFloat
-        if self.sunRaise == None and s > 0:
-            self.sunRaise = h
-            self.db.set("sunRaiseYesterday",h)
-
-        elif self.sunRaise != None and self.sunDown == None and h > 15 and s == 0:
-            self.sunRaiseYesterday = self.sunRaise
-            self.sunDownYesterday  = h
-            self.db.set("sunDownYesterday",h)
-            self.sunRaise = None
-            self.sunDown  = None
-
-    @property
-    def hratio(self):
-        # sun hour ratio
-        # range 0...1
-        r = self.sunRaiseYesterday if self.sunRaiseYesterday else 7.0
-        d = self.sunDownYesterday  if self.sunDownYesterday  else 17.0
-        d = max(d,r+5)
-        h = self.hourFloat
-        return min(1,max(0,(h - r)) / (d - r))
-    
     @property
     def bratio(self):
         # battery fill ratio
@@ -195,13 +185,8 @@ class ZendureManager:
     
     @property
     def generosity(self):
-        # is this a sunny day?
-        # range: 0.. 1 .. 2
-        try: 
-            return min(2,0.8 * self.bratio / (self.hratio + 1))
-        
-        except:
-            return 1
+        tc = self.forecast.energyToCome / 4000
+        return min(2, self.bratio + tc)
 
     def controller_update(self,force = False):
         if self.last_controller_update > time.time() - INTERVAL and not force:
@@ -217,7 +202,6 @@ class ZendureManager:
                 
         lookback_items = 11 - int(5 * self.generosity + 0.5)
         s = self.zen.solarInputPower
-        self.setSunRaiseDown(s)
         self.solarInputPower.append(s)
         self.solarInputPower = self.solarInputPower[(-1 * lookback_items):]
         s10 = int( 10 * sum(self.solarInputPower) / len(self.solarInputPower) + 0.5) / 10
@@ -308,7 +292,7 @@ INFLUX = Iflx()
 # Whiteboard with recent data
 WB  = WhiteBoard()
 # Zendure management
-ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB) )
+ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB), Forecast(WB) )
 
 def tasmotaCallback(data):
     if data.get("Power",0) < 0:
