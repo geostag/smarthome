@@ -228,8 +228,12 @@ class ZendureManager:
             
         elif self.chargefrombase and b < 1.5 * BATT_MIN:
             # we were discharged, first charge significant
-            mode = "charge from base"
+            mode = "charge from base < 1.5"
             i = 0
+
+        elif self.chargefrombase:
+            mode = "charge from base >= 1.5"
+            i = s
                         
         elif b >= 0.95 * BATT_MAX and s10 > 0.5 * i_old:
             # batt full, still charging
