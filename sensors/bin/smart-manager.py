@@ -200,7 +200,7 @@ class ZendureManager:
         i = self.zen.outputLimit
         i_old = int(i)
 
-        INFLUX.write("smart-manager","generosity",1.0 * self.generosity,{"synthetic": "yes", "debug": 1})
+        INFLUX.write("smart-manager","generosity",1.0 * self.generosity,{"synthetic": "yes", "debug": 2})
                 
         lookback_items = 11 - int(5 * self.generosity + 0.5)
         s = self.zen.solarInputPower
