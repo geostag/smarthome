@@ -5,7 +5,7 @@ from lib.myDatabase import mDb
 from lib.ncConnect import myNextcloud
 import datetime, time, os, requests
 
-DEBUG = True
+DEBUG = False
 
 ZENDURE_HOST = os.getenv("ZENDURE_HOST")
 ZENDURE_SN   = os.getenv("ZENDURE_SN")
@@ -199,6 +199,8 @@ class ZendureManager:
         b = self.zen.electricLevel
         i = self.zen.outputLimit
         i_old = int(i)
+
+        INFLUX.write("smart-manager","generosity",e,{"synthetic": "yes", "debug": 1})
                 
         lookback_items = 11 - int(5 * self.generosity + 0.5)
         s = self.zen.solarInputPower
@@ -235,7 +237,7 @@ class ZendureManager:
             mode = "charge from base >= 1.5"
             i = min(s,needed)
                         
-        elif b >= 0.95 * BATT_MAX and s10 > 0.5 * i_old:
+        elif b >= 0.96 * BATT_MAX and s10 > 0.6 * i_old:
             # batt full, still charging
             # approach: input = output; slow changes; at least needed power
             mode = "super hi batt"
