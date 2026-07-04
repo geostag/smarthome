@@ -44,8 +44,18 @@ class SunForecast:
         if cc and sd:
             for i,(a,b) in enumerate(zip(cc,sd)):
                 d[i]["cc_by_sd"] = b * (0.75 + 0.25 * (100-a)/100)
+
+        # get daily data
+        daily = self.rawdata.pop("daily",{})
+        try:
+            sunrise = datetime.datetime.fromisoformat(daily.get("sunrise")[0]).strftime("%H:%M")
+            sunset  = datetime.datetime.fromisoformat(daily.get("sunset")[0]).strftime("%H:%M")
+
+        except:
+            sunrise = "07:30"
+            sunset  = "18:30"
                 
-        self.db.hash = { "meta": meta, "hourly": d }
+        self.db.hash = { "meta": meta, "hourly": d, "sunrise": sunrise, "sunset": sunset }
         self.db.write()
         
     def query(self,**kwargs):
@@ -67,6 +77,20 @@ class SunForecast:
                 print(f"Failed to get sf data '{self.url}'")
 
             self.lastquery = now
+
+    @property
+    def sunrise(self):
+        try:
+            return self.db.hash["sunrise"]
+        except:
+            return "07:30"
+
+    @property
+    def sunset(self):
+        try:
+            return self.db.hash["sunset"]
+        except:
+            return "18:30"
 
     @property
     def hourlyData(self):
@@ -251,6 +275,8 @@ class HistoryMaker:
 
         if self.mqttconnection:
             data["energyEarnedToday"] = self.todaysEnergySoFar
+            data["sunrise"] = self.sunforecast.sunrise
+            data["sunset"]  = self.sunforecast.sunset
             self.mqttconnection.publish("tele/sunforecast/SENSOR",json.dumps(data))
 
 class SolarInput:

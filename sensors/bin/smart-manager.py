@@ -43,6 +43,16 @@ class Forecast:
     @property
     def energyToCome(self):
         return max(0,self.predictedEnergy - self.earnedEnergy)
+    
+    @property
+    def sunrise(self):
+        t = self.wb.dataGet("sunforecast","sunrise")
+        return datetime.time.fromisoformat(t)
+
+    @property
+    def sunset(self):
+        t = self.wb.dataGet("sunforecast","sunset")
+        return datetime.time.fromisoformat(t)
 
 class Tasmota:
     def __init__(self,wb):
@@ -200,7 +210,7 @@ class ZendureManager:
         i = self.zen.outputLimit
         i_old = int(i)
 
-        INFLUX.write("smart-manager","generosity",1.0 * self.generosity,{"synthetic": "yes", "debug": 2})
+        INFLUX.write("smart-manager","generosity2",1.0 * self.generosity,{"synthetic": "yes", "debug": 1})
                 
         lookback_items = 11 - int(5 * self.generosity + 0.5)
         s = self.zen.solarInputPower
