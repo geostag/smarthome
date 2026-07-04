@@ -13,6 +13,7 @@ ZENDURE_SN   = os.getenv("ZENDURE_SN")
 INJECTION_MAX = int(os.getenv("INJECTION_MAX",800))
 BATT_MIN      = int(os.getenv("MATT_MIN",10))
 BATT_MAX      = int(os.getenv("BATT_MAX",95))
+BATT_CAPACITY = int(os.getenv("BATT_CAPACITY",4000))
 BASELOAD      = int(os.getenv("BASELOAD",90))
 GRIDPOWERREMEMBER_MINUTES = 6
 
@@ -195,8 +196,17 @@ class ZendureManager:
     
     @property
     def generosity(self):
-        tc = self.forecast.energyToCome / 4000
-        return min(2, self.bratio + tc)
+        sunset = self.forecast.sunset
+        now = datetime.datetime.now().time()
+        sunset = sunset.hour + sunset.minute / 60 + sunset.second / 3600
+        now =    now.hour +    now.minute / 60 +    now.second / 3600
+        remainingsunhours = sunset - now
+        if remainingsunhours < 0:
+            return self.bratio
+        
+        energyExcessToCome = max(0,self.forecast.energyToCome - self.baseload * remainingsunhours)
+        energyOverBattToCome = max(0,energyExcessToCome - BATT_CAPACITY * (1-self.bratio))
+        return min(2, 4 * energyOverBattToCome / BATT_CAPACITY)
 
     def controller_update(self,force = False):
         if self.last_controller_update > time.time() - INTERVAL and not force:
