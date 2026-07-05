@@ -267,7 +267,7 @@ class ZendureManager:
             mode = "charge from base >= 1.5"
             i = min(s,needed)
                         
-        elif b >= 0.96 * BATT_MAX and s10 > 0.6 * i_old:
+        elif b >= BATT_MAX and s10 > 0.6 * i_old:
             # batt full, still charging
             # approach: input = output; slow changes; at least needed power
             mode = "super hi batt"
