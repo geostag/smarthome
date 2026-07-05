@@ -209,9 +209,9 @@ class ZendureManager:
         gnow = min(2, 2 * energyOverBattToCome / BATT_CAPACITY)
 
         # average g over last hour
-        now = time.time()
-        self.generosityHistory.append({ "t": now, "v": gnow })
-        self.generosityHistory = [ x for x in self.generosityHistory if x["t"] > now - 3600 ]
+        nowsecs = time.time()
+        self.generosityHistory.append({ "t": nowsecs, "v": gnow })
+        self.generosityHistory = [ x for x in self.generosityHistory if x["t"] > nowsecs - 3600 ]
         vs = [ x["v"] for x in self.generosityHistory ]
         g = sum(vs)/len(vs)
 
