@@ -129,6 +129,7 @@ class ZendureManager:
         self.parameterurl = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PATH","")
         self.paramterlast = 0
         self.nextcloud = myNextcloud()
+        self.generosityHistory = []
 
     def dynamicParameterUpdate(self):
         if time.time() > self.paramterlast + 900 and DYNAMIC_PARAMETER_PATH:
@@ -155,8 +156,8 @@ class ZendureManager:
                 self.baseload = p.get("BASELOAD", BASELOAD)
         
     def rememberGridPower(self,p):
-        self.gridpower.append( { "t": time.time(), "v": p } )
         now = time.time()
+        self.gridpower.append( { "t": now, "v": p } )
         self.gridpower = [ x for x in self.gridpower if x["t"] > now - GRIDPOWERREMEMBER_MINUTES*60 ]
         
     def minRememberGridPower(self):
@@ -205,18 +206,23 @@ class ZendureManager:
 
         energyExcessToCome = max(0,self.forecast.energyToCome - self.baseload * remainingsunhours)
         energyOverBattToCome = max(0,energyExcessToCome - BATT_CAPACITY * (1-self.bratio))
-        g = min(2, 2 * energyOverBattToCome / BATT_CAPACITY)
+        gnow = min(2, 2 * energyOverBattToCome / BATT_CAPACITY)
 
-        print(f"g: {g} / {remainingsunhours} / {self.forecast.energyToCome} / {energyExcessToCome} / {energyOverBattToCome}")
+        # average g over last hour
+        now = time.time()
+        self.generosityHistory.append({ "t": now, "v": gnow })
+        self.generosityHistory = [ x for x in self.generosityHistory if x["t"] > now - 3600 ]
+        vs = [ x["v"] for x in self.generosityHistory ]
+        g = sum(vs)/len(vs)
 
         if now < sunrise:
-            return self.bratio + 0.5 * g
+            g = self.bratio + 0.5 * g
         
         elif now > sunset:
-            return self.bratio
-        
-        else:
-            return g
+            g = self.bratio
+
+        print(f"g: {g} / {remainingsunhours} / {self.forecast.energyToCome} / {energyExcessToCome} / {energyOverBattToCome}")
+        return g
 
     def controller_update(self,force = False):
         if self.last_controller_update > time.time() - INTERVAL and not force:
