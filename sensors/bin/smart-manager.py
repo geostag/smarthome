@@ -196,17 +196,27 @@ class ZendureManager:
     
     @property
     def generosity(self):
-        sunset = self.forecast.sunset
+        sunset  = self.forecast.sunset
+        sunrise = self.forecast.sunrise
         now = datetime.datetime.now().time()
-        sunset = sunset.hour + sunset.minute / 60 + sunset.second / 3600
-        now =    now.hour +    now.minute / 60 +    now.second / 3600
-        remainingsunhours = sunset - now
-        if remainingsunhours < 0:
-            return self.bratio
-        
+        sunseth = sunset.hour + sunset.minute / 60 + sunset.second / 3600
+        nowh    = now.hour    + now.minute / 60    + now.second / 3600
+        remainingsunhours = sunseth - nowh
+
         energyExcessToCome = max(0,self.forecast.energyToCome - self.baseload * remainingsunhours)
         energyOverBattToCome = max(0,energyExcessToCome - BATT_CAPACITY * (1-self.bratio))
-        return min(2, 4 * energyOverBattToCome / BATT_CAPACITY)
+        g = min(2, 2 * energyOverBattToCome / BATT_CAPACITY)
+
+        print(f"g: {g} / {remainingsunhours} / {self.forecast.energyToCome} / {energyExcessToCome} / {energyOverBattToCome}")
+
+        if now < sunrise:
+            return self.bratio + 0.5 * g
+        
+        elif now > sunset:
+            return self.bratio
+        
+        else:
+            return g
 
     def controller_update(self,force = False):
         if self.last_controller_update > time.time() - INTERVAL and not force:
