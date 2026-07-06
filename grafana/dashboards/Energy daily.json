@@ -565,7 +565,7 @@
     "list": []
   },
   "time": {
-    "from": "now-15d",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {

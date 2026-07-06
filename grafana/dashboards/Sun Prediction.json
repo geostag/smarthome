@@ -65,6 +65,7 @@
             }
           },
           "mappings": [],
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -82,8 +83,8 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 7,
+        "w": 17,
         "x": 0,
         "y": 0
       },
@@ -93,7 +94,7 @@
           "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": false
         },
         "tooltip": {
           "hideZeros": false,
@@ -104,15 +105,11 @@
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "df8oltzu756o0e"
-          },
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"socLevel\")",
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._field == \"generosity2\")\r\n|> aggregateWindow(every: v.windowPeriod, fn: mean)",
           "refId": "A"
         }
       ],
-      "title": "battery packs",
+      "title": "generosity",
       "type": "timeseries"
     },
     {
@@ -159,7 +156,9 @@
               "mode": "off"
             }
           },
+          "displayName": "${__field.labels.dimension}",
           "mappings": [],
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -172,110 +171,16 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "watth"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      },
-      "id": 1,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.4.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "df8oltzu756o0e"
-          },
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"solarInputPower\" )",
-          "refId": "A"
-        }
-      ],
-      "title": "solar power",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 7,
+        "w": 17,
         "x": 0,
-        "y": 8
+        "y": 7
       },
       "id": 2,
       "options": {
@@ -294,15 +199,11 @@
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "df8oltzu756o0e"
-          },
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"state\")",
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) =>  r._field == \"sunpredict\" and (r.dimension == \"cc_by_sd\" or r.dimension == \"sunshine_duration\") )\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n",
           "refId": "A"
         }
       ],
-      "title": "battery state",
+      "title": "sun prediction",
       "type": "timeseries"
     },
     {
@@ -313,7 +214,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "fixedColor": "light-blue",
+            "mode": "palette-classic-by-name"
           },
           "custom": {
             "axisBorderShow": false,
@@ -321,10 +223,11 @@
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
+            "axisSoftMax": 100,
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 0,
+            "fillOpacity": 100,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -333,7 +236,7 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineWidth": 0,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -343,7 +246,7 @@
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "none"
+              "mode": "normal"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -362,15 +265,47 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "watt"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "solarPower1"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#23601a",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "solarPower4"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
+        "h": 6,
+        "w": 17,
+        "x": 0,
+        "y": 14
       },
       "id": 4,
       "options": {
@@ -378,7 +313,7 @@
           "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": false
         },
         "tooltip": {
           "hideZeros": false,
@@ -393,202 +328,11 @@
             "type": "influxdb",
             "uid": "df8oltzu756o0e"
           },
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and \r\n  (r._field == \"solarPower1\" or r._field == \"solarPower2\" or r._field == \"solarPower3\" or r._field == \"solarPower4\")\r\n)",
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\")\r\n  |> filter(fn: (r) =>\r\n    r._field == \"solarPower1\" or\r\n    r._field == \"solarPower2\" or\r\n    r._field == \"solarPower3\" or\r\n    r._field == \"solarPower4\"\r\n  )\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\r\n",
           "refId": "A"
         }
       ],
       "title": "solar panels",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 16
-      },
-      "id": 7,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.4.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "df8oltzu756o0e"
-          },
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"maxTemp\")",
-          "refId": "A"
-        }
-      ],
-      "title": "battery temperature",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "df8oltzu756o0e"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "min": 25,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 16
-      },
-      "id": 6,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.4.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "df8oltzu756o0e"
-          },
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"hyperTmpD\" )",
-          "refId": "A"
-        }
-      ],
-      "title": "SF temperature",
       "type": "timeseries"
     },
     {
@@ -610,7 +354,7 @@
             "barAlignment": 0,
             "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 77,
+            "fillOpacity": 40,
             "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
@@ -620,13 +364,13 @@
             "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
-            "pointSize": 5,
+            "pointSize": 4,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "showValues": false,
-            "spanNulls": true,
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -636,68 +380,34 @@
             }
           },
           "mappings": [],
-          "max": 500,
-          "min": -500,
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "transparent",
+                "color": "dark-red",
                 "value": 0
               },
               {
-                "color": "#EAB839",
-                "value": 0
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "outputPackPower {domain=\"electricity\", electric=\"solar\", room=\"2Stock\"}"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "semi-dark-green",
-                  "mode": "fixed"
-                }
+                "color": "dark-orange",
+                "value": 10
               },
               {
-                "id": "displayName",
-                "value": "charging"
+                "color": "dark-green",
+                "value": 20
               }
             ]
           },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "packInputPower {domain=\"electricity\", electric=\"solar\", room=\"2Stock\"}"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "semi-dark-red",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "displayName",
-                "value": "discharging"
-              }
-            ]
-          }
-        ]
+          "unit": "percent"
+        },
+        "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 5,
+        "w": 17,
         "x": 0,
-        "y": 24
+        "y": 20
       },
       "id": 5,
       "options": {
@@ -716,12 +426,104 @@
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "query": "from(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"zendure\" and (r._field == \"outputPackPower\" or r._field == \"packInputPower\" ))\r\n  |> map(fn: (r) => ({ r with _value:  (if r._field == \"packInputPower\" then -1 * r._value else r._value) }) )\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\n\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => (r._measurement == \"zendure\" and r._field == \"electricLevel\"))\r\n  |> drop(columns: [\"domain\", \"electric\", \"room\"])\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
           "refId": "A"
         }
       ],
-      "title": "battery charging",
+      "title": "battery level",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "watth"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 17,
+        "x": 0,
+        "y": 25
+      },
+      "id": 1,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "auto",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "df8oltzu756o0e"
+          },
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) =>  r._measurement == \"daily_energy\" and r._field == \"solarInputPower\" )\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Solar Power",
+      "type": "barchart"
     }
   ],
   "preload": false,
@@ -731,13 +533,13 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Zendure Details",
-  "uid": "ge7l42l",
-  "version": 5,
+  "title": "Sun Prediction",
+  "uid": "gezx7bs",
+  "version": 6,
   "weekStart": ""
 }

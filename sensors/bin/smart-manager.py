@@ -206,7 +206,7 @@ class ZendureManager:
 
         energyExcessToCome = max(0,self.forecast.energyToCome - self.baseload * remainingsunhours)
         energyOverBattToCome = max(0,energyExcessToCome - BATT_CAPACITY * (1-self.bratio))
-        gnow = min(2, 2 * energyOverBattToCome / BATT_CAPACITY)
+        gnow = min(2, 3 * energyOverBattToCome / BATT_CAPACITY)
 
         # average g over last hour
         nowsecs = time.time()
@@ -277,8 +277,7 @@ class ZendureManager:
             # batt full, still charging
             # approach: input = output; slow changes; at least needed power
             mode = "super hi batt"
-            i = BASELOAD + self.bratio * INJECTION_MAX
-            i = 0.5 * (i - i_old) + i_old
+            i = BASELOAD + self.generosity * INJECTION_MAX
             i = max(i,needed)
             
         elif s10 > needed:

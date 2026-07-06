@@ -216,8 +216,8 @@
             "neutral": 0
           },
           "mappings": [],
-          "max": 200,
-          "min": -200,
+          "max": 500,
+          "min": -500,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -334,7 +334,9 @@
       },
       "id": 9,
       "options": {
-        "displayLabels": [],
+        "displayLabels": [
+          "percent"
+        ],
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
@@ -678,6 +680,9 @@
       },
       "id": 7,
       "options": {
+        "displayLabels": [
+          "percent"
+        ],
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
@@ -858,6 +863,7 @@
           "color": {
             "mode": "fixed"
           },
+          "decimals": 1,
           "mappings": [],
           "max": 30,
           "min": 0,
@@ -886,9 +892,11 @@
       },
       "id": 24,
       "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -896,9 +904,9 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "sizing": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
       "pluginVersion": "12.4.2",
       "targets": [
@@ -908,7 +916,7 @@
         }
       ],
       "title": "room temperature",
-      "type": "gauge"
+      "type": "stat"
     },
     {
       "datasource": {
@@ -995,8 +1003,16 @@
           "color": {
             "mode": "fixed"
           },
+          "decimals": 1,
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Device Details",
+              "url": "https://grafana.ostertage.de/d/ge7l42l/zendure-details"
+            }
+          ],
           "mappings": [],
-          "max": 45,
+          "max": 55,
           "min": 0,
           "thresholds": {
             "mode": "absolute",
@@ -1023,9 +1039,11 @@
       },
       "id": 28,
       "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1033,9 +1051,9 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "sizing": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
       "pluginVersion": "12.4.2",
       "targets": [
@@ -1045,7 +1063,7 @@
         }
       ],
       "title": "device temperature",
-      "type": "gauge"
+      "type": "stat"
     },
     {
       "datasource": {
@@ -1404,9 +1422,11 @@
       },
       "id": 30,
       "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1414,9 +1434,9 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "sizing": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
       "pluginVersion": "12.4.2",
       "targets": [
@@ -1426,7 +1446,7 @@
         }
       ],
       "title": "outside",
-      "type": "gauge"
+      "type": "stat"
     },
     {
       "datasource": {
@@ -1438,46 +1458,41 @@
           "color": {
             "mode": "thresholds"
           },
-          "displayName": "${__series.name}",
+          "displayName": "predict",
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "details",
+              "url": "https://grafana.ostertage.de/d/gezx7bs/sun-prediction?orgId=1&from=now-7d&to=now"
+            }
+          ],
           "mappings": [],
-          "max": 1,
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "#454645",
+                "color": "super-light-green",
                 "value": 0
-              },
-              {
-                "color": "semi-dark-green",
-                "value": 0.5
               }
             ]
-          }
+          },
+          "unit": "watth"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
-        "w": 1,
+        "h": 2,
+        "w": 2,
         "x": 22,
         "y": 9
       },
-      "id": 32,
+      "id": 33,
       "options": {
-        "displayMode": "basic",
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "top",
-        "orientation": "horizontal",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1485,19 +1500,19 @@
           "fields": "",
           "values": false
         },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "hidden"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "query": "import \"array\"\r\n\r\nsensors =\r\n  array.from(rows: [\r\n    {_measurement: \"fritz\", _value: 0},\r\n    {_measurement: \"mystrom\", _value: 0},\r\n    {_measurement: \"remoteweather\", _value: 0},\r\n    {_measurement: \"smart-manager\", _value: 0},\r\n    {_measurement: \"smarthings\", _value: 0},\r\n    {_measurement: \"tasmota\", _value: 0},\r\n    {_measurement: \"zendure\", _value: 0}\r\n  ])\r\n\r\ndata =\r\n  from(bucket: \"smarthome\")\r\n    |> range(start: -6m)\r\n    |> filter(fn: (r) => r.domain == \"heartbeat\")\r\n    |> group(columns: [\"_measurement\"])\r\n    |> count()\r\n    |> map(fn: (r) => ({\r\n        _measurement: r._measurement,\r\n        _value: if r._value > 0 then 1 else 0\r\n    }))\r\n\r\nunion(tables: [sensors, data])\r\n  |> group(columns: [\"_measurement\"])\r\n  |> max()",
+          "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -12h, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"sunforecast\" and r.dimension == \"sunshine_duration\" and r._field == \"sunpredict\" )\r\n  |> last()\r\n",
           "refId": "A"
         }
       ],
       "title": "",
-      "type": "bargauge"
+      "type": "stat"
     },
     {
       "datasource": {
@@ -1768,44 +1783,22 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "continuous-GrYlRd"
+            "mode": "thresholds"
           },
-          "custom": {
-            "axisPlacement": "auto",
-            "fillOpacity": 70,
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineWidth": 0,
-            "spanNulls": false
-          },
-          "links": [
-            {
-              "targetBlank": true,
-              "title": "Presence Details",
-              "url": "https://grafana.ostertage.de/d/ge2cvr2/presence?orgId=1&from=now-6h&to=now&timezone=browser"
-            }
-          ],
+          "displayName": "${__series.name}",
           "mappings": [],
-          "max": 10,
+          "max": 1,
           "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "#000000",
+                "color": "#454645",
                 "value": 0
               },
               {
-                "color": "dark-green",
-                "value": 5
-              },
-              {
-                "color": "semi-dark-red",
-                "value": 10
+                "color": "semi-dark-green",
+                "value": 0.5
               }
             ]
           }
@@ -1813,29 +1806,130 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 3,
-        "w": 11,
-        "x": 0,
-        "y": 17
+        "h": 10,
+        "w": 1,
+        "x": 22,
+        "y": 11
       },
-      "id": 31,
-      "links": [
-        {
-          "targetBlank": true,
-          "title": "Presence Details",
-          "url": "https://grafana.ostertage.de/d/ge2cvr2/presence?orgId=1&from=now-6h&to=now&timezone=browser"
-        }
-      ],
+      "id": 32,
       "options": {
-        "alignValue": "center",
+        "displayMode": "basic",
         "legend": {
+          "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": false
         },
-        "mergeValues": true,
-        "rowHeight": 0.85,
-        "showValue": "auto",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "top",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "hidden"
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "query": "import \"array\"\r\n\r\nsensors =\r\n  array.from(rows: [\r\n    {_measurement: \"fritz\", _value: 0},\r\n    {_measurement: \"mystrom\", _value: 0},\r\n    {_measurement: \"remoteweather\", _value: 0},\r\n    {_measurement: \"smart-manager\", _value: 0},\r\n    {_measurement: \"smarthings\", _value: 0},\r\n    {_measurement: \"tasmota\", _value: 0},\r\n    {_measurement: \"zendure\", _value: 0}\r\n  ])\r\n\r\ndata =\r\n  from(bucket: \"smarthome\")\r\n    |> range(start: -6m)\r\n    |> filter(fn: (r) => r.domain == \"heartbeat\")\r\n    |> group(columns: [\"_measurement\"])\r\n    |> count()\r\n    |> map(fn: (r) => ({\r\n        _measurement: r._measurement,\r\n        _value: if r._value > 0 then 1 else 0\r\n    }))\r\n\r\nunion(tables: [sensors, data])\r\n  |> group(columns: [\"_measurement\"])\r\n  |> max()",
+          "refId": "A"
+        }
+      ],
+      "title": "",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "links": [
+            {
+              "oneClick": true,
+              "targetBlank": true,
+              "title": "details",
+              "url": "https://grafana.ostertage.de/d/gezx7bs/sun-prediction?orgId=1&from=now-7d&to=now&timezone=browser"
+            }
+          ],
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 11,
+        "x": 0,
+        "y": 17
+      },
+      "id": 34,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
         "tooltip": {
           "hideZeros": false,
           "mode": "single",
@@ -1845,24 +1939,12 @@
       "pluginVersion": "12.4.2",
       "targets": [
         {
-          "query": "from(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"fritz\" and r.domain == \"presence\")\r\n|> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._field == \"generosity2\")\r\n|> aggregateWindow(every: v.windowPeriod, fn: mean)",
           "refId": "A"
         }
       ],
-      "title": "crowd",
-      "transformations": [
-        {
-          "id": "calculateField",
-          "options": {
-            "mode": "reduceRow",
-            "reduce": {
-              "reducer": "sum"
-            },
-            "replaceFields": true
-          }
-        }
-      ],
-      "type": "state-timeline"
+      "title": "generosity",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -2018,6 +2100,110 @@
       ],
       "title": "green injection",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "custom": {
+            "axisPlacement": "auto",
+            "fillOpacity": 70,
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineWidth": 0,
+            "spanNulls": false
+          },
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Presence Details",
+              "url": "https://grafana.ostertage.de/d/ge2cvr2/presence?orgId=1&from=now-6h&to=now&timezone=browser"
+            }
+          ],
+          "mappings": [],
+          "max": 10,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#000000",
+                "value": 0
+              },
+              {
+                "color": "dark-green",
+                "value": 5
+              },
+              {
+                "color": "semi-dark-red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 11,
+        "x": 0,
+        "y": 21
+      },
+      "id": 31,
+      "links": [
+        {
+          "targetBlank": true,
+          "title": "Presence Details",
+          "url": "https://grafana.ostertage.de/d/ge2cvr2/presence?orgId=1&from=now-6h&to=now&timezone=browser"
+        }
+      ],
+      "options": {
+        "alignValue": "center",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "mergeValues": true,
+        "rowHeight": 0.85,
+        "showValue": "auto",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "query": "from(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"fritz\" and r.domain == \"presence\")\r\n|> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+          "refId": "A"
+        }
+      ],
+      "title": "crowd",
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "reduceRow",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "replaceFields": true
+          }
+        }
+      ],
+      "type": "state-timeline"
     }
   ],
   "preload": false,
@@ -2045,6 +2231,6 @@
   "timezone": "browser",
   "title": "Electricity today",
   "uid": "geff86m",
-  "version": 230,
+  "version": 245,
   "weekStart": ""
 }
