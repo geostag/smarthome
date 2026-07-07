@@ -130,6 +130,7 @@ class ZendureManager:
         self.paramterlast = 0
         self.nextcloud = myNextcloud()
         self.generosityHistory = []
+        self.dynamicParameter = {}
 
     def dynamicParameterUpdate(self):
         if time.time() > self.paramterlast + 900 and DYNAMIC_PARAMETER_PATH:
@@ -149,6 +150,7 @@ class ZendureManager:
 
                 p[k] = v
 
+            self.dynamicParameter = p
             #self.baseload = p.get("BASELOAD", BASELOAD)
             bl = p.get("BASELOAD", BASELOAD)
             if self.baseload != bl:
@@ -312,6 +314,11 @@ class ZendureManager:
                 mode += ", slow-raise"
                 i = (0.9 + 0.05 * self.generosity) * (i - i_old) + i_old
         
+        ho = self.dynamicParameter.get("HARDOUTPUT",-1)
+        if ho >= 0:
+            print(f"hard setting output to {ho}")
+            i = ho
+
         if i != i_old:
             if ML:
                 ML.log(f"p: {p}, s: {s}({s10}), b: {b} do i {i_old} -> {i} ({mode})")
