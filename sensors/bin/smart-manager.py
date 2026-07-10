@@ -295,7 +295,7 @@ class ZendureManager:
             mode = f"blow out {self.bratio}, {maxj}, {s}({s10})"
             i = min(maxtotal,needed)
             
-            if self.hourFloat > 9:
+            if self.generosity > 1 and self.hourFloat > 9:
                 # add generosity upstream (max halve INJ_MAX)
                 i = i + self.generosity * INJECTION_MAX / 4
 
