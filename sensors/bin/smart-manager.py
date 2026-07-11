@@ -218,7 +218,15 @@ class ZendureManager:
 
         energyExcessToCome = max(0,self.forecast.energyToCome - self.baseload * remainingsunhours)
         energyOverBattToCome = max(0,energyExcessToCome - BATT_CAPACITY * (1-self.bratio))
-        gnow = min(2, 3 * energyOverBattToCome / BATT_CAPACITY)
+        if energyOverBattToCome > 0:
+            gnow = min(2, 1 + 2 * energyOverBattToCome / BATT_CAPACITY)
+
+        else:
+            energy = self.forecast.energyToCome + BATT_CAPACITY * self.bratio
+            needed = self.baseload * 24
+            gnow = energy / needed
+            gnow = min(1,gnow)
+            gnow = max(0,gnow)
 
         # average g over last hour
         nowsecs = time.time()
