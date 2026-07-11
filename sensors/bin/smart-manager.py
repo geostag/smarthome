@@ -223,7 +223,10 @@ class ZendureManager:
         elif now > sunset:
             g = self.bratio
 
-        print(f"g: {g} / {remainingsunhours} / {self.forecast.energyToCome} / {energyExcessToCome} / {energyOverBattToCome}")
+        INFLUX.write("debug","energyToCome",1.0 * self.forecast.energyToCome,{"synthetic": "yes", "debug": 1})
+        INFLUX.write("debug","energyExcessToCome",1.0 * energyExcessToCome,{"synthetic": "yes", "debug": 1})
+        INFLUX.write("debug","energyOverBattToCome",1.0 * energyOverBattToCome,{"synthetic": "yes", "debug": 1})
+        #print(f"g: {g} / {remainingsunhours} / {self.forecast.energyToCome} / {energyExcessToCome} / {energyOverBattToCome}")
         return g
 
     def controller_update(self,force = False):
