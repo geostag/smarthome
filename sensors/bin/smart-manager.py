@@ -291,9 +291,10 @@ class ZendureManager:
             i = needed
             
             if self.hourFloat > 9 and self.generosity > 1:
-                # add generosity upstream (max halve INJ_MAX)
+                # add generosity upstream 
                 print(f"add generosity {self.generosity}")
-                i = i + self.generosity * INJECTION_MAX / 4
+                i = i + self.generosity * INJECTION_MAX / 6
+                i = min(0.95*s10, i)
 
         else:
             # maximum discharge based on reserves in battery or sun (whatever is more)
