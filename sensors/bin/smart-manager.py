@@ -295,8 +295,9 @@ class ZendureManager:
             mode = f"blow out {self.bratio}, {maxj}, {s}({s10})"
             i = min(maxtotal,needed)
             
-            if self.generosity > 1 and self.hourFloat > 9:
+            if self.generosity > 1:
                 # add generosity upstream (max halve INJ_MAX)
+                print(f"add generosity {self.generosity}")
                 i = i + self.generosity * INJECTION_MAX / 4
 
         # round and limit to INJECTION_MAX
@@ -327,9 +328,6 @@ class ZendureManager:
             if ML:
                 ML.log(f"p: {p}, s: {s}({s10}), b: {b} do i {i_old} -> {i} ({mode})")
 
-            if DEBUG:
-                print(f"p: {p}, s: {s}({s10}), b: {b} do i {i_old} -> {i} ({mode}; CFB:{self.chargefrombase})")
-                
             self.zen.outputLimit = i
             
         else:
