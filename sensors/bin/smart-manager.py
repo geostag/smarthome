@@ -131,6 +131,7 @@ class ZendureManager:
         self.nextcloud = myNextcloud()
         self.generosityHistory = []
         self.dynamicParameter = {}
+        self.generosInjection = []
 
     def dynamicParameterUpdate(self):
         if time.time() > self.paramterlast + 900 and DYNAMIC_PARAMETER_PATH:
@@ -292,8 +293,10 @@ class ZendureManager:
             
             if self.hourFloat > 9 and self.generosity > 1:
                 # add generosity upstream 
-                print(f"add generosity {self.generosity}")
-                i = i + self.generosity * INJECTION_MAX / 6
+                gi = (self.generosity - 1) * INJECTION_MAX / 2
+                self.generosInjection = self.generosInjection * 0.8 + gi  * 0.2
+                print(f"add generosity {self.generosity} > {self.generosInjection}")
+                i = i + self.generosInjection
                 i = min(0.95*s10, i)
 
         else:
