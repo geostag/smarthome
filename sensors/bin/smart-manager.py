@@ -131,7 +131,7 @@ class ZendureManager:
         self.nextcloud = myNextcloud()
         self.generosityHistory = []
         self.dynamicParameter = {}
-        self.generosInjection = []
+        self.generosInjection = 0
 
     def dynamicParameterUpdate(self):
         if time.time() > self.paramterlast + 900 and DYNAMIC_PARAMETER_PATH:
@@ -198,6 +198,15 @@ class ZendureManager:
         b = self.zen.electricLevel
         return int(100 * (b - BATT_MIN)/(BATT_MAX-BATT_MIN) + 0.5) / 100
     
+    @property
+    def sunshine(self):
+        sunset  = self.forecast.sunset
+        sunrise = self.forecast.sunrise
+        now = datetime.datetime.now().time()
+        ss = ( now > sunrise and now < sunset )
+        INFLUX.write("debug","sunshine",1.0 if ss else 0.0,{"synthetic": "yes", "debug": 1})
+        return ss
+
     @property
     def generosity(self):
         sunset  = self.forecast.sunset
@@ -291,13 +300,16 @@ class ZendureManager:
             mode = "hi sun"
             i = needed
             
-            if self.hourFloat > 9 and self.generosity > 1:
+            if self.sunshine and self.generosity > 1:
                 # add generosity upstream 
                 gi = (self.generosity - 1) * INJECTION_MAX / 2
                 self.generosInjection = self.generosInjection * 0.8 + gi  * 0.2
                 print(f"add generosity {self.generosity} > {self.generosInjection}")
                 i = i + self.generosInjection
                 i = min(0.95*s10, i)
+
+            else:
+                self.generosInjection = 0
 
         else:
             # maximum discharge based on reserves in battery or sun (whatever is more)
