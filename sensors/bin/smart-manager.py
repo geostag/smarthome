@@ -287,6 +287,11 @@ class ZendureManager:
             mode = "hi sun"
             i = needed
             
+            if self.hourFloat > 9 and self.generosity > 1:
+                # add generosity upstream (max halve INJ_MAX)
+                print(f"add generosity {self.generosity}")
+                i = i + self.generosity * INJECTION_MAX / 4
+
         else:
             # maximum discharge based on reserves in battery or sun (whatever is more)
             minj = 2.0 * self.baseload
@@ -295,11 +300,6 @@ class ZendureManager:
             mode = f"blow out {self.bratio}, {maxj}, {s}({s10})"
             i = min(maxtotal,needed)
             
-            if self.generosity > 1:
-                # add generosity upstream (max halve INJ_MAX)
-                print(f"add generosity {self.generosity}")
-                i = i + self.generosity * INJECTION_MAX / 4
-
         # round and limit to INJECTION_MAX
         i = int(min(INJECTION_MAX,i) + 0.5) * 1.0
         
