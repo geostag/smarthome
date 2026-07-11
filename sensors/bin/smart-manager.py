@@ -248,6 +248,7 @@ class ZendureManager:
         return g
 
     def controller_update(self,force = False):
+        INFLUX.write("smart-manager","generosity2",1.0 * self.generosity,{"synthetic": "yes", "debug": 1})
         if self.last_controller_update > time.time() - INTERVAL and not force:
             return True
         
@@ -259,8 +260,6 @@ class ZendureManager:
         i = self.zen.outputLimit
         i_old = int(i)
 
-        INFLUX.write("smart-manager","generosity2",1.0 * self.generosity,{"synthetic": "yes", "debug": 1})
-                
         lookback_items = 11 - int(5 * self.generosity + 0.5)
         s = self.zen.solarInputPower
         self.solarInputPower.append(s)
@@ -310,7 +309,7 @@ class ZendureManager:
             
             if self.sunshine and self.generosity > 1:
                 # add generosity upstream 
-                gi = (self.generosity - 1) * INJECTION_MAX / 2
+                gi = (self.generosity - 1) * 0.7 * INJECTION_MAX 
                 self.generosInjection = self.generosInjection * 0.8 + gi  * 0.2
                 print(f"add generosity {self.generosity} > {self.generosInjection}")
                 i = i + self.generosInjection
