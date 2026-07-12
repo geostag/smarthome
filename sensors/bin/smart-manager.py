@@ -248,7 +248,8 @@ class ZendureManager:
         return g
 
     def controller_update(self,force = False):
-        INFLUX.write("smart-manager","generosity2",1.0 * self.generosity,{"synthetic": "yes", "debug": 1})
+        INFLUX.heartbeat("smart-manager")
+
         if self.last_controller_update > time.time() - INTERVAL and not force:
             return True
         
@@ -259,6 +260,8 @@ class ZendureManager:
         b = self.zen.electricLevel
         i = self.zen.outputLimit
         i_old = int(i)
+
+        INFLUX.write("smart-manager","generosity2",1.0 * self.generosity,{"synthetic": "yes", "debug": 1})
 
         lookback_items = 11 - int(5 * self.generosity + 0.5)
         s = self.zen.solarInputPower
@@ -295,12 +298,13 @@ class ZendureManager:
             mode = "charge from base >= 1.5"
             i = min(s,needed)
                         
-        elif b >= BATT_MAX and s10 > 0.6 * i_old:
+        elif b >= BATT_MAX:
             # batt full, still charging
             # approach: input = output; slow changes; at least needed power
             mode = "super hi batt"
             i = BASELOAD + self.generosity * INJECTION_MAX
-            i = max(i,needed)
+            i = min(s10,i)
+            i = max(i,p)
             
         elif s10 > needed:
             # more sun than needed
@@ -312,8 +316,7 @@ class ZendureManager:
                 gi = (self.generosity - 1) * 0.7 * INJECTION_MAX 
                 self.generosInjection = self.generosInjection * 0.8 + gi  * 0.2
                 print(f"add generosity {self.generosity} > {self.generosInjection}")
-                i = i + self.generosInjection
-                i = min(0.95*s10, i)
+                i = max(self.generosInjection,p)
 
             else:
                 self.generosInjection = 0
@@ -390,4 +393,4 @@ else:
 while True:
     time.sleep(INTERVAL)
     ZM.controller_update()
-    INFLUX.heartbeat("smart-manager")
+    
