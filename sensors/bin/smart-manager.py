@@ -312,8 +312,8 @@ class ZendureManager:
             
             if self.sunshine and self.generosity > 1:
                 # add generosity upstream 
-                gi = (self.generosity - 1) * 0.7 * INJECTION_MAX 
-                self.generosInjection = self.generosInjection * 0.8 + gi  * 0.2
+                gi = (self.generosity - 1) * 0.8 * INJECTION_MAX 
+                self.generosInjection = self.generosInjection * 0.8 + gi * 0.2
                 i = max(self.generosInjection,p)
                 i = min(s10 - RESW,i)
 
