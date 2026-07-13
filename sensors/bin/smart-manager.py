@@ -317,6 +317,7 @@ class ZendureManager:
                 self.generosInjection = self.generosInjection * 0.8 + gi  * 0.2
                 print(f"add generosity {self.generosity} > {self.generosInjection}")
                 i = max(self.generosInjection,p)
+                i = min(s10 - RESW,i)
 
             else:
                 self.generosInjection = 0
