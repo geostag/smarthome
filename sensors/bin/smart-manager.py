@@ -302,8 +302,7 @@ class ZendureManager:
             # batt full, still charging
             # approach: input = output; slow changes; at least needed power
             mode = "super hi batt"
-            i = BASELOAD + self.generosity * INJECTION_MAX
-            i = min(s10,i)
+            i = min(s10,INJECTION_MAX)
             i = max(i,p)
             
         elif s10 > needed:
@@ -315,7 +314,6 @@ class ZendureManager:
                 # add generosity upstream 
                 gi = (self.generosity - 1) * 0.7 * INJECTION_MAX 
                 self.generosInjection = self.generosInjection * 0.8 + gi  * 0.2
-                print(f"add generosity {self.generosity} > {self.generosInjection}")
                 i = max(self.generosInjection,p)
                 i = min(s10 - RESW,i)
 
