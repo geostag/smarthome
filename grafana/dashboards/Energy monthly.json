@@ -162,6 +162,111 @@
       "fieldConfig": {
         "defaults": {
           "color": {
+            "fixedColor": "super-light-green",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "super-light-green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "id": 10,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "orientation": "auto",
+        "showValue": "auto",
+        "stacking": "normal",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "hide": true,
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"swm_used\" )\r\n  |> aggregateWindow(every: 1mo, fn: sum)\r\n  |> timeShift(duration: -12h)\r\n\r\n",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "df8oltzu756o0e"
+          },
+          "hide": true,
+          "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"green_used\" )\r\n  |> aggregateWindow(every: 1mo, fn: sum)\r\n  |> timeShift(duration: -12h)\r\n\r\n",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "name": "Expression",
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "$B/($A+$B)",
+          "refId": "C",
+          "type": "math"
+        }
+      ],
+      "title": "green ratio",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "df8oltzu756o0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
             "fixedColor": "semi-dark-blue",
             "mode": "fixed"
           },
@@ -208,7 +313,7 @@
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 14
       },
       "id": 7,
       "options": {
@@ -298,7 +403,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 19
       },
       "id": 8,
       "options": {
@@ -426,7 +531,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 25
       },
       "id": 9,
       "options": {
@@ -469,7 +574,7 @@
     "list": []
   },
   "time": {
-    "from": "now-9d",
+    "from": "now-190d",
     "to": "now"
   },
   "timepicker": {
@@ -485,6 +590,6 @@
   "timezone": "browser",
   "title": "Energy monthly",
   "uid": "gefbpzf",
-  "version": 12,
+  "version": 14,
   "weekStart": ""
 }

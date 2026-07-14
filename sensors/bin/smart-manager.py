@@ -116,7 +116,7 @@ class Zendure:
             return True
         
 class ZendureManager:
-    def __init__(self,zen,tasmota,forecast):
+    def __init__(self,zen,tasmota,forecast,influx):
         self.zen = zen
         self.tasmota = tasmota
         self.forecast = forecast
@@ -132,6 +132,7 @@ class ZendureManager:
         self.generosityHistory = []
         self.dynamicParameter = {}
         self.generosInjection = 0
+        self.influx = influx
 
     def dynamicParameterUpdate(self):
         if time.time() > self.paramterlast + 900 and DYNAMIC_PARAMETER_PATH:
@@ -204,7 +205,7 @@ class ZendureManager:
         sunrise = self.forecast.sunrise
         now = datetime.datetime.now().time()
         ss = ( now > sunrise and now < sunset )
-        INFLUX.write("debug","sunshine",1.0 if ss else 0.0,{"synthetic": "yes", "debug": 1})
+        self.influx.write("debug","sunshine",1.0 if ss else 0.0,{"synthetic": "yes", "debug": 1})
         return ss
 
     @property
@@ -241,15 +242,13 @@ class ZendureManager:
         elif now > sunset:
             g = self.bratio
 
-        INFLUX.write("debug","energyToCome",1.0 * self.forecast.energyToCome,{"synthetic": "yes", "debug": 1})
-        INFLUX.write("debug","energyExcessToCome",1.0 * energyExcessToCome,{"synthetic": "yes", "debug": 1})
-        INFLUX.write("debug","energyOverBattToCome",1.0 * energyOverBattToCome,{"synthetic": "yes", "debug": 1})
+        self.influx.write("debug","energyToCome",1.0 * self.forecast.energyToCome,{"synthetic": "yes", "debug": 1})
+        self.influx.write("debug","energyExcessToCome",1.0 * energyExcessToCome,{"synthetic": "yes", "debug": 1})
+        self.influx.write("debug","energyOverBattToCome",1.0 * energyOverBattToCome,{"synthetic": "yes", "debug": 1})
         #print(f"g: {g} / {remainingsunhours} / {self.forecast.energyToCome} / {energyExcessToCome} / {energyOverBattToCome}")
         return g
 
     def controller_update(self,force = False):
-        INFLUX.heartbeat("smart-manager")
-
         if self.last_controller_update > time.time() - INTERVAL and not force:
             return True
         
@@ -261,7 +260,7 @@ class ZendureManager:
         i = self.zen.outputLimit
         i_old = int(i)
 
-        INFLUX.write("smart-manager","generosity2",1.0 * self.generosity,{"synthetic": "yes", "debug": 1})
+        self.influx.write("smart-manager","generosity2",1.0 * self.generosity,{"synthetic": "yes", "debug": 1})
 
         lookback_items = 11 - int(5 * self.generosity + 0.5)
         s = self.zen.solarInputPower
@@ -312,7 +311,7 @@ class ZendureManager:
             
             if self.sunshine and self.generosity > 1:
                 # add generosity upstream 
-                gi = (self.generosity - 1) * 0.8 * INJECTION_MAX 
+                gi = (self.generosity - 1) * INJECTION_MAX 
                 self.generosInjection = self.generosInjection * 0.8 + gi * 0.2
                 i = max(self.generosInjection,needed)
                 i = min(s10 - RESW,i)
@@ -365,12 +364,10 @@ class ZendureManager:
 
 # ----------------------------- main -------------------------------
 
-# InfluxDB connection to create a heartbeat
-INFLUX = Iflx()
 # Whiteboard with recent data
 WB  = WhiteBoard()
 # Zendure management
-ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB), Forecast(WB) )
+ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB), Forecast(WB), Iflx() )
 
 def tasmotaCallback(data):
     if data.get("Power",0) < 0:
