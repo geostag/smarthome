@@ -16,7 +16,17 @@ class Iflx:
         self.client = None
         self.api = None
         self.client_opened = 0
-        self.heartbeat_last = 0
+        self._heartbeat_last = {}
+
+    def do_heartbeat(self,measurement):
+        la = self._heartbeat_last.get(measurement,0)
+        now = time.time()
+        if la < now - HEARTBEAT_INTERVAL:
+            self._heartbeat_last[measurement] = now
+            return True
+        
+        else:
+            return False
         
     def openClient(self):
         self.client = InfluxDBClient(
@@ -64,7 +74,7 @@ class Iflx:
 
     def heartbeat(self,measurement):
         now = time.time()
-        if self.heartbeat_last < now - HEARTBEAT_INTERVAL:
+        if self.do_heartbeat(measurement):
             self._write(measurement,"heartbeat",1,{"domain": "heartbeat"})
             self.heartbeat_last = now
             
