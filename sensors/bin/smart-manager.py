@@ -303,7 +303,7 @@ class ZendureManager:
             # approach: input = output; slow changes; at least needed power
             mode = "super hi batt"
             i = min(s10,INJECTION_MAX)
-            i = max(i,p)
+            i = max(i,needed)
             
         elif s10 > needed:
             # more sun than needed
@@ -314,7 +314,7 @@ class ZendureManager:
                 # add generosity upstream 
                 gi = (self.generosity - 1) * 0.8 * INJECTION_MAX 
                 self.generosInjection = self.generosInjection * 0.8 + gi * 0.2
-                i = max(self.generosInjection,p)
+                i = max(self.generosInjection,needed)
                 i = min(s10 - RESW,i)
 
             else:
