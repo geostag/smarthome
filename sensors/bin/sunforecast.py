@@ -163,10 +163,17 @@ class HistoryMaker:
 
     @property
     def todaysEnergySoFar(self):
+        hour = datetime.datetime.now().hour
+        minute = datetime.datetime.now().minute
         e = 0
-        for i in self.dataToday:
-            if i["pvnum"] > 0:
-                e += i["pvsum"] / i["pvnum"]
+        for h,i in enumerate(self.dataToday):
+            if h < hour:
+                if i["pvnum"] > 0:
+                    e += i["pvsum"] / i["pvnum"]
+
+            elif h == hour:
+                if i["pvnum"] > 0:
+                    e += i["pvsum"] / i["pvnum"] * minute / 60
 
         return e
 

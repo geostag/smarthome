@@ -1,5 +1,4 @@
 from lib.mqttconn import WhiteBoard
-from lib.myLog import mLog
 from lib.toinflux import Iflx
 from lib.myDatabase import mDb
 from lib.ncConnect import myNextcloud
@@ -352,15 +351,7 @@ class ZendureManager:
             i = ho
 
         if i != i_old:
-            if ML:
-                ML.log(f"p: {p}, s: {s}({s10}), b: {b} do i {i_old} -> {i} ({mode})")
-
             self.zen.outputLimit = i
-            
-        else:
-            if ML: 
-                ML.log(f"p: {p}, s: {s}({s10}), b: {b}, i: {i} ({mode})")
-
 
 # ----------------------------- main -------------------------------
 
@@ -372,19 +363,10 @@ ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB), Foreca
 def tasmotaCallback(data):
     if data.get("Power",0) < 0:
         # we deliver power to the grid, call the smart manager immediately
-        if DEBUG:
-            ML.log("yusha, call update")
-            
         ZM.controller_update(True)
 
 # trigger callback, when new tasmota values available
 WB.addDeviceListener("tasmota",tasmotaCallback)
-
-if DEBUG:
-    ML = mLog("smart-manager")
-    
-else:
-    ML = None
 
 while True:
     time.sleep(INTERVAL)
