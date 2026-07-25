@@ -34,7 +34,8 @@ class Forecast:
 
     @property
     def predictedEnergy(self):
-        return self.wb.dataGet("sunforecast","sunshine_duration")
+        #return self.wb.dataGet("sunforecast","sunshine_duration")
+        return self.wb.dataGet("sunforecast","cc_by_sd")
 
     @property
     def earnedEnergy(self):
