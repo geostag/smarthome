@@ -217,7 +217,7 @@ class ZendureManager:
         nowh    = now.hour    + now.minute / 60    + now.second / 3600
         remainingsunhours = sunseth - nowh
 
-        bc = BATT_CAPACITY * 1.1
+        bc = BATT_CAPACITY * 1.2
 
         energyExcessToCome = max(0,self.forecast.energyToCome - self.baseload * remainingsunhours)
         energyOverBattToCome = max(0,energyExcessToCome - bc * (1-self.bratio))

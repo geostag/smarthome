@@ -5,6 +5,7 @@ from lib.mqttconn import WhiteBoard, MqttConn
 import os, requests, json, datetime, re, time, traceback
 
 FORECASTURL = os.getenv("SUNFORECASTURL")
+FORECAST_QUERY_INTERVAL = int(os.getenv("SUNFORECAST_INTERVAL","1800"))
 APPDIR = os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
 INTERVAL = int(os.getenv("QUERY_INTERVAL"))
 DRYRUN = (os.getenv("DRYRUN","FALSE") == "TRUE")
@@ -60,7 +61,7 @@ class SunForecast:
         
     def query(self,**kwargs):
         now = time.time()
-        if self.lastquery < now - 1800 or kwargs.get("forced",False):
+        if self.lastquery < now - FORECAST_QUERY_INTERVAL or kwargs.get("forced",False):
             if DEBUG:
                 print("SF: query")
 
