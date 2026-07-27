@@ -6,8 +6,6 @@ import os, requests, json, datetime, re, time, traceback
 
 FORECASTURL = os.getenv("SUNFORECASTURL")
 FORECAST_QUERY_INTERVAL = int(os.getenv("SUNFORECAST_INTERVAL","1800"))
-# maximum real power - used to limit hourly normalized energy to real values
-MAX_POWER = int(os.getenv("MAX_POWER","1500"))
 APPDIR = os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
 INTERVAL = int(os.getenv("QUERY_INTERVAL"))
 DRYRUN = (os.getenv("DRYRUN","FALSE") == "TRUE")
@@ -179,8 +177,20 @@ class HistoryMaker:
 
         return e
 
+    @property
+    def maxHourlyEnergy(self):
+        # get the maximum energy per hour seen so far
+        tm = 0
+        if self.dataHistory:
+            for ddata in self.dataHistory.values():
+                m = max([i["pvenergy"] for i in ddata])
+                tm = max(tm,m)
+
+        return tm
+
     def _normalizedEnergyProfile(self,dim):
         # returns an hourly array of energy under perfect conditions in specified dimenson
+        maxe = self.maxHourlyEnergy
         if dim not in self._normalizedEnergyProfileData:
             energy = [ 0 for i in range(0,24) ]
             # fallback
@@ -191,7 +201,7 @@ class HistoryMaker:
                         c = hdata.get(dim,0)
                         if c > 0:
                             norm_energy = hdata["pvenergy"] / c
-                            energy[i] += min(norm_energy,MAX_POWER)
+                            energy[i] += min(norm_energy,maxe)
 
                 num = len(self.dataHistory.keys())
                 if num > 0:
