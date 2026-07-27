@@ -6,6 +6,8 @@ import os, requests, json, datetime, re, time, traceback
 
 FORECASTURL = os.getenv("SUNFORECASTURL")
 FORECAST_QUERY_INTERVAL = int(os.getenv("SUNFORECAST_INTERVAL","1800"))
+# maximum real power - used to limit hourly normalized energy to real values
+MAX_POWER = int(os.getenv("MAX_POWER","1500"))
 APPDIR = os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
 INTERVAL = int(os.getenv("QUERY_INTERVAL"))
 DRYRUN = (os.getenv("DRYRUN","FALSE") == "TRUE")
@@ -44,7 +46,7 @@ class SunForecast:
         sd = hourly.get("sunshine_duration",None)
         if cc and sd:
             for i,(a,b) in enumerate(zip(cc,sd)):
-                d[i]["cc_by_sd"] = b * (0.5 + 0.5 * (100-a)/100)
+                d[i]["cc_by_sd"] = b * (100-a)/100
 
         # get daily data
         daily = self.rawdata.pop("daily",{})
@@ -172,8 +174,7 @@ class HistoryMaker:
                 if i["pvnum"] > 0:
                     e += i["pvsum"] / i["pvnum"]
 
-            elif h == hour:
-                if i["pvnum"] > 0:
+            elif h == hour and i["pvnum"] > 0:
                     e += i["pvsum"] / i["pvnum"] * minute / 60
 
         return e
@@ -189,7 +190,8 @@ class HistoryMaker:
                     for i,hdata in enumerate(ddata):
                         c = hdata.get(dim,0)
                         if c > 0:
-                            energy[i] += hdata["pvenergy"] / c
+                            norm_energy = hdata["pvenergy"] / c
+                            energy[i] += min(norm_energy,MAX_POWER)
 
                 num = len(self.dataHistory.keys())
                 if num > 0:
