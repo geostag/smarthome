@@ -190,6 +190,36 @@ class HistoryMaker:
 
     def _normalizedEnergyProfile(self,dim):
         # returns an hourly array of energy under perfect conditions in specified dimenson
+        if dim not in self._normalizedEnergyProfileData:
+            if self.dataHistory:
+                # transpose data: [h][day]
+                pvenergy_h_d = [ [] for i in range(0,24) ]
+                value_h_d = [ [] for i in range(0,24) ]
+                for ddata in self.dataHistory.values():                    
+                    for i,hdata in enumerate(ddata):
+                        pvenergy_h_d[i].append(hdata.get("pvenergy",0))
+                        value_h_d[i].append(hdata.get(dim,0))
+
+                energy = []
+                for h in range(0,24):
+                    maxpower = max(pvenergy_h_d[h]) / 3600
+                    norm_energy = 0
+                    # loop over days and get normalized values
+                    for p,c in zip(pvenergy_h_d[h],value_h_d[h]):
+                        if c > 0:
+                            norm_energy += min(maxpower,p/c)
+
+                    energy.append(norm_energy/len(pvenergy_h_d[h]))
+
+                self._normalizedEnergyProfileData[dim] = energy
+
+            else:
+                self._normalizedEnergyProfileData[dim] = [ 0 for i in range(0,24)]
+                
+        return self._normalizedEnergyProfileData[dim]
+
+    def _normalizedEnergyProfileOLD(self,dim):
+        # returns an hourly array of energy under perfect conditions in specified dimenson
         maxpower = self.maxHourlyEnergy / 3600
         if dim not in self._normalizedEnergyProfileData:
             energy = [ 0 for i in range(0,24) ]
