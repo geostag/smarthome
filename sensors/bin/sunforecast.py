@@ -44,7 +44,7 @@ class SunForecast:
         sd = hourly.get("sunshine_duration",None)
         if cc and sd:
             for i,(a,b) in enumerate(zip(cc,sd)):
-                d[i]["cc_by_sd"] = b * (100-a)/100
+                d[i]["cc_by_sd"] = b * (0.2 + 0.8 * (100-a)/100)
 
         # get daily data
         daily = self.rawdata.pop("daily",{})
