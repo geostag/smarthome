@@ -337,6 +337,10 @@ class HistoryMaker:
             INFLUX.write("sunforecast","sunpredict",e,{"synthetic": "yes", "dimension": dim})
             data[dim] = e
 
+            e = self._predictedFNTMPowerDim(dim)
+            INFLUX.write("sunforecast","sunpredict",e,{"synthetic": "yes", "dimension": dim, "scope": "FNTM" })
+            data[f"FNTM_{dim}"] = e
+
         if self.mqttconnection:
             data["energyEarnedToday"] = self.todaysEnergySoFar
             data["sunrise"] = self.sunforecast.sunrise
