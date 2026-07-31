@@ -246,6 +246,20 @@ class HistoryMaker:
             e += p * c
             
         return e
+
+    def _predictedFNTMPowerDim(self,dim):
+        # like above, but from now to midnight only
+        e = 0
+        now = datetime.datetime.now()
+        now_hour = now.hour
+        now_minute = now.minute
+        for h,(p,c) in enumerate(zip(self._normalizedEnergyProfile(dim),self.sunforecast.getHourlyValues(dim))):
+            if h == now_hour:
+                e += p * c * (60-now_minute)/60
+            elif h < now_hour:
+                e += p * c
+
+        return e
         
     def purge(self,day):
         if not self.dataToday or not day:
