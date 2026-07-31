@@ -177,17 +177,6 @@ class HistoryMaker:
 
         return e
 
-    @property
-    def maxHourlyEnergy(self):
-        # get the maximum energy per hour seen so far
-        tm = 0
-        if self.dataHistory:
-            for ddata in self.dataHistory.values():
-                m = max([i["pvenergy"] for i in ddata])
-                tm = max(tm,m)
-
-        return tm
-
     def _normalizedEnergyProfile(self,dim):
         # returns an hourly array of energy under perfect conditions in specified dimenson
         if dim not in self._normalizedEnergyProfileData:
@@ -218,27 +207,6 @@ class HistoryMaker:
                 
         return self._normalizedEnergyProfileData[dim]
 
-    def _normalizedEnergyProfileOLD(self,dim):
-        # returns an hourly array of energy under perfect conditions in specified dimenson
-        maxpower = self.maxHourlyEnergy / 3600
-        if dim not in self._normalizedEnergyProfileData:
-            energy = [ 0 for i in range(0,24) ]
-            # fallback
-            self._normalizedEnergyProfileData[dim] = energy
-            if self.dataHistory:
-                for day,ddata in self.dataHistory.items():
-                    for i,hdata in enumerate(ddata):
-                        c = hdata.get(dim,0)
-                        if c > 0:
-                            norm_energy = hdata["pvenergy"] / c
-                            energy[i] += min(norm_energy,maxpower)
-
-                num = len(self.dataHistory.keys())
-                if num > 0:
-                    self._normalizedEnergyProfileData[dim] = [ x / num for x in energy ]
-        
-        return self._normalizedEnergyProfileData[dim]
-        
     def _predictedTodaysPowerDim(self,dim):
         # scalarproduct of normalizedEnergyProfile with recent forecast - based on selected dimension
         e = 0
@@ -256,7 +224,7 @@ class HistoryMaker:
         for h,(p,c) in enumerate(zip(self._normalizedEnergyProfile(dim),self.sunforecast.getHourlyValues(dim))):
             if h == now_hour:
                 e += p * c * (60-now_minute)/60
-            elif h < now_hour:
+            elif h > now_hour:
                 e += p * c
 
         return e
