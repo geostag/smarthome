@@ -162,21 +162,6 @@ class HistoryMaker:
     def dataToday(self,pv):
         self.db.set("dataToday",pv)
 
-    @property
-    def todaysEnergySoFar(self):
-        hour = datetime.datetime.now().hour
-        minute = datetime.datetime.now().minute
-        e = 0
-        for h,i in enumerate(self.dataToday):
-            if h < hour:
-                if i["pvnum"] > 0:
-                    e += i["pvsum"] / i["pvnum"]
-
-            elif h == hour and i["pvnum"] > 0:
-                    e += i["pvsum"] / i["pvnum"] * minute / 60
-
-        return e
-
     def _normalizedEnergyProfile(self,dim):
         # returns an hourly array of energy under perfect conditions in specified dimenson
         if dim not in self._normalizedEnergyProfileData:
@@ -310,7 +295,6 @@ class HistoryMaker:
             data[f"FNTM_{dim}"] = e
 
         if self.mqttconnection:
-            data["energyEarnedToday"] = self.todaysEnergySoFar
             data["sunrise"] = self.sunforecast.sunrise
             data["sunset"]  = self.sunforecast.sunset
             self.mqttconnection.publish("tele/sunforecast/SENSOR",json.dumps(data))

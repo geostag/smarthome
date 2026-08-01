@@ -32,18 +32,8 @@ class Forecast:
     def __init__(self,wb):
         self.wb = wb
 
-    #@property
-    #def predictedEnergy(self):
-    #    #return self.wb.dataGet("sunforecast","sunshine_duration")
-    #    return self.wb.dataGet("sunforecast","cc_by_sd")
-
-    #@property
-    #def earnedEnergy(self):
-    #    return self.wb.dataGet("sunforecast","energyEarnedToday")
-    
     @property
     def energyToCome(self):
-        #return max(0,self.predictedEnergy - self.earnedEnergy)
         return self.wb.dataGet("sunforecast","FNTM_cc_by_sd")
     
     
