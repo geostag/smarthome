@@ -9,11 +9,11 @@ DEBUG = False
 ZENDURE_HOST = os.getenv("ZENDURE_HOST")
 ZENDURE_SN   = os.getenv("ZENDURE_SN")
 
-INJECTION_MAX = int(os.getenv("INJECTION_MAX",800))
-BATT_MIN      = int(os.getenv("MATT_MIN",10))
-BATT_MAX      = int(os.getenv("BATT_MAX",95))
-BATT_CAPACITY = int(os.getenv("BATT_CAPACITY",4000))
-BASELOAD      = int(os.getenv("BASELOAD",90))
+INJECTION_MAX = int(os.getenv("INJECTION_MAX","800"))
+BATT_MIN      = int(os.getenv("MATT_MIN","10"))
+BATT_MAX      = int(os.getenv("BATT_MAX","95"))
+BATT_CAPACITY = int(os.getenv("BATT_CAPACITY","4000"))
+BASELOAD      = int(os.getenv("BASELOAD","90"))
 GRIDPOWERREMEMBER_MINUTES = 6
 
 DATADIR = os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
@@ -32,18 +32,20 @@ class Forecast:
     def __init__(self,wb):
         self.wb = wb
 
-    @property
-    def predictedEnergy(self):
-        #return self.wb.dataGet("sunforecast","sunshine_duration")
-        return self.wb.dataGet("sunforecast","cc_by_sd")
+    #@property
+    #def predictedEnergy(self):
+    #    #return self.wb.dataGet("sunforecast","sunshine_duration")
+    #    return self.wb.dataGet("sunforecast","cc_by_sd")
 
-    @property
-    def earnedEnergy(self):
-        return self.wb.dataGet("sunforecast","energyEarnedToday")
+    #@property
+    #def earnedEnergy(self):
+    #    return self.wb.dataGet("sunforecast","energyEarnedToday")
     
     @property
     def energyToCome(self):
-        return max(0,self.predictedEnergy - self.earnedEnergy)
+        #return max(0,self.predictedEnergy - self.earnedEnergy)
+        return self.wb.dataGet("sunforecast","FNTM_cc_by_sd")
+    
     
     @property
     def sunrise(self):
