@@ -315,7 +315,7 @@ class ZendureManager:
 
         else:
             # maximum discharge based on reserves in battery or sun (whatever is more)
-            minj = 5.0 * self.baseload
+            minj = (2 + 2 * self.generosity) * self.baseload
             maxj = self.bratio * (INJECTION_MAX - minj) + minj
             maxtotal = max(maxj,s10)
             mode = f"blow out {self.bratio}, {maxj}, {s}({s10})"
