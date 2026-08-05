@@ -21,6 +21,9 @@ DYNAMIC_PARAMETER_PATH = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PATH","")
 
 INTERVAL = 90
 
+# https://github.com/Zendure/zenSDK/issues/5
+ZENDURE_MIN_LIMIT_INTERVAL = 15
+
 DRYRUN = (os.getenv("DRYRUN","FALSE") == "TRUE")
 if DRYRUN:
     print("------- DRYRUN --------")
@@ -63,6 +66,7 @@ class Zendure:
         self.injection = 0
         self.url = f"{host}/properties/write"
         self.injection = -1
+        self.lastOutputLimitChange = 0
         
     @property
     def solarInputPower(self):
@@ -81,9 +85,14 @@ class Zendure:
         
     @outputLimit.setter
     def outputLimit(self,value):
-        
         value = max(value,0)
         value = int(min(INJECTION_MAX,value) + 0.5) * 1.0
+        
+        now = time.time()
+        if self.lastOutputLimitChange > now - ZENDURE_MIN_LIMIT_INTERVAL:
+            return False
+            
+        self.lastOutputLimitChange = now
 
         if DRYRUN:
             print(f"DRYRUN: setting output to value {value}")
@@ -114,7 +123,6 @@ class ZendureManager:
         self.forecast = forecast
         self.gridpower = []
         self.solarInputPower = []
-        self.last_controller_update = 0
         self.db = mDb(f"{DATADIR}/smart-manager-state.json")
         self.baseload = BASELOAD
         self.chargefrombase = True
@@ -242,12 +250,7 @@ class ZendureManager:
         #print(f"g: {g} / {remainingsunhours} / {self.forecast.energyToCome} / {energyExcessToCome} / {energyOverBattToCome}")
         return g
 
-    def controller_update(self,force = False):
-        if self.last_controller_update > time.time() - INTERVAL and not force:
-            return True
-        
-        self.last_controller_update = time.time()
-
+    def controller_update(self):
         self.dynamicParameterUpdate()
         
         b = self.zen.electricLevel
@@ -356,9 +359,10 @@ WB  = WhiteBoard()
 ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB), Forecast(WB), Iflx() )
 
 def tasmotaCallback(data):
-    if data.get("Power",0) < 0:
-        # we deliver power to the grid, call the smart manager immediately
-        ZM.controller_update(True)
+    p = data.get("Power",0)
+    if p < -5 or p > 200:
+        # we react immediately on significant upstream or downstream
+        ZM.controller_update()
 
 # trigger callback, when new tasmota values available
 WB.addDeviceListener("tasmota",tasmotaCallback)
