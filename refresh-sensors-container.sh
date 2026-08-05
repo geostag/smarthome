@@ -12,4 +12,4 @@ FILE_T="$FILE".`date "+%Y%m%d%H%M%S`
 
 curl -k -o "$FILE_T" https://raw.githubusercontent.com/geostag/smarthome/refs/heads/main/"$FILE" \
 && chmod u+rx "$FILE_T" \
-&& mv "$FILE_T" "$FILE
+&& mv "$FILE_T" "$FILE"
