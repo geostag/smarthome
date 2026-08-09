@@ -209,18 +209,25 @@ class ZendureManager:
         return ss
 
     @property
-    def generosity(self):
+    def remainingsunhours(self):
         sunset  = self.forecast.sunset
-        sunrise = self.forecast.sunrise
         now = datetime.datetime.now().time()
         sunseth = sunset.hour + sunset.minute / 60 + sunset.second / 3600
         nowh    = now.hour    + now.minute / 60    + now.second / 3600
-        remainingsunhours = sunseth - nowh
+        return sunseth - nowh
 
+    @property
+    def energyExcessToCome(self):
+        return max(0,self.forecast.energyToCome - self.baseload * self.remainingsunhours)
+
+    @property
+    def generosity(self):
+        now = datetime.datetime.now().time()
+        sunset  = self.forecast.sunset
+        sunrise = self.forecast.sunrise
         bc = BATT_CAPACITY * 1.2
 
-        energyExcessToCome = max(0,self.forecast.energyToCome - self.baseload * remainingsunhours)
-        energyOverBattToCome = max(0,energyExcessToCome - bc * (1-self.bratio))
+        energyOverBattToCome = max(0,self.energyExcessToCome - bc * (1-self.bratio))
         if energyOverBattToCome > 0:
             gnow = min(2, 1 + 2 * energyOverBattToCome / bc)
 
@@ -245,9 +252,8 @@ class ZendureManager:
             g = self.bratio
 
         self.influx.write("debug","energyToCome",1.0 * self.forecast.energyToCome,{"synthetic": "yes", "debug": 1})
-        self.influx.write("debug","energyExcessToCome",1.0 * energyExcessToCome,{"synthetic": "yes", "debug": 1})
+        self.influx.write("debug","energyExcessToCome",1.0 * self.energyExcessToCome,{"synthetic": "yes", "debug": 1})
         self.influx.write("debug","energyOverBattToCome",1.0 * energyOverBattToCome,{"synthetic": "yes", "debug": 1})
-        #print(f"g: {g} / {remainingsunhours} / {self.forecast.energyToCome} / {energyExcessToCome} / {energyOverBattToCome}")
         return g
 
     def controller_update(self):
@@ -308,7 +314,8 @@ class ZendureManager:
             
             if self.sunshine and self.generosity > 1:
                 # add generosity upstream 
-                gi = (self.generosity - 1) * INJECTION_MAX * self.bratio
+                #gi = (self.generosity - 1) * INJECTION_MAX * self.bratio
+                gi = max(0,(self.energyExcessToCome - 500) / self.remainingsunhours)
                 self.generosInjection = self.generosInjection * 0.8 + gi * 0.2
                 i = max(self.generosInjection,needed)
                 i = min(s10 - RESW,i)
