@@ -214,7 +214,7 @@ class ZendureManager:
         now = datetime.datetime.now().time()
         sunseth = sunset.hour + sunset.minute / 60 + sunset.second / 3600
         nowh    = now.hour    + now.minute / 60    + now.second / 3600
-        return sunseth - nowh
+        return max(0,sunseth - nowh)
 
     @property
     def energyExcessToCome(self):
@@ -314,8 +314,9 @@ class ZendureManager:
             
             if self.sunshine and self.generosity > 1:
                 # add generosity upstream 
-                #gi = (self.generosity - 1) * INJECTION_MAX * self.bratio
-                gi = max(0,needed + (self.energyExcessToCome - 500) / self.remainingsunhours)
+                reserve = 800 * self.remainingsunhours / 10
+                gi = max(0,needed + (self.energyExcessToCome - reserve) / min(0.1,self.remainingsunhours))
+                gi = min(INJECTION_MAX,gi)
                 self.generosInjection = self.generosInjection * 0.8 + gi * 0.2
                 i = max(self.generosInjection,needed)
                 i = min(s10 - RESW,i)
