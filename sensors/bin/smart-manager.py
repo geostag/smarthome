@@ -221,15 +221,18 @@ class ZendureManager:
         return max(0,self.forecast.energyToCome - self.baseload * self.remainingsunhours)
 
     @property
+    def energyOverBattToCome(self):
+        return max(0,self.energyExcessToCome - bc * (1-self.bratio))
+
+    @property
     def generosity(self):
         now = datetime.datetime.now().time()
         sunset  = self.forecast.sunset
         sunrise = self.forecast.sunrise
         bc = BATT_CAPACITY * 1.2
 
-        energyOverBattToCome = max(0,self.energyExcessToCome - bc * (1-self.bratio))
-        if energyOverBattToCome > 0:
-            gnow = min(2, 1 + 2 * energyOverBattToCome / bc)
+        if self.energyOverBattToCome > 0:
+            gnow = min(2, 1 + 2 * self.energyOverBattToCome / bc)
 
         else:
             energy = self.forecast.energyToCome + bc * self.bratio
@@ -253,7 +256,7 @@ class ZendureManager:
 
         self.influx.write("debug","energyToCome",1.0 * self.forecast.energyToCome,{"synthetic": "yes", "debug": 1})
         self.influx.write("debug","energyExcessToCome",1.0 * self.energyExcessToCome,{"synthetic": "yes", "debug": 1})
-        self.influx.write("debug","energyOverBattToCome",1.0 * energyOverBattToCome,{"synthetic": "yes", "debug": 1})
+        self.influx.write("debug","energyOverBattToCome",1.0 * self.energyOverBattToCome,{"synthetic": "yes", "debug": 1})
         return g
 
     def controller_update(self):
@@ -315,7 +318,7 @@ class ZendureManager:
             if self.sunshine and self.generosity > 1:
                 # add generosity upstream 
                 reserve = 200 + 800 * self.remainingsunhours / 10
-                upstream = (self.energyExcessToCome - reserve) / min(0.1,self.remainingsunhours)
+                upstream = (self.energyOverBattToCome - reserve) / min(0.1,self.remainingsunhours)
                 gi = max(0,needed + upstream)
                 gi = min(INJECTION_MAX,gi)
                 self.generosInjection = self.generosInjection * 0.8 + gi * 0.2
