@@ -217,25 +217,28 @@ class ZendureManager:
         return max(0,sunseth - nowh)
 
     @property
+    def battCapacityNeeded(self):
+        return BATT_CAPACITY * 1.2
+        
+    @property
     def energyExcessToCome(self):
         return max(0,self.forecast.energyToCome - self.baseload * self.remainingsunhours)
 
     @property
     def energyOverBattToCome(self):
-        return max(0,self.energyExcessToCome - bc * (1-self.bratio))
+        return max(0,self.energyExcessToCome - self.battCapacityNeeded * (1-self.bratio))
 
     @property
     def generosity(self):
         now = datetime.datetime.now().time()
         sunset  = self.forecast.sunset
         sunrise = self.forecast.sunrise
-        bc = BATT_CAPACITY * 1.2
 
         if self.energyOverBattToCome > 0:
-            gnow = min(2, 1 + 2 * self.energyOverBattToCome / bc)
+            gnow = min(2, 1 + 2 * self.energyOverBattToCome / self.battCapacityNeeded)
 
         else:
-            energy = self.forecast.energyToCome + bc * self.bratio
+            energy = self.forecast.energyToCome + self.battCapacityNeeded * self.bratio
             needed = self.baseload * 24
             gnow = energy / needed
             gnow = min(1,gnow)
