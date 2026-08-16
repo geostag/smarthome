@@ -5,8 +5,8 @@
     "name": "geff86m",
     "namespace": "default",
     "uid": "WNTJL7nn6fEayDazvpX87cUcDXE3CeCI0rt74cnr60AX",
-    "resourceVersion": "1785153275816001",
-    "generation": 257,
+    "resourceVersion": "1786899623382988",
+    "generation": 270,
     "creationTimestamp": "2025-12-30T19:25:27Z",
     "labels": {
       "grafana.app/deprecatedInternalID": "1"
@@ -16,7 +16,7 @@
       "grafana.app/folder": "",
       "grafana.app/saved-from-ui": "Grafana v13.1.1 (a9cee6e172)",
       "grafana.app/updatedBy": "user:ff8oinlvz9kowb",
-      "grafana.app/updatedTimestamp": "2026-07-27T11:54:35Z"
+      "grafana.app/updatedTimestamp": "2026-08-16T17:00:23Z"
     }
   },
   "spec": {
@@ -239,7 +239,7 @@
                 "barWidthFactor": 0.79,
                 "effects": {
                   "barGlow": false,
-                  "centerGlow": false,
+                  "centerGlow": true,
                   "gradient": false
                 },
                 "endpointMarker": "point",
@@ -258,10 +258,10 @@
                 "segmentSpacing": 0.3,
                 "shape": "gauge",
                 "showThresholdLabels": false,
-                "showThresholdMarkers": true,
+                "showThresholdMarkers": false,
                 "sizing": "auto",
-                "sparkline": true,
-                "textMode": "auto"
+                "sparkline": false,
+                "textMode": "value"
               },
               "fieldConfig": {
                 "defaults": {
@@ -571,10 +571,10 @@
             "spec": {
               "options": {
                 "barShape": "flat",
-                "barWidthFactor": 0.54,
+                "barWidthFactor": 0.55,
                 "effects": {
                   "barGlow": false,
-                  "centerGlow": false,
+                  "centerGlow": true,
                   "gradient": false
                 },
                 "endpointMarker": "point",
@@ -589,20 +589,19 @@
                   "fields": "",
                   "values": false
                 },
-                "segmentCount": 63,
-                "segmentSpacing": 0.3,
+                "segmentCount": 64,
+                "segmentSpacing": 0.35,
                 "shape": "gauge",
                 "showThresholdLabels": false,
-                "showThresholdMarkers": true,
+                "showThresholdMarkers": false,
                 "sizing": "auto",
-                "sparkline": true,
+                "sparkline": false,
                 "text": {},
                 "textMode": "auto"
               },
               "fieldConfig": {
                 "defaults": {
                   "unit": "watt",
-                  "decimals": 1,
                   "min": 0,
                   "max": 1500,
                   "thresholds": {
@@ -611,14 +610,6 @@
                       {
                         "value": 0,
                         "color": "green"
-                      },
-                      {
-                        "value": 60,
-                        "color": "#EAB839"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
                       }
                     ]
                   },
@@ -828,6 +819,24 @@
                     "refId": "D",
                     "hidden": false
                   }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "df8oltzu756o0e"
+                      },
+                      "spec": {
+                        "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -12h, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"sunforecast\" and r.dimension == \"cc_by_sd\" and r._field == \"sunpredict\" and r.scope == \"FNTM\" )\r\n  |> last()\r\n"
+                      }
+                    },
+                    "refId": "F",
+                    "hidden": false
+                  }
                 }
               ],
               "transformations": [],
@@ -872,7 +881,7 @@
                   "unit": "watth",
                   "decimals": 1,
                   "min": 0,
-                  "max": 7000,
+                  "max": 8000,
                   "thresholds": {
                     "mode": "absolute",
                     "steps": [
@@ -901,10 +910,6 @@
                         }
                       },
                       {
-                        "id": "max",
-                        "value": 10000
-                      },
-                      {
                         "id": "displayName",
                         "value": "grid downstream"
                       }
@@ -922,10 +927,6 @@
                           "fixedColor": "semi-dark-blue",
                           "mode": "fixed"
                         }
-                      },
-                      {
-                        "id": "max",
-                        "value": 1000
                       },
                       {
                         "id": "displayName",
@@ -954,10 +955,6 @@
                       {
                         "id": "displayName",
                         "value": "green injected"
-                      },
-                      {
-                        "id": "min",
-                        "value": -100
                       },
                       {
                         "id": "thresholds",
@@ -990,10 +987,6 @@
                       {
                         "id": "displayName",
                         "value": "inject batt"
-                      },
-                      {
-                        "id": "max",
-                        "value": 4000
                       }
                     ]
                   },
@@ -1013,10 +1006,19 @@
                           "fixedColor": "super-light-blue",
                           "mode": "fixed"
                         }
-                      },
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "sunforecast sunpredict {dimension=\"cc_by_sd\", scope=\"FNTM\", synthetic=\"yes\"}"
+                    },
+                    "properties": [
                       {
-                        "id": "max",
-                        "value": 4000
+                        "id": "displayName",
+                        "value": "sunpredict"
                       }
                     ]
                   }
@@ -1030,7 +1032,7 @@
         "kind": "Panel",
         "spec": {
           "id": 24,
-          "title": "room temperature",
+          "title": "temperatures",
           "description": "",
           "links": [],
           "data": {
@@ -1048,7 +1050,7 @@
                         "name": "df8oltzu756o0e"
                       },
                       "spec": {
-                        "query": "from(bucket: \"smarthome\")\r\n|> range(start: -1h)\r\n|> filter(fn: (r) => r._measurement == \"mystrom\" and r.device == \"solar\" and r.domain == \"temperature\")\r\n|> last()"
+                        "query": "from(bucket: \"smarthome\")\r\n|> range(start: -1h)\r\n|> filter(fn: (r) => \r\n     (r._measurement == \"mystrom\" and r.device == \"solar\" and r.domain == \"temperature\")\r\n  or (r._measurement == \"zendure\" and r._field == \"hyperTmpD\")\r\n  or (r._measurement == \"remoteweather\" and r._field == \"temperature\")\r\n)\r\n|> last()"
                       }
                     },
                     "refId": "A",
@@ -1069,7 +1071,7 @@
                 "colorMode": "value",
                 "graphMode": "area",
                 "justifyMode": "auto",
-                "orientation": "auto",
+                "orientation": "horizontal",
                 "percentChangeColorMode": "standard",
                 "reduceOptions": {
                   "calcs": [
@@ -1105,7 +1107,47 @@
                     "mode": "fixed"
                   }
                 },
-                "overrides": []
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "mystrom temperature {device=\"solar\", domain=\"temperature\", room=\"2 Joni my\"}"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "room"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "remoteweather temperature {domain=\"temperature\", room=\"outside\"}"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "outdoor"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "zendure hyperTmpD {domain=\"temperatureDevice\", room=\"2Stock\"}"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "device"
+                      }
+                    ]
+                  }
+                ]
               }
             }
           }
@@ -1525,98 +1567,6 @@
           }
         }
       },
-      "panel-28": {
-        "kind": "Panel",
-        "spec": {
-          "id": 28,
-          "title": "device temperature",
-          "description": "",
-          "links": [],
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
-                      "datasource": {
-                        "name": "df8oltzu756o0e"
-                      },
-                      "spec": {
-                        "query": "from(bucket: \"smarthome\")\r\n|> range(start: -1h)\r\n|> filter(fn: (r) => r._measurement == \"zendure\" and r._field == \"hyperTmpD\")\r\n|> last()"
-                      }
-                    },
-                    "refId": "A",
-                    "hidden": false
-                  }
-                }
-              ],
-              "transformations": [],
-              "queryOptions": {}
-            }
-          },
-          "vizConfig": {
-            "kind": "VizConfig",
-            "group": "stat",
-            "version": "13.1.1",
-            "spec": {
-              "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                  "calcs": [
-                    "lastNotNull"
-                  ],
-                  "fields": "",
-                  "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "celsius",
-                  "decimals": 1,
-                  "min": 0,
-                  "max": 55,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "fixed"
-                  },
-                  "links": [
-                    {
-                      "targetBlank": true,
-                      "title": "Device Details",
-                      "url": "https://grafana.ostertage.de/d/ge7l42l/zendure-details"
-                    }
-                  ]
-                },
-                "overrides": []
-              }
-            }
-          }
-        }
-      },
       "panel-29": {
         "kind": "Panel",
         "spec": {
@@ -1922,91 +1872,6 @@
           }
         }
       },
-      "panel-30": {
-        "kind": "Panel",
-        "spec": {
-          "id": 30,
-          "title": "outside",
-          "description": "",
-          "links": [],
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
-                      "datasource": {
-                        "name": "df8oltzu756o0e"
-                      },
-                      "spec": {
-                        "query": "from(bucket: \"smarthome\")\r\n|> range(start: -1h)\r\n|> filter(fn: (r) => r._measurement == \"remoteweather\" and r._field == \"temperature\")\r\n|> last()"
-                      }
-                    },
-                    "refId": "A",
-                    "hidden": false
-                  }
-                }
-              ],
-              "transformations": [],
-              "queryOptions": {}
-            }
-          },
-          "vizConfig": {
-            "kind": "VizConfig",
-            "group": "stat",
-            "version": "13.1.1",
-            "spec": {
-              "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                  "calcs": [
-                    "lastNotNull"
-                  ],
-                  "fields": "",
-                  "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "celsius",
-                  "decimals": 1,
-                  "min": -5,
-                  "max": 20,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "fixed"
-                  }
-                },
-                "overrides": []
-              }
-            }
-          }
-        }
-      },
       "panel-31": {
         "kind": "Panel",
         "spec": {
@@ -2222,91 +2087,6 @@
                   "color": {
                     "mode": "thresholds"
                   }
-                },
-                "overrides": []
-              }
-            }
-          }
-        }
-      },
-      "panel-33": {
-        "kind": "Panel",
-        "spec": {
-          "id": 33,
-          "title": "predict",
-          "description": "",
-          "links": [],
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
-                      "datasource": {
-                        "name": "df8oltzu756o0e"
-                      },
-                      "spec": {
-                        "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -12h, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"sunforecast\" and r.dimension == \"cc_by_sd\" and r._field == \"sunpredict\" )\r\n  |> last()\r\n"
-                      }
-                    },
-                    "refId": "A",
-                    "hidden": false
-                  }
-                }
-              ],
-              "transformations": [],
-              "queryOptions": {}
-            }
-          },
-          "vizConfig": {
-            "kind": "VizConfig",
-            "group": "stat",
-            "version": "13.1.1",
-            "spec": {
-              "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                  "calcs": [
-                    "lastNotNull"
-                  ],
-                  "fields": "",
-                  "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "watth",
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "super-light-green"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
-                  },
-                  "links": [
-                    {
-                      "targetBlank": true,
-                      "title": "details",
-                      "url": "https://grafana.ostertage.de/d/gezx7bs/sun-prediction?orgId=1&from=now-7d&to=now"
-                    }
-                  ]
                 },
                 "overrides": []
               }
@@ -2542,7 +2322,100 @@
                     "steps": [
                       {
                         "value": 0,
-                        "color": "super-light-green"
+                        "color": "semi-dark-green"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds",
+                    "fixedColor": "#ad46ff"
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-36": {
+        "kind": "Panel",
+        "spec": {
+          "id": 36,
+          "title": "",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "df8oltzu756o0e"
+                      },
+                      "spec": {
+                        "query": "import \"array\"\r\n\r\nsensors =\r\n  array.from(rows: [\r\n    {_field: \"Angela\", _value: 0},\r\n    {_field: \"Georg\", _value: 0},\r\n    {_field: \"Jonathan\", _value: 0},\r\n    {_field: \"Emanuel\", _value: 0},\r\n    {_field: \"Johannes\", _value: 0}\r\n  ])\r\n\r\ndata =\r\n  from(bucket: \"smarthome\")\r\n    |> range(start: -6m)\r\n    |> filter(fn: (r) => r.domain == \"presence\" and (\r\n    r._field == \"Angela\" or\r\n    r._field == \"Georg\" or\r\n    r._field == \"Jonathan\" or \r\n    r._field == \"Emanuel\" or\r\n    r._field == \"Johannes\"\r\n  ))\r\n    |> group(columns: [\"_field\"])\r\n    |> count()\r\n    |> map(fn: (r) => ({\r\n        _field: r._field,\r\n        _value: if r._value > 0 then 1 else 0\r\n    }))\r\n\r\nunion(tables: [sensors, data])\r\n  |> group(columns: [\"_field\"])\r\n  |> max()"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "bargauge",
+            "version": "13.1.1",
+            "spec": {
+              "options": {
+                "displayMode": "basic",
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "overflow": "ellipsis",
+                  "placement": "bottom",
+                  "showLegend": false
+                },
+                "maxVizHeight": 300,
+                "minVizHeight": 16,
+                "minVizWidth": 8,
+                "namePlacement": "top",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showUnfilled": true,
+                "sizing": "auto",
+                "valueMode": "hidden"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "displayName": "${__field.labels._field}",
+                  "min": 0,
+                  "max": 1,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "#454645"
+                      },
+                      {
+                        "value": 0.5,
+                        "color": "semi-dark-green"
                       }
                     ]
                   },
@@ -2749,7 +2622,7 @@
                 },
                 "showUnfilled": true,
                 "sizing": "auto",
-                "valueMode": "color"
+                "valueMode": "text"
               },
               "fieldConfig": {
                 "defaults": {
@@ -2774,7 +2647,7 @@
                     ]
                   },
                   "color": {
-                    "mode": "thresholds"
+                    "mode": "continuous-RdYlGr"
                   }
                 },
                 "overrides": []
@@ -2976,24 +2849,24 @@
             "spec": {
               "x": 19,
               "y": 0,
-              "width": 3,
+              "width": 2,
               "height": 5,
               "element": {
                 "kind": "ElementReference",
-                "name": "panel-15"
+                "name": "panel-35"
               }
             }
           },
           {
             "kind": "GridLayoutItem",
             "spec": {
-              "x": 22,
+              "x": 21,
               "y": 0,
-              "width": 2,
-              "height": 3,
+              "width": 3,
+              "height": 5,
               "element": {
                 "kind": "ElementReference",
-                "name": "panel-24"
+                "name": "panel-15"
               }
             }
           },
@@ -3007,19 +2880,6 @@
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-8"
-              }
-            }
-          },
-          {
-            "kind": "GridLayoutItem",
-            "spec": {
-              "x": 22,
-              "y": 3,
-              "width": 2,
-              "height": 3,
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-28"
               }
             }
           },
@@ -3053,12 +2913,12 @@
             "kind": "GridLayoutItem",
             "spec": {
               "x": 22,
-              "y": 6,
+              "y": 5,
               "width": 2,
-              "height": 3,
+              "height": 5,
               "element": {
                 "kind": "ElementReference",
-                "name": "panel-30"
+                "name": "panel-24"
               }
             }
           },
@@ -3066,12 +2926,25 @@
             "kind": "GridLayoutItem",
             "spec": {
               "x": 22,
-              "y": 9,
-              "width": 2,
-              "height": 3,
+              "y": 10,
+              "width": 1,
+              "height": 10,
               "element": {
                 "kind": "ElementReference",
-                "name": "panel-33"
+                "name": "panel-32"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 23,
+              "y": 10,
+              "width": 1,
+              "height": 6,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-36"
               }
             }
           },
@@ -3098,32 +2971,6 @@
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-25"
-              }
-            }
-          },
-          {
-            "kind": "GridLayoutItem",
-            "spec": {
-              "x": 22,
-              "y": 12,
-              "width": 2,
-              "height": 3,
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-35"
-              }
-            }
-          },
-          {
-            "kind": "GridLayoutItem",
-            "spec": {
-              "x": 22,
-              "y": 15,
-              "width": 1,
-              "height": 10,
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-32"
               }
             }
           },

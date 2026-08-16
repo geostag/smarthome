@@ -320,11 +320,11 @@ class ZendureManager:
             
             if self.sunshine and self.generosity > 1:
                 # add generosity upstream 
-                reserve = 200 + 800 * self.remainingsunhours / 10
+                reserve = 100 + 800 * self.remainingsunhours / 10
                 upstream = (self.energyOverBattToCome - reserve) / min(0.1,self.remainingsunhours)
                 gi = max(0,needed + upstream)
                 gi = min(INJECTION_MAX,gi)
-                self.generosInjection = self.generosInjection * 0.8 + gi * 0.2
+                self.generosInjection = self.generosInjection * 0.85 + gi * 0.15
                 i = max(self.generosInjection,needed)
                 i = min(s10 - RESW,i)
 

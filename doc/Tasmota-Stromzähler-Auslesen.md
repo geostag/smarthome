@@ -9,5 +9,5 @@ Backlog TimeSTD 0, 0, 10, 1, 3, 60; TimeDST 0, 0, 3, 1, 2, 120; timezone 99; Lat
 Ausgabe Interval auf mqtt einstellen (60s):
 
 ```
-TelePeriod 60
+TelePeriod 15
 ```
