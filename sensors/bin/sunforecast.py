@@ -42,9 +42,17 @@ class SunForecast:
         # add derived forecast value: cloud_cover * sunshine_duration
         cc = hourly.get("cloud_cover",None)
         sd = hourly.get("sunshine_duration",None)
+        dr = hourly.get("diffuse_radiation",None)
         if cc and sd:
             for i,(a,b) in enumerate(zip(cc,sd)):
-                d[i]["cc_by_sd"] = b * (0.3 + 0.7 * (100-a)/100)
+                d[i]["cc_by_sd"] = b * (0.5 + 0.5 * (100-a)/100)
+                
+        # add derived forecast value: cloud, sunshine, diffuse
+        if cc and sd and dr:
+            for i,(a,b,c) in enumerate(zip(cc,sd,dr)):
+                # mix a 50% cloud_cover to sunshine and normalize 3600sun-secs to 1000W/m2
+                # use sunshine + diffuse
+                d[i]["mix"] = b * (0.5 + 0.5 * (100-a)/100) * 1000/3600 + c
 
         # get daily data
         daily = self.rawdata.pop("daily",{})
