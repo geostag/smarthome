@@ -16,6 +16,7 @@ services:
     volumes:
       - ./data/influxdb:/var/lib/influxdb2
       - ./data/secrets:/etc/smarthome-secrets
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     healthcheck:
       test: ["CMD", "influx", "ping"]
       interval: 5s
