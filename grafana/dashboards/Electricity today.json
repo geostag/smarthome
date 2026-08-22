@@ -5,8 +5,8 @@
     "name": "geff86m",
     "namespace": "default",
     "uid": "WNTJL7nn6fEayDazvpX87cUcDXE3CeCI0rt74cnr60AX",
-    "resourceVersion": "1786899623382988",
-    "generation": 270,
+    "resourceVersion": "1787387167532006",
+    "generation": 281,
     "creationTimestamp": "2025-12-30T19:25:27Z",
     "labels": {
       "grafana.app/deprecatedInternalID": "1"
@@ -16,7 +16,7 @@
       "grafana.app/folder": "",
       "grafana.app/saved-from-ui": "Grafana v13.1.1 (a9cee6e172)",
       "grafana.app/updatedBy": "user:ff8oinlvz9kowb",
-      "grafana.app/updatedTimestamp": "2026-08-16T17:00:23Z"
+      "grafana.app/updatedTimestamp": "2026-08-22T08:26:07Z"
     }
   },
   "spec": {
@@ -741,6 +741,24 @@
                         "name": "df8oltzu756o0e"
                       },
                       "spec": {
+                        "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -12h, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"sunforecast\" and r.dimension == \"cc_by_sd\" and r._field == \"sunpredict\" and r.scope != \"FNTM\" )\r\n  |> last()\r\n"
+                      }
+                    },
+                    "refId": "F",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "df8oltzu756o0e"
+                      },
+                      "spec": {
                         "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"solarInputPower\" )\r\n|> last()\r\n"
                       }
                     },
@@ -817,24 +835,6 @@
                       }
                     },
                     "refId": "D",
-                    "hidden": false
-                  }
-                },
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
-                      "datasource": {
-                        "name": "df8oltzu756o0e"
-                      },
-                      "spec": {
-                        "query": "import \"timezone\"\r\noption location = timezone.location(name: \"Europe/Berlin\")\r\nfrom(bucket: \"smarthome\")\r\n  |> range(start: -12h, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r._measurement == \"sunforecast\" and r.dimension == \"cc_by_sd\" and r._field == \"sunpredict\" and r.scope == \"FNTM\" )\r\n  |> last()\r\n"
-                      }
-                    },
-                    "refId": "F",
                     "hidden": false
                   }
                 }
@@ -1013,12 +1013,19 @@
                     "matcher": {
                       "id": "byName",
                       "scope": "series",
-                      "options": "sunforecast sunpredict {dimension=\"cc_by_sd\", scope=\"FNTM\", synthetic=\"yes\"}"
+                      "options": "sunpredict"
                     },
                     "properties": [
                       {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "super-light-yellow",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
                         "id": "displayName",
-                        "value": "sunpredict"
+                        "value": "sunforecast"
                       }
                     ]
                   }
@@ -1824,7 +1831,7 @@
                       },
                       {
                         "value": 20,
-                        "color": "dark-green"
+                        "color": "super-light-green"
                       }
                     ]
                   },
@@ -1864,136 +1871,6 @@
                     "thresholdsStyle": {
                       "mode": "off"
                     }
-                  }
-                },
-                "overrides": []
-              }
-            }
-          }
-        }
-      },
-      "panel-31": {
-        "kind": "Panel",
-        "spec": {
-          "id": 31,
-          "title": "crowd",
-          "description": "",
-          "links": [
-            {
-              "title": "Presence Details",
-              "url": "https://grafana.ostertage.de/d/ge2cvr2/presence?orgId=1&from=now-6h&to=now&timezone=browser",
-              "targetBlank": true
-            }
-          ],
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
-                      "datasource": {
-                        "name": "df8oltzu756o0e"
-                      },
-                      "spec": {
-                        "query": "from(bucket: \"smarthome\")\r\n|> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n|> filter(fn: (r) => r._measurement == \"fritz\" and r.domain == \"presence\")\r\n|> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)"
-                      }
-                    },
-                    "refId": "A",
-                    "hidden": false
-                  }
-                }
-              ],
-              "transformations": [
-                {
-                  "kind": "Transformation",
-                  "group": "calculateField",
-                  "spec": {
-                    "options": {
-                      "mode": "reduceRow",
-                      "reduce": {
-                        "reducer": "sum"
-                      },
-                      "replaceFields": true
-                    }
-                  }
-                }
-              ],
-              "queryOptions": {}
-            }
-          },
-          "vizConfig": {
-            "kind": "VizConfig",
-            "group": "state-timeline",
-            "version": "13.1.1",
-            "spec": {
-              "options": {
-                "alignValue": "center",
-                "annotations": {
-                  "clustering": -1,
-                  "multiLane": false
-                },
-                "legend": {
-                  "displayMode": "list",
-                  "overflow": "ellipsis",
-                  "placement": "bottom",
-                  "showLegend": false
-                },
-                "mergeValues": true,
-                "rowHeight": 0.85,
-                "showValue": "auto",
-                "tooltip": {
-                  "hideZeros": false,
-                  "mode": "single",
-                  "sort": "none"
-                }
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "min": 0,
-                  "max": 10,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "#000000"
-                      },
-                      {
-                        "value": 5,
-                        "color": "dark-green"
-                      },
-                      {
-                        "value": 10,
-                        "color": "semi-dark-red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "continuous-GrYlRd"
-                  },
-                  "links": [
-                    {
-                      "targetBlank": true,
-                      "title": "Presence Details",
-                      "url": "https://grafana.ostertage.de/d/ge2cvr2/presence?orgId=1&from=now-6h&to=now&timezone=browser"
-                    }
-                  ],
-                  "custom": {
-                    "axisPlacement": "auto",
-                    "fillOpacity": 70,
-                    "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
-                      "viz": false
-                    },
-                    "insertNulls": false,
-                    "lineWidth": 0,
-                    "spanNulls": false
                   }
                 },
                 "overrides": []
@@ -2343,7 +2220,12 @@
           "id": 36,
           "title": "",
           "description": "",
-          "links": [],
+          "links": [
+            {
+              "title": "Details",
+              "url": "https://grafana.ostertage.de/d/ge2cvr2/presence?orgId=1&from=now-6h&to=now&timezone=browser"
+            }
+          ],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -2424,6 +2306,195 @@
                   }
                 },
                 "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-37": {
+        "kind": "Panel",
+        "spec": {
+          "id": 37,
+          "title": "energy pipeline",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "df8oltzu756o0e"
+                      },
+                      "spec": {
+                        "query": "sun = from(bucket: \"smarthome\")\r\n  |> range(start: -6h, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) =>\r\n      r._measurement == \"sunforecast\" and\r\n      r.dimension == \"cc_by_sd\" and\r\n      r._field == \"sunpredict\" and\r\n      r.scope == \"FNTM\"\r\n  )\r\n  |> last()\r\n  |> set(key: \"_field\", value: \"sun\")\r\n\r\nbattery = from(bucket: \"smarthome\")\r\n  |> range(start: -6h, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) =>\r\n      r._measurement == \"zendure\" and\r\n      r._field == \"electricLevel\"\r\n  )\r\n  |> last()\r\n  |> map(fn: (r) => ({r with _value: float(v: r._value) * 38.0}))\r\n  |> set(key: \"_field\", value: \"battery\")\r\n\r\ngreen_used = from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n      r._measurement == \"daily_energy\" and\r\n      r._field == \"green_used\"\r\n  )\r\n  |> last()\r\n  |> set(key: \"_field\", value: \"used\")\r\n\r\ngreen_upstream = from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n      r._measurement == \"daily_energy\" and\r\n      r._field == \"green_upstream\"\r\n  )\r\n  |> last()\r\n  |> map(fn: (r) => ({r with _value: r._value * -1.0}))\r\n  |> set(key: \"_field\", value: \"upstream\")\r\n\r\nunion(tables: [sun, battery, green_used, green_upstream])\r\n  |> map(fn: (r) => ({r with _time: v.timeRangeStop}))\r\n  |> group(columns: [])\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {},
+                      "includeByName": {},
+                      "indexByName": {
+                        "_time": 0,
+                        "battery": 2,
+                        "sun": 1,
+                        "upstream": 4,
+                        "used": 3
+                      },
+                      "renameByName": {}
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "13.1.1",
+            "spec": {
+              "options": {
+                "barRadius": 0.05,
+                "barWidth": 0.95,
+                "fullHighlight": false,
+                "groupWidth": 0.8,
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "overflow": "ellipsis",
+                  "placement": "bottom",
+                  "showLegend": false
+                },
+                "orientation": "horizontal",
+                "showValue": "never",
+                "stacking": "normal",
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                },
+                "xField": "time",
+                "xTickLabelRotation": 0,
+                "xTickLabelSpacing": 100
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "displayName": "${__field.name}",
+                  "max": 8000,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "super-light-red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "fixed",
+                    "fixedColor": "semi-dark-green"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "fillOpacity": 100,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineWidth": 0,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "sun"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "super-light-yellow",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "battery"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "super-light-green",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "upstream"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "semi-dark-blue",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "_time"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.axisPlacement",
+                        "value": "hidden"
+                      }
+                    ]
+                  }
+                ]
               }
             }
           }
@@ -2902,10 +2973,10 @@
               "x": 11,
               "y": 5,
               "width": 11,
-              "height": 6,
+              "height": 3,
               "element": {
                 "kind": "ElementReference",
-                "name": "panel-3"
+                "name": "panel-37"
               }
             }
           },
@@ -2919,6 +2990,19 @@
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-24"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 11,
+              "y": 8,
+              "width": 11,
+              "height": 6,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-3"
               }
             }
           },
@@ -2965,9 +3049,9 @@
             "kind": "GridLayoutItem",
             "spec": {
               "x": 11,
-              "y": 11,
+              "y": 14,
               "width": 11,
-              "height": 6,
+              "height": 5,
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-25"
@@ -2980,7 +3064,7 @@
               "x": 0,
               "y": 17,
               "width": 11,
-              "height": 4,
+              "height": 6,
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-34"
@@ -2991,25 +3075,12 @@
             "kind": "GridLayoutItem",
             "spec": {
               "x": 11,
-              "y": 17,
+              "y": 19,
               "width": 11,
-              "height": 6,
+              "height": 4,
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-29"
-              }
-            }
-          },
-          {
-            "kind": "GridLayoutItem",
-            "spec": {
-              "x": 0,
-              "y": 21,
-              "width": 11,
-              "height": 3,
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-31"
               }
             }
           }

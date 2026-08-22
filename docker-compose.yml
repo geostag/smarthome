@@ -1,7 +1,10 @@
+# minimized images from
+#   https://www.minimus.io/
 services:
   influxdb:
     container_name: sh-influxdb
-    image: influxdb:2
+    #image: influxdb:2
+    image: reg.mini.dev/influxdb:v2.9
     ports:
       - "8086:8086"
     environment:
@@ -16,6 +19,7 @@ services:
     volumes:
       - ./data/influxdb/lib:/var/lib/influxdb2
       - ./data/secrets:/etc/smarthome-secrets
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     healthcheck:
       test: ["CMD", "influx", "ping"]
       interval: 10s
@@ -46,7 +50,8 @@ services:
 
   mqtt:
     container_name: sh-mqtt
-    image: eclipse-mosquitto
+    #image: eclipse-mosquitto
+    image: reg.mini.dev/eclipse-mosquitto:latest
     env_file:
       - .env
     ports:

@@ -1,7 +1,7 @@
 services:
   influxdb:
     container_name: sh-influxdb
-    image: influxdb:2
+    image: reg.mini.dev/influxdb:v2.9
     ports:
       - "8086:8086"
     environment:
@@ -18,13 +18,12 @@ services:
       - ./data/secrets:/etc/smarthome-secrets
     healthcheck:
       test: ["CMD", "influx", "ping"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
-      retries: 12
+      retries: 24
     restart: unless-stopped
 
   grafana:
-    #image: grafana/grafana
     image: reg.mini.dev/grafana
     container_name: sh-grafana
     user: "${USERID}"
@@ -46,7 +45,7 @@ services:
 
   mqtt:
     container_name: sh-mqtt
-    image: eclipse-mosquitto
+    image: reg.mini.dev/eclipse-mosquitto:latest
     env_file:
       - .env
     ports:

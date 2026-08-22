@@ -10,6 +10,6 @@ docker compose -f docker-compose-prod.yml up -d --pull always --force-recreate s
 FILE=`basename $0`
 FILE_T="$FILE".`date "+%Y%m%d%H%M%S"`
 
-curl -k -o "$FILE_T" https://raw.githubusercontent.com/geostag/smarthome/refs/heads/main/"$FILE" \
+curl -s -k -o "$FILE_T" https://raw.githubusercontent.com/geostag/smarthome/refs/heads/main/"$FILE" \
 && chmod u+rx "$FILE_T" \
 && mv "$FILE_T" "$FILE"
