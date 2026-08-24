@@ -337,7 +337,7 @@ class ZendureManager:
             maxj = self.bratio * (INJECTION_MAX - minj) + minj
             maxtotal = max(maxj,s10)
             mode = f"blow out {self.bratio}, {maxj}, {s}({s10})"
-            i = min(maxtotal,needed)
+            i = min(maxtotal,needed + 5 * self.generosity )
             
         # round and limit to INJECTION_MAX
         i = int(min(INJECTION_MAX,i) + 0.5) * 1.0
