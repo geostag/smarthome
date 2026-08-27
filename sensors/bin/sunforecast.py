@@ -52,7 +52,7 @@ class SunForecast:
             for i,(a,b,c) in enumerate(zip(cc,sd,dr)):
                 # mix a 50% cloud_cover to sunshine and normalize 3600sun-secs to 1500W/m2
                 # use sunshine + diffuse
-                d[i]["mix"] = b * (0.8 + 0.1 * (100-a)/100) * 1500/3600 + c
+                d[i]["mix"] = b * (0.8 + 0.2 * (100-a)/100) * 1500/3600 + c
 
         # get daily data
         daily = self.rawdata.pop("daily",{})
