@@ -77,6 +77,10 @@ class Zendure:
         return self.wb.dataGet("zendure","electricLevel")
         
     @property
+    def isMaxOutput(self):
+        return (self.outputLimit > 0.97 * INJECTION_MAX)
+        
+    @property
     def outputLimit(self):
         if self.injection < 0:
             self.injection = self.wb.dataGet("zendure","outputLimit")
@@ -183,8 +187,18 @@ class ZendureManager:
             return vs[0]
 
     @property
-    def isUpstream(self):
-        return (self.tasmota.Power < 0)
+    def isBlue(self):
+        # we deliver upstream, but could do better
+        return (self.tasmota.Power < -1 and not self.isGenerous)
+        
+    @property
+    def isRed(self):
+        # we use grid downstream but could do better
+        return (self.tasmota.Power > 2 and not self.zen.isMaxOutput)
+        
+    @property
+    def isGenerous(self):
+        return (self.generosInjection > 0)
     
     @property
     def hourFloat(self):
@@ -348,7 +362,7 @@ class ZendureManager:
                     
         if p > 0:
             # we use grid power
-            if ( i > 10 and abs(i-i_old) < 3 ) or ( i > 100 and abs(i-i_old)/i < 0.03 ):
+            if ( i > 5 and abs(i-i_old) < 3 ) or ( i > 100 and abs(i-i_old)/i < 0.03 ):
                 # peanut change
                 mode += f", peanuts {i} {i_old}"
                 i = i_old
@@ -375,7 +389,7 @@ ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB), Foreca
 
 def tasmotaCallback(data):
     p = data.get("Power",0)
-    if p < -5 or p > 200:
+    if ZM.isBlue or ZM.isRed:
         # we react immediately on significant upstream or downstream
         ZM.controller_update()
 
