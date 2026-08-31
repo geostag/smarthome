@@ -272,7 +272,10 @@ class ZendureManager:
 
         if p < 0 and self.generosity > 0.9 or self.bratio > 0.6:
             # we deliver upstream. react slowly in some cases
-            p = max(self.gridpower.get("max",60),self.gridpower.get("avg",180))
+            try:
+                p = max(self.gridpower.get("max",60),self.gridpower.get("avg",180))
+            except:
+                pass
 
         needed = i+p
         mode = ""

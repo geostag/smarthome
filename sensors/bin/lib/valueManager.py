@@ -42,7 +42,7 @@ class memorizedValue:
         self._purge()
         now = time.time()
         l = [ x["v"] for x in filter(lambda x: x["t"] >= now - backsecs,self.values) ]
-        if len(l):
+        if len(l) < 1:
             return None
         elif cf == "max":
             return max(l)
