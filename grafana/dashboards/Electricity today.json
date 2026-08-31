@@ -5,18 +5,17 @@
     "name": "geff86m",
     "namespace": "default",
     "uid": "WNTJL7nn6fEayDazvpX87cUcDXE3CeCI0rt74cnr60AX",
-    "resourceVersion": "1787387167532006",
-    "generation": 281,
+    "resourceVersion": "1787937892023986",
+    "generation": 292,
     "creationTimestamp": "2025-12-30T19:25:27Z",
     "labels": {
       "grafana.app/deprecatedInternalID": "1"
     },
     "annotations": {
       "grafana.app/createdBy": "user:ff8oinlvz9kowb",
-      "grafana.app/folder": "",
-      "grafana.app/saved-from-ui": "Grafana v13.1.1 (a9cee6e172)",
+      "grafana.app/saved-from-ui": "Grafana v13.2.0 (f681b1359f)",
       "grafana.app/updatedBy": "user:ff8oinlvz9kowb",
-      "grafana.app/updatedTimestamp": "2026-08-22T08:26:07Z"
+      "grafana.app/updatedTimestamp": "2026-08-28T17:24:52Z"
     }
   },
   "spec": {
@@ -81,7 +80,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "timeseries",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "annotations": {
@@ -232,7 +231,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "gauge",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "barShape": "flat",
@@ -273,15 +272,15 @@
                     "steps": [
                       {
                         "value": 0,
-                        "color": "dark-red"
+                        "color": "super-light-red"
                       },
                       {
                         "value": 0,
-                        "color": "dark-red"
+                        "color": "super-light-red"
                       },
                       {
                         "value": 50,
-                        "color": "semi-dark-green"
+                        "color": "super-light-green"
                       }
                     ]
                   },
@@ -306,6 +305,24 @@
             "kind": "QueryGroup",
             "spec": {
               "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "df8oltzu756o0e"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n    r._measurement == \"daily_energy\" and\r\n    (\r\n      r._field == \"swm_used\" or\r\n      r._field == \"green_used\"\r\n    )\r\n  )\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )\r\n  |> map(fn: (r) => ({\r\n      _time: r._time,\r\n      _measurement: \"green ratio\",\r\n      _field: \"green_ratio\",\r\n      _value: r.green_used / (r.green_used + r.swm_used)\r\n  }))\r\n"
+                      }
+                    },
+                    "refId": "D",
+                    "hidden": false
+                  }
+                },
                 {
                   "kind": "PanelQuery",
                   "spec": {
@@ -368,7 +385,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "bargauge",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "displayMode": "basic",
@@ -567,7 +584,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "gauge",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "barShape": "flat",
@@ -777,10 +794,10 @@
                         "name": "df8oltzu756o0e"
                       },
                       "spec": {
-                        "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"green_injected\" )\r\n|> last()\r\n"
+                        "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"pv_excess\" )\r\n|> last()\r\n"
                       }
                     },
-                    "refId": "B",
+                    "refId": "G",
                     "hidden": false
                   }
                 },
@@ -795,7 +812,7 @@
                         "name": "df8oltzu756o0e"
                       },
                       "spec": {
-                        "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and (r._field == \"packInputPower\" or r._field == \"pv_excess\") )\r\n|> last()\r\n"
+                        "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"packInputPower\" )\r\n|> last()\r\n"
                       }
                     },
                     "refId": "E",
@@ -813,10 +830,10 @@
                         "name": "df8oltzu756o0e"
                       },
                       "spec": {
-                        "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"swm_used\" )\r\n|> last()\r\n"
+                        "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"green_used\" )\r\n|> last()\r\n"
                       }
                     },
-                    "refId": "C",
+                    "refId": "B",
                     "hidden": false
                   }
                 },
@@ -837,6 +854,24 @@
                     "refId": "D",
                     "hidden": false
                   }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "df8oltzu756o0e"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"swm_used\" )\r\n|> last()\r\n"
+                      }
+                    },
+                    "refId": "C",
+                    "hidden": false
+                  }
                 }
               ],
               "transformations": [],
@@ -846,7 +881,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "bargauge",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "displayMode": "basic",
@@ -949,32 +984,13 @@
                   {
                     "matcher": {
                       "id": "byName",
-                      "options": "green_injected"
+                      "scope": "series",
+                      "options": "green_used"
                     },
                     "properties": [
                       {
                         "id": "displayName",
-                        "value": "green injected"
-                      },
-                      {
-                        "id": "thresholds",
-                        "value": {
-                          "mode": "absolute",
-                          "steps": [
-                            {
-                              "color": "semi-dark-red",
-                              "value": 0
-                            },
-                            {
-                              "color": "semi-dark-green",
-                              "value": 0
-                            },
-                            {
-                              "color": "green",
-                              "value": 10
-                            }
-                          ]
-                        }
+                        "value": "green used"
                       }
                     ]
                   },
@@ -987,6 +1003,13 @@
                       {
                         "id": "displayName",
                         "value": "inject batt"
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "super-light-red",
+                          "mode": "fixed"
+                        }
                       }
                     ]
                   },
@@ -1072,7 +1095,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "stat",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "colorMode": "value",
@@ -1197,7 +1220,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "timeseries",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "annotations": {
@@ -1248,7 +1271,7 @@
                     "barWidthFactor": 0.6,
                     "drawStyle": "line",
                     "fillOpacity": 77,
-                    "gradientMode": "opacity",
+                    "gradientMode": "none",
                     "hideFrom": {
                       "legend": false,
                       "tooltip": false,
@@ -1256,7 +1279,7 @@
                     },
                     "insertNulls": false,
                     "lineInterpolation": "linear",
-                    "lineWidth": 1,
+                    "lineWidth": 0,
                     "pointSize": 5,
                     "scaleDistribution": {
                       "type": "linear"
@@ -1283,7 +1306,7 @@
                       {
                         "id": "color",
                         "value": {
-                          "fixedColor": "semi-dark-green",
+                          "fixedColor": "super-light-green",
                           "mode": "fixed"
                         }
                       },
@@ -1302,7 +1325,7 @@
                       {
                         "id": "color",
                         "value": {
-                          "fixedColor": "semi-dark-red",
+                          "fixedColor": "super-light-red",
                           "mode": "fixed"
                         }
                       },
@@ -1373,7 +1396,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "timeseries",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "annotations": {
@@ -1611,7 +1634,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "timeseries",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "annotations": {
@@ -1792,7 +1815,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "timeseries",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "annotations": {
@@ -1916,7 +1939,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "bargauge",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "displayMode": "basic",
@@ -2008,7 +2031,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "timeseries",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "annotations": {
@@ -2098,122 +2121,6 @@
           }
         }
       },
-      "panel-35": {
-        "kind": "Panel",
-        "spec": {
-          "id": 35,
-          "title": "green ratio",
-          "description": "",
-          "links": [],
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
-                      "datasource": {
-                        "name": "df8oltzu756o0e"
-                      },
-                      "spec": {
-                        "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"swm_used\" )\r\n|> last()\r\n"
-                      }
-                    },
-                    "refId": "A",
-                    "hidden": true
-                  }
-                },
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
-                      "datasource": {
-                        "name": "df8oltzu756o0e"
-                      },
-                      "spec": {
-                        "query": "from(bucket: \"smarthomederived\")\r\n|> range(start: today())\r\n|> filter(fn: (r) => r._measurement == \"daily_energy\" and r._field == \"green_used\" )\r\n|> last()\r\n"
-                      }
-                    },
-                    "refId": "B",
-                    "hidden": true
-                  }
-                },
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "query": {
-                      "kind": "DataQuery",
-                      "group": "__expr__",
-                      "version": "v0",
-                      "datasource": {
-                        "name": "__expr__"
-                      },
-                      "spec": {
-                        "expression": "$B/($A+$B)",
-                        "type": "math"
-                      }
-                    },
-                    "refId": "C",
-                    "hidden": false
-                  }
-                }
-              ],
-              "transformations": [],
-              "queryOptions": {}
-            }
-          },
-          "vizConfig": {
-            "kind": "VizConfig",
-            "group": "stat",
-            "version": "13.1.1",
-            "spec": {
-              "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                  "calcs": [
-                    "lastNotNull"
-                  ],
-                  "fields": "",
-                  "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "percentunit",
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "semi-dark-green"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "thresholds",
-                    "fixedColor": "#ad46ff"
-                  }
-                },
-                "overrides": []
-              }
-            }
-          }
-        }
-      },
       "panel-36": {
         "kind": "Panel",
         "spec": {
@@ -2256,7 +2163,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "bargauge",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "displayMode": "basic",
@@ -2317,7 +2224,13 @@
           "id": 37,
           "title": "energy pipeline",
           "description": "",
-          "links": [],
+          "links": [
+            {
+              "title": "sunprediction",
+              "url": "https://grafana.ostertage.de/d/gezx7bs/sun-prediction?from=now-3d&to=now&timezone=browser",
+              "targetBlank": true
+            }
+          ],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -2333,7 +2246,7 @@
                         "name": "df8oltzu756o0e"
                       },
                       "spec": {
-                        "query": "sun = from(bucket: \"smarthome\")\r\n  |> range(start: -6h, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) =>\r\n      r._measurement == \"sunforecast\" and\r\n      r.dimension == \"cc_by_sd\" and\r\n      r._field == \"sunpredict\" and\r\n      r.scope == \"FNTM\"\r\n  )\r\n  |> last()\r\n  |> set(key: \"_field\", value: \"sun\")\r\n\r\nbattery = from(bucket: \"smarthome\")\r\n  |> range(start: -6h, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) =>\r\n      r._measurement == \"zendure\" and\r\n      r._field == \"electricLevel\"\r\n  )\r\n  |> last()\r\n  |> map(fn: (r) => ({r with _value: float(v: r._value) * 38.0}))\r\n  |> set(key: \"_field\", value: \"battery\")\r\n\r\ngreen_used = from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n      r._measurement == \"daily_energy\" and\r\n      r._field == \"green_used\"\r\n  )\r\n  |> last()\r\n  |> set(key: \"_field\", value: \"used\")\r\n\r\ngreen_upstream = from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n      r._measurement == \"daily_energy\" and\r\n      r._field == \"green_upstream\"\r\n  )\r\n  |> last()\r\n  |> map(fn: (r) => ({r with _value: r._value * -1.0}))\r\n  |> set(key: \"_field\", value: \"upstream\")\r\n\r\nunion(tables: [sun, battery, green_used, green_upstream])\r\n  |> map(fn: (r) => ({r with _time: v.timeRangeStop}))\r\n  |> group(columns: [])\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )"
+                        "query": "sun = from(bucket: \"smarthome\")\r\n  |> range(start: -6h, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) =>\r\n      r._measurement == \"sunforecast\" and\r\n      r.dimension == \"cc_by_sd\" and\r\n      r._field == \"sunpredict\" and\r\n      r.scope == \"FNTM\"\r\n  )\r\n  |> last()\r\n  |> set(key: \"_field\", value: \"sun\")\r\n\r\nbattery = from(bucket: \"smarthome\")\r\n  |> range(start: -6h, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) =>\r\n      r._measurement == \"zendure\" and\r\n      r._field == \"electricLevel\"\r\n  )\r\n  |> last()\r\n  |> map(fn: (r) => ({r with _value: float(v: r._value) * 38.0}))\r\n  |> set(key: \"_field\", value: \"battery\")\r\n\r\ngreen_used = from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n      r._measurement == \"daily_energy\" and\r\n      r._field == \"green_used\"\r\n  )\r\n  |> last()\r\n  |> set(key: \"_field\", value: \"used\")\r\n\r\ngreen_upstream = from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n      r._measurement == \"daily_energy\" and\r\n      r._field == \"green_upstream\"\r\n  )\r\n  |> last()\r\n  |> map(fn: (r) => ({r with _value: r._value * -1.0}))\r\n  |> set(key: \"_field\", value: \"upstream\")\r\n\r\nred = from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) =>\r\n      r._measurement == \"daily_energy\" and\r\n      r._field == \"swm_used\"\r\n  )\r\n  |> last()\r\n  |> set(key: \"_field\", value: \"grid_used\")\r\n\r\nunion(tables: [sun, battery, green_used, green_upstream, red])\r\n  |> map(fn: (r) => ({r with _time: v.timeRangeStop}))\r\n  |> group(columns: [])\r\n  |> pivot(\r\n      rowKey: [\"_time\"],\r\n      columnKey: [\"_field\"],\r\n      valueColumn: \"_value\"\r\n  )"
                       }
                     },
                     "refId": "A",
@@ -2367,7 +2280,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "barchart",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "barRadius": 0.05,
@@ -2396,7 +2309,7 @@
               "fieldConfig": {
                 "defaults": {
                   "displayName": "${__field.name}",
-                  "max": 8000,
+                  "max": 10000,
                   "thresholds": {
                     "mode": "absolute",
                     "steps": [
@@ -2493,133 +2406,18 @@
                         "value": "hidden"
                       }
                     ]
-                  }
-                ]
-              }
-            }
-          }
-        }
-      },
-      "panel-7": {
-        "kind": "Panel",
-        "spec": {
-          "id": 7,
-          "title": "today energy ratio",
-          "description": "",
-          "links": [],
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
-                      "datasource": {
-                        "name": "df8oltzu756o0e"
-                      },
-                      "spec": {
-                        "query": "from(bucket: \"smarthomederived\")\r\n  |> range(start: today())\r\n  |> filter(fn: (r) => r._measurement == \"daily_energy\")\r\n  |> filter(fn: (r) =>\r\n      r._field == \"green_used\" or\r\n      r._field == \"green_upstream\" or\r\n      r._field == \"swm_used\"\r\n  )\r\n  |> last()\r\n  |> map(fn: (r) => ({\r\n      r with\r\n      _value: if r._field == \"green_upstream\" then r._value * -1.0 else r._value\r\n  }))"
-                      }
-                    },
-                    "refId": "A",
-                    "hidden": false
-                  }
-                }
-              ],
-              "transformations": [],
-              "queryOptions": {}
-            }
-          },
-          "vizConfig": {
-            "kind": "VizConfig",
-            "group": "piechart",
-            "version": "13.1.1",
-            "spec": {
-              "options": {
-                "displayLabels": [
-                  "percent"
-                ],
-                "legend": {
-                  "displayMode": "list",
-                  "overflow": "ellipsis",
-                  "placement": "bottom",
-                  "showLegend": false
-                },
-                "pieType": "donut",
-                "reduceOptions": {
-                  "calcs": [
-                    "lastNotNull"
-                  ],
-                  "fields": "",
-                  "values": false
-                },
-                "sort": "desc",
-                "tooltip": {
-                  "hideZeros": false,
-                  "mode": "single",
-                  "sort": "none"
-                }
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "watth",
-                  "color": {
-                    "mode": "palette-classic",
-                    "fixedColor": "#73BF69"
                   },
-                  "custom": {
-                    "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
-                      "viz": false
-                    }
-                  }
-                },
-                "overrides": [
                   {
                     "matcher": {
                       "id": "byName",
-                      "options": "swm_used"
+                      "scope": "series",
+                      "options": "grid_used"
                     },
                     "properties": [
                       {
                         "id": "color",
                         "value": {
-                          "fixedColor": "#e04646",
-                          "mode": "fixed"
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "green_used"
-                    },
-                    "properties": [
-                      {
-                        "id": "color",
-                        "value": {
-                          "fixedColor": "semi-dark-green",
-                          "mode": "fixed"
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "green_upstream"
-                    },
-                    "properties": [
-                      {
-                        "id": "color",
-                        "value": {
-                          "fixedColor": "dark-blue",
+                          "fixedColor": "#8b3640",
                           "mode": "fixed"
                         }
                       }
@@ -2668,14 +2466,13 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "bargauge",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "displayMode": "lcd",
                 "legend": {
                   "calcs": [],
                   "displayMode": "list",
-                  "overflow": "ellipsis",
                   "placement": "bottom",
                   "showLegend": false
                 },
@@ -2701,24 +2498,20 @@
                   "min": 0,
                   "max": 100,
                   "thresholds": {
-                    "mode": "absolute",
+                    "mode": "percentage",
                     "steps": [
                       {
                         "value": 0,
-                        "color": "dark-red"
+                        "color": "super-light-red"
                       },
                       {
-                        "value": 10,
-                        "color": "semi-dark-green"
-                      },
-                      {
-                        "value": 15,
-                        "color": "green"
+                        "value": 50,
+                        "color": "super-light-green"
                       }
                     ]
                   },
                   "color": {
-                    "mode": "continuous-RdYlGr"
+                    "mode": "thresholds"
                   }
                 },
                 "overrides": []
@@ -2764,7 +2557,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "piechart",
-            "version": "13.1.1",
+            "version": "13.2.0",
             "spec": {
               "options": {
                 "displayLabels": [
@@ -2894,7 +2687,7 @@
             "spec": {
               "x": 11,
               "y": 0,
-              "width": 6,
+              "width": 8,
               "height": 5,
               "element": {
                 "kind": "ElementReference",
@@ -2905,35 +2698,9 @@
           {
             "kind": "GridLayoutItem",
             "spec": {
-              "x": 17,
-              "y": 0,
-              "width": 2,
-              "height": 5,
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-7"
-              }
-            }
-          },
-          {
-            "kind": "GridLayoutItem",
-            "spec": {
               "x": 19,
               "y": 0,
-              "width": 2,
-              "height": 5,
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-35"
-              }
-            }
-          },
-          {
-            "kind": "GridLayoutItem",
-            "spec": {
-              "x": 21,
-              "y": 0,
-              "width": 3,
+              "width": 5,
               "height": 5,
               "element": {
                 "kind": "ElementReference",

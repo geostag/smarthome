@@ -21,5 +21,34 @@ class changeLimitedFreq:
 
         return self.lastvalue
 
+class memorizedValue:
+    def __init__(self,maxbacksecs):
+        self.values = []
+        self.maxbacksecs = maxbacksecs
 
-        
+    def add(self,v):
+        self.values.append({"v": v, "t": time.time()})
+
+    def _purge(self):
+        l = []
+        now = time.time()
+        for i in self.values:
+            if i["t"] >= now - self.maxbacksecs:
+                l.append(i)
+
+        self.values = l
+
+    def get(self,cf,backsecs):
+        self._purge()
+        now = time.time()
+        l = [ x["v"] for x in filter(lambda x: x["t"] >= now - backsecs) ]
+        if len(l):
+            return None
+        elif cf == "max":
+            return max(l)
+        elif cf == "min":
+            return min(l)
+        elif cf == "avg":
+            return sum(l)/len(l)
+        else:
+            return None

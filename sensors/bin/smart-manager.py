@@ -2,6 +2,7 @@ from lib.mqttconn import WhiteBoard
 from lib.toinflux import Iflx
 from lib.myDatabase import mDb
 from lib.ncConnect import myNextcloud
+from lib.valueManager import memorizedValue
 import datetime, time, os, requests
 
 DEBUG = False
@@ -14,7 +15,6 @@ BATT_MIN      = int(os.getenv("MATT_MIN","10"))
 BATT_MAX      = int(os.getenv("BATT_MAX","95"))
 BATT_CAPACITY = int(os.getenv("BATT_CAPACITY","4000"))
 BASELOAD      = int(os.getenv("BASELOAD","90"))
-GRIDPOWERREMEMBER_MINUTES = 6
 
 DATADIR = os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
 DYNAMIC_PARAMETER_PATH = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PATH","")
@@ -125,7 +125,7 @@ class ZendureManager:
         self.zen = zen
         self.tasmota = tasmota
         self.forecast = forecast
-        self.gridpower = []
+        self.gridpower = memorizedValue(60 * 15)
         self.solarInputPower = []
         self.db = mDb(f"{DATADIR}/smart-manager-state.json")
         self.baseload = BASELOAD
@@ -163,29 +163,6 @@ class ZendureManager:
                 print(f"BASELOAD: {self.baseload} > {bl}")
                 self.baseload = p.get("BASELOAD", BASELOAD)
         
-    def rememberGridPower(self,p):
-        now = time.time()
-        self.gridpower.append( { "t": now, "v": p } )
-        self.gridpower = [ x for x in self.gridpower if x["t"] > now - GRIDPOWERREMEMBER_MINUTES*60 ]
-        
-    def minRememberGridPower(self):
-        return min( [ x["v"] for x in self.gridpower ] )
-        
-    def avgRememberGridPower(self):
-        vs = [ x["v"] for x in self.gridpower ]
-        return sum(vs)/len(vs)
-        
-    def weightedAvgRememberGridPower(self):
-        vs = [ x["v"] for x in self.gridpower ]
-        n = len(vs)
-        if n > 1:
-            weights = [i / (n - 1) for i in range(n)]
-            weighted_sum = sum(v * w for v, w in zip(vs, weights))
-            return weighted_sum / sum(weights)
-        
-        else:
-            return vs[0]
-
     @property
     def isBlue(self):
         # we deliver upstream, but could do better
@@ -291,13 +268,12 @@ class ZendureManager:
         self.solarInputPower = self.solarInputPower[(-1 * lookback_items):]
         s10 = int( 10 * sum(self.solarInputPower) / len(self.solarInputPower) + 0.5) / 10
         p = self.tasmota.Power
-        self.rememberGridPower(p)
-        if b > 20:
-            p = self.weightedAvgRememberGridPower()
+        self.gridpower.add(p)
 
-        else:
-            p = self.minRememberGridPower()
-        
+        if p < 0 and self.generosity > 0.9 or self.bratio > 0.6:
+            # we deliver upstream. react slowly in some cases
+            p = max(self.gridpower.get("max",60),self.gridpower.get("avg",180))
+
         needed = i+p
         mode = ""
 
