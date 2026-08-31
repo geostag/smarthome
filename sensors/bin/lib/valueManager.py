@@ -41,7 +41,7 @@ class memorizedValue:
     def get(self,cf,backsecs):
         self._purge()
         now = time.time()
-        l = [ x["v"] for x in filter(lambda x: x["t"] >= now - backsecs) ]
+        l = [ x["v"] for x in filter(lambda x: x["t"] >= now - backsecs,self.values) ]
         if len(l):
             return None
         elif cf == "max":
