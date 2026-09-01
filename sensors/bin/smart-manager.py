@@ -26,7 +26,7 @@ ZENDURE_MIN_LIMIT_INTERVAL = int(os.getenv("ZENDURE_MIN_LIMIT_INTERVAL","10"))
 
 DRYRUN = (os.getenv("DRYRUN","FALSE") == "TRUE")
 if DRYRUN:
-    print("------- DRYRUN --------")
+    print("------- smart-manager: DRYRUN --------")
 
 # how many watt to reserve for zendure itself
 RESW = 8
@@ -125,8 +125,8 @@ class ZendureManager:
         self.zen = zen
         self.tasmota = tasmota
         self.forecast = forecast
-        self.gridpower = memorizedValue(60 * 15)
-        self.solarInputPower = []
+        self.gridpower = memorizedValue(60 * 10)
+        self.solarInputPower = memorizedValue(60 * 15)
         self.db = mDb(f"{DATADIR}/smart-manager-state.json")
         self.baseload = BASELOAD
         self.chargefrombase = True
@@ -171,7 +171,7 @@ class ZendureManager:
     @property
     def isRed(self):
         # we use grid downstream but could do better
-        return (self.tasmota.Power > 2 and not self.zen.isMaxOutput)
+        return (self.tasmota.Power > 2 and not self.zen.isMaxOutput and not self.chargefrombase)
         
     @property
     def isGenerous(self):
@@ -262,11 +262,10 @@ class ZendureManager:
 
         self.influx.write("smart-manager","generosity2",1.0 * self.generosity,{"synthetic": "yes", "debug": 1})
 
-        lookback_items = 11 - int(5 * self.generosity + 0.5)
         s = self.zen.solarInputPower
-        self.solarInputPower.append(s)
-        self.solarInputPower = self.solarInputPower[(-1 * lookback_items):]
-        s10 = int( 10 * sum(self.solarInputPower) / len(self.solarInputPower) + 0.5) / 10
+        self.solarInputPower.add(s)
+        s10 = self.solarInputPower.get("avg",60 * (11 - int(5 * self.generosity + 0.5)))
+        
         p = self.tasmota.Power
         self.gridpower.add(p)
 
@@ -278,7 +277,6 @@ class ZendureManager:
                 pass
 
         needed = i+p
-        mode = ""
 
         if b >= 2.0 * BATT_MIN:
             self.chargefrombase = False
@@ -286,29 +284,24 @@ class ZendureManager:
         # values ready, lets do logic
         if b <= BATT_MIN:
             # first load battery
-            mode = "super low batt"
             i = 0
             self.chargefrombase = True
             
         elif self.chargefrombase and b < 1.5 * BATT_MIN:
             # we were discharged, first charge significant
-            mode = "charge from base < 1.5"
             i = 0
 
         elif self.chargefrombase:
-            mode = "charge from base >= 1.5"
             i = min(s,needed)
                         
         elif b >= BATT_MAX:
             # batt full, still charging
             # approach: input = output; slow changes; at least needed power
-            mode = "super hi batt"
             i = min(s10,INJECTION_MAX)
             i = max(i,needed)
             
         elif s10 > needed:
             # more sun than needed
-            mode = "hi sun"
             i = needed
             
             if self.sunshine and self.generosity > 1:
@@ -329,7 +322,6 @@ class ZendureManager:
             minj = (2 + 2 * self.generosity) * self.baseload
             maxj = self.bratio * (INJECTION_MAX - minj) + minj
             maxtotal = max(maxj,s10)
-            mode = f"blow out {self.bratio}, {maxj}, {s}({s10})"
             i = min(maxtotal,needed + 5 * self.generosity )
             
         # round and limit to INJECTION_MAX
@@ -343,17 +335,14 @@ class ZendureManager:
             # we use grid power
             if ( i > 5 and abs(i-i_old) < 3 ) or ( i > 100 and abs(i-i_old)/i < 0.03 ):
                 # peanut change
-                mode += f", peanuts {i} {i_old}"
                 i = i_old
                 
             elif i > i_old:
                 # increase injection slowly
-                mode += ", slow-raise"
                 i = (0.9 + 0.05 * self.generosity) * (i - i_old) + i_old
         
         ho = self.dynamicParameter.get("HARDOUTPUT",-1)
         if ho >= 0:
-            print(f"hard setting output to {ho}")
             i = ho
 
         if i != i_old:
