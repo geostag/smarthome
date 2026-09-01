@@ -43,11 +43,15 @@ class Forecast:
     @property
     def sunrise(self):
         t = self.wb.dataGet("sunforecast","sunrise")
+        if not t:
+            t = "07:00"
         return datetime.time.fromisoformat(t)
 
     @property
     def sunset(self):
         t = self.wb.dataGet("sunforecast","sunset")
+        if not t:
+            t = "20:00"
         return datetime.time.fromisoformat(t)
 
 class Tasmota:
@@ -157,11 +161,7 @@ class ZendureManager:
                 p[k] = v
 
             self.dynamicParameter = p
-            #self.baseload = p.get("BASELOAD", BASELOAD)
-            bl = p.get("BASELOAD", BASELOAD)
-            if self.baseload != bl:
-                print(f"BASELOAD: {self.baseload} > {bl}")
-                self.baseload = p.get("BASELOAD", BASELOAD)
+            self.baseload = p.get("BASELOAD", BASELOAD)
         
     @property
     def isBlue(self):
@@ -271,10 +271,7 @@ class ZendureManager:
 
         if p < 0 and not self.isGenerous and self.bratio > 0.6:
             # we deliver upstream. react slowly in some cases
-            try:
-                p = max(self.gridpower.get("max",1 + 60*self.generosity),self.gridpower.get("avg",1 + 180*self.generosity))
-            except:
-                pass
+            p = max(self.gridpower.get("max",1 + 60*self.generosity),self.gridpower.get("avg",1 + 180*self.generosity))
 
         needed = i+p
 
