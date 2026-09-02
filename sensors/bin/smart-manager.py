@@ -131,7 +131,7 @@ class ZendureManager:
         self.forecast = forecast
         self.gridpower = memorizedValue(60 * 10)
         self.solarInputPower = memorizedValue(60 * 15)
-        self.db = mDb(f"{DATADIR}/smart-manager-state.json")
+        self.neededPower = memorizedValue(60 * 60 * 6)
         self.baseload = BASELOAD
         self.chargefrombase = True
         self.parameterurl = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PATH","")
@@ -178,12 +178,6 @@ class ZendureManager:
         return (self.generosInjection > 0)
     
     @property
-    def hourFloat(self):
-        hour = datetime.datetime.now().hour
-        minute = datetime.datetime.now().minute
-        return hour + minute / 60
-    
-    @property
     def bratio(self):
         # battery fill ratio
         # range: 0...1
@@ -191,21 +185,26 @@ class ZendureManager:
         return int(100 * (b - BATT_MIN)/(BATT_MAX-BATT_MIN) + 0.5) / 100
     
     @property
-    def sunshine(self):
+    def isSunshine(self):
         sunset  = self.forecast.sunset
         sunrise = self.forecast.sunrise
         now = datetime.datetime.now().time()
-        ss = ( now > sunrise and now < sunset )
-        self.influx.write("debug","sunshine",1.0 if ss else 0.0,{"synthetic": "yes", "debug": 1})
-        return ss
+        return ( now > sunrise and now < sunset )
 
+    def _timeFloat(self,ts):
+        return ts.hour + ts.minute / 60 + ts.second / 3600
+        
+    @property
+    def hourFloat(self):
+        return self._timeFloat(datetime.datetime.now())
+    
+    @property
+    def sunhours(self):
+        return max(4,self._timeFloat(self.forecast.sunset) - self._timeFloat(self.forecast.sunrise))
+        
     @property
     def remainingsunhours(self):
-        sunset  = self.forecast.sunset
-        now = datetime.datetime.now().time()
-        sunseth = sunset.hour + sunset.minute / 60 + sunset.second / 3600
-        nowh    = now.hour    + now.minute / 60    + now.second / 3600
-        return max(0,sunseth - nowh)
+        return max(0,self._timeFloat(self.forecast.sunset) - self._timeFloat(datetime.datetime.now().time()))
 
     @property
     def battCapacityNeeded(self):
@@ -213,7 +212,11 @@ class ZendureManager:
         
     @property
     def energyExcessToCome(self):
-        return max(0,self.forecast.energyToCome - self.baseload * self.remainingsunhours)
+        avgLoad = self.neededPower.get("avg")
+        if not avgLoad:
+            avgLoad = self.baseload
+            
+        return max(0,self.forecast.energyToCome - avgLoad * self.remainingsunhours)
 
     @property
     def energyOverBattToCome(self):
@@ -274,6 +277,7 @@ class ZendureManager:
             p = max(self.gridpower.get("max",1 + 60*self.generosity),self.gridpower.get("avg",1 + 180*self.generosity))
 
         needed = i+p
+        self.neededPower.add(needed)
 
         if b >= 2.0 * BATT_MIN:
             self.chargefrombase = False
@@ -301,10 +305,10 @@ class ZendureManager:
             # more sun than needed
             i = needed
             
-            if self.sunshine and self.generosity > 1:
+            if self.isSunshine and self.generosity > 1:
                 # add generosity upstream 
-                reserve = 50 + 700 * self.remainingsunhours / 10
-                upstream = (self.energyOverBattToCome - reserve) / min(0.1,self.remainingsunhours)
+                reserve = 50 + 700 * self.remainingsunhours / self.sunhours
+                upstream = max(0,(self.energyOverBattToCome - reserve) / min(0.1,self.remainingsunhours))
                 gi = max(0,needed + upstream)
                 gi = min(INJECTION_MAX,gi)
                 self.generosInjection = self.generosInjection * 0.85 + gi * 0.15

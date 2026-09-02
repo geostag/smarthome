@@ -38,10 +38,14 @@ class memorizedValue:
 
         self.values = l
 
-    def get(self,cf,backsecs):
+    def get(self,cf,backsecs=None):
         self._purge()
-        now = time.time()
-        l = [ x["v"] for x in filter(lambda x: x["t"] >= now - backsecs,self.values) ]
+        if backsecs:
+            threshould = time.time() - backsecs
+        else:
+            threshould = 0
+        
+        l = [ x["v"] for x in filter(lambda x: x["t"] >= threshould,self.values) ]
         if len(l) < 1:
             return None
         elif cf == "max":
