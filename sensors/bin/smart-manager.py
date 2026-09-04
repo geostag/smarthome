@@ -358,7 +358,7 @@ ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB), Foreca
 
 def tasmotaCallback(data):
     p = data.get("Power",0)
-    if ZM.isBlue or ( ZM.isRed and p > 30 ):
+    if ( ZM.isBlue and p < -5 ) or ( ZM.isRed and p > 25 ):
         # we react immediately on significant upstream or downstream
         ZM.controller_update()
 
