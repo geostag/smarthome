@@ -1,7 +1,6 @@
 from lib.config import settings
 from lib.mqttconn import WhiteBoard
 from lib.toinflux import Iflx
-from lib.myDatabase import mDb
 from lib.ncConnect import myNextcloud
 from lib.valueManager import memorizedValue
 import datetime, time, os, requests, tomllib, traceback
