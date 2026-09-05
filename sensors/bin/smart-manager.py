@@ -1,25 +1,24 @@
+from lib.config import settings
 from lib.mqttconn import WhiteBoard
 from lib.toinflux import Iflx
 from lib.myDatabase import mDb
 from lib.ncConnect import myNextcloud
 from lib.valueManager import memorizedValue
-import datetime, time, os, requests
+import datetime, time, os, requests, tomllib, traceback
 
 DEBUG = False
 
 ZENDURE_HOST = os.getenv("ZENDURE_HOST")
 ZENDURE_SN   = os.getenv("ZENDURE_SN")
 
-INJECTION_MAX = int(os.getenv("INJECTION_MAX","800"))
-BATT_MIN      = int(os.getenv("MATT_MIN","10"))
-BATT_MAX      = int(os.getenv("BATT_MAX","95"))
-BATT_CAPACITY = int(os.getenv("BATT_CAPACITY","4000"))
-BASELOAD      = int(os.getenv("BASELOAD","90"))
+INJECTION_MAX = settings.INJECTION_MAX
+BATT_MIN      = settings.BATT_MIN
+BATT_MAX      = settings.BATT_MAX
+BATT_CAPACITY = settings.BATT_CAPACITY
+BASELOAD      = settings.BASELOAD
+DATADIR       = settings.SMART_MANAGER_DATADIR
 
-DATADIR = os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
-DYNAMIC_PARAMETER_PATH = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PATH","")
-
-INTERVAL = 90
+INTERVAL = settings.SMART_MANAGER_INTERVAL
 
 # https://github.com/Zendure/zenSDK/issues/5
 ZENDURE_MIN_LIMIT_INTERVAL = int(os.getenv("ZENDURE_MIN_LIMIT_INTERVAL","10"))
@@ -134,34 +133,22 @@ class ZendureManager:
         self.neededPower = memorizedValue(60 * 60 * 6)
         self.baseload = BASELOAD
         self.chargefrombase = True
-        self.parameterurl = os.getenv("SMART_MANAGER_DYNAMIC_PARAMETER_PATH","")
         self.paramterlast = 0
         self.nextcloud = myNextcloud()
         self.generosityHistory = []
-        self.dynamicParameter = {}
         self.generosInjection = 0
         self.influx = influx
 
     def dynamicParameterUpdate(self):
-        if time.time() > self.paramterlast + 900 and DYNAMIC_PARAMETER_PATH:
+        if time.time() > self.paramterlast + 900 and settings.DYNAMIC_CONFIG_PATH:
             self.paramterlast = time.time()
-            ptext = self.nextcloud.getFile(DYNAMIC_PARAMETER_PATH)
-            p = {}
-            for l in ptext.splitlines():
-                l = l.strip()
-                if not l:
-                    continue
-
-                k,v = l.split(":",1)
-                k = k.strip()
-                v = v.strip()
-                if v.isdigit():
-                    v = int(v)
-
-                p[k] = v
-
-            self.dynamicParameter = p
-            self.baseload = p.get("BASELOAD", BASELOAD)
+            try:
+                ctext = self.nextcloud.getFile(settings.DYNAMIC_CONFIG_PATH)
+                settings.update(tomllib.loads(ctext))
+                self.baseload = settings.BASELOAD
+            except:
+                print(traceback.format_exc())
+                print("dynamic parameter update failed")
         
     @property
     def isBlue(self):
@@ -342,9 +329,8 @@ class ZendureManager:
                 # increase injection slowly
                 i = (0.9 + 0.05 * self.generosity) * (i - i_old) + i_old
         
-        ho = self.dynamicParameter.get("HARDOUTPUT",-1)
-        if ho >= 0:
-            i = ho
+        if "HARDOUTPUT" in settings:
+            i = settings.HARDOUTPUT
 
         if i != i_old:
             self.zen.outputLimit = i

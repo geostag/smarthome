@@ -3,3 +3,4 @@ paho-mqtt>=2.1.0
 python-dateutil>=2.9.0.post0
 requests>=2.32.5
 fritzconnection
+dynaconf

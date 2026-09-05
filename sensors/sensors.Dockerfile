@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY sensors/bin /app/bin
 COPY sensors/sensors-entrypoint.sh /usr/local/bin/sensors-entrypoint.sh
+COPY sensors/sensors-config-default.toml /app/sensors-config-default.toml
 
 RUN chmod +x /usr/local/bin/sensors-entrypoint.sh
 

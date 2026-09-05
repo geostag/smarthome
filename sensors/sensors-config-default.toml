@@ -1,0 +1,15 @@
+QUERY_INTERVAL = 60
+SMART_MANAGER_INTERVAL = 90
+
+DYNAMIC_CONFIG_PATH = '/georg/cproj/Home-IT/smarthome/PV-PARAMETER.md'
+
+# --- Smart Manager ---
+SMART_MANAGER_DATADIR = '/app/sensors'
+INJECTION_MAX = 800
+BASELOAD = 97
+BATT_MIN = 10
+BATT_MAX = 99
+BATT_CAPACITY = 4000
+
+# if you wanna set green injection to a hard value
+#HARDOUTPUT = 100

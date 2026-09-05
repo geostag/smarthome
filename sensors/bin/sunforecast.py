@@ -241,7 +241,7 @@ class HistoryMaker:
             for a,b in zip(m,data):
                 a[dim] = b
 
-        # delete too old history data (based on DAYSBACK)
+        # delete to old history data (based on DAYSBACK)
         dh = self.dataHistory
         days = dh.keys()
         for d in list( set(days) - set(sorted(days)[-DAYSBACK:]) ):

@@ -2,7 +2,7 @@ from fritzconnection import FritzConnection
 from fritzconnection.lib.fritzstatus   import FritzStatus
 from fritzconnection.lib.fritzhomeauto import FritzHomeAutomation
 from fritzconnection.lib.fritzhosts    import FritzHosts
-import json, time, os, re, requests, traceback
+import json, time, os, re, traceback
 from lib.toinflux import Iflx
 from lib.ncConnect import myNextcloud
 
