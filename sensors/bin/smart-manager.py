@@ -243,7 +243,8 @@ class ZendureManager:
         return g
 
     def controller_update(self):
-        self.dynamicParameterUpdate()
+        #TODO
+        #self.dynamicParameterUpdate()
         
         b = self.zen.electricLevel
         i = self.zen.outputLimit
