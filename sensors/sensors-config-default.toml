@@ -15,8 +15,8 @@ BATT_CAPACITY = 4000
 #HARDOUTPUT = 100
 
 # --- MQTT to INflux ---
-MQTT_BROKER   = mqtt
+MQTT_BROKER   = 'mqtt'
 MQTT_PORT     = 1883
-MQTT_USERNAME = mqtt-username
-MQTT_PASSWORD = mqtt-password
-MQTT_TOPIC    = "tele/+/SENSOR"
+MQTT_USERNAME = 'mqtt-username'
+MQTT_PASSWORD = 'mqtt-password'
+MQTT_TOPIC    = 'tele/+/SENSOR'
