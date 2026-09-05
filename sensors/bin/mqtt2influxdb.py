@@ -1,14 +1,9 @@
+from lib.config import settings
 from lib.toinflux import Iflx
 import paho.mqtt.client as mqtt
-import dateutil.parser, datetime, json, re, time, os, requests, traceback
+import dateutil.parser, datetime, json, re, os, traceback
 
 DEBUG = False
-
-BROKER   = os.getenv("MQTT_BROKER")
-PORT     = int(os.getenv("MQTT_PORT"))
-TOPIC    = os.getenv("MQTT_TOPIC")
-USERNAME = os.getenv("MQTT_USERNAME")
-PASSWORD = os.getenv("MQTT_PASSWORD")
 
 INFLUX = Iflx()
 
@@ -74,8 +69,8 @@ def on_message(client, userdata, msg):
 
 # setup MQTT Client 
 client = mqtt.Client( mqtt.CallbackAPIVersion.VERSION2 )
-client.username_pw_set(USERNAME, PASSWORD)
+client.username_pw_set(settings.MQTT_USERNAME, settings.MQTT_PASSWORD)
 client.on_connect = on_connect
 client.on_message = on_message
-client.connect(BROKER, PORT, keepalive=60)
+client.connect(settings.MQTT_BROKER, settings.MQTT_PORT, keepalive=60)
 client.loop_forever()

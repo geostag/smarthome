@@ -1,12 +1,8 @@
+from lib.config import settings
 import paho.mqtt.client as mqtt
-import os, json, time
+import json, time
 
 DEBUG = False
-
-MQTT_BROKER   = os.getenv("MQTT_BROKER","")
-MQTT_PORT     = int(os.getenv("MQTT_PORT","1883"))
-MQTT_USERNAME = os.getenv("MQTT_USERNAME","")
-MQTT_PASSWORD = os.getenv("MQTT_PASSWORD","")
 
 class WhiteBoard:
     def __init__(self):
@@ -78,10 +74,10 @@ class MqttConn:
             else:
                 print(f"❌ connection failed: {reason_code}")    
 
-        self.user      = MQTT_USERNAME
-        self.password  = MQTT_PASSWORD
-        self.broker    = MQTT_BROKER
-        self.port      = MQTT_PORT
+        self.user      = settings.MQTT_USERNAME
+        self.password  = settings.MQTT_PASSWORD
+        self.broker    = settings.MQTT_BROKER
+        self.port      = settings.MQTT_PORT
         self.onMessage = kwargs.get("on_message",onMessage)
         self.onConnect = onConnect
         self.client    = None

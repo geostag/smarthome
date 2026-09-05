@@ -13,3 +13,10 @@ BATT_CAPACITY = 4000
 
 # if you wanna set green injection to a hard value
 #HARDOUTPUT = 100
+
+# --- MQTT to INflux ---
+MQTT_BROKER   = mqtt
+MQTT_PORT     = 1883
+MQTT_USERNAME = mqtt-username
+MQTT_PASSWORD = mqtt-password
+MQTT_TOPIC    = "tele/+/SENSOR"
