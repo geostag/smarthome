@@ -1,7 +1,7 @@
 from lib.config import settings
 from lib.toinflux import Iflx
 import paho.mqtt.client as mqtt
-import dateutil.parser, datetime, json, re, os, traceback
+import dateutil.parser, datetime, json, re, traceback
 
 DEBUG = False
 
@@ -34,7 +34,7 @@ def on_connect(client, userdata, flags, reason_code, properties):
     if reason_code == 0:
         if DEBUG:
             print("✅ Erfolgreich verbunden")
-        client.subscribe(TOPIC)
+        client.subscribe(settings.MQTT_TOPIC)
     else:
         print(f"❌ Verbindung fehlgeschlagen: {reason_code}")
 
