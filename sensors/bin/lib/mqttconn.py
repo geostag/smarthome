@@ -76,8 +76,8 @@ class MqttConn:
 
         self.user      = settings.MQTT_USERNAME
         self.password  = settings.MQTT_PASSWORD
-        self.broker    = settings.MQTT_BROKER
-        self.port      = settings.MQTT_PORT
+        self.broker    = settings.mqtt.broker
+        self.port      = settings.mqtt.port
         self.onMessage = kwargs.get("on_message",onMessage)
         self.onConnect = onConnect
         self.client    = None

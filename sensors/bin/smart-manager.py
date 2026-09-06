@@ -10,14 +10,13 @@ DEBUG = False
 ZENDURE_HOST = os.getenv("ZENDURE_HOST")
 ZENDURE_SN   = os.getenv("ZENDURE_SN")
 
-INJECTION_MAX = settings.INJECTION_MAX
-BATT_MIN      = settings.BATT_MIN
-BATT_MAX      = settings.BATT_MAX
-BATT_CAPACITY = settings.BATT_CAPACITY
-BASELOAD      = settings.BASELOAD
-DATADIR       = settings.SMART_MANAGER_DATADIR
-
-INTERVAL = settings.SMART_MANAGER_INTERVAL
+INJECTION_MAX = settings.smartmanager.INJECTION_MAX
+BATT_MIN      = settings.smartmanager.BATT_MIN
+BATT_MAX      = settings.smartmanager.BATT_MAX
+BATT_CAPACITY = settings.smartmanager.BATT_CAPACITY
+BASELOAD      = settings.smartmanager.BASELOAD
+DATADIR       = settings.smartmanager.SMART_MANAGER_DATADIR
+INTERVAL      = settings.smartmanager.SMART_MANAGER_INTERVAL
 
 # https://github.com/Zendure/zenSDK/issues/5
 ZENDURE_MIN_LIMIT_INTERVAL = int(os.getenv("ZENDURE_MIN_LIMIT_INTERVAL","10"))
@@ -144,7 +143,7 @@ class ZendureManager:
             try:
                 ctext = self.nextcloud.getFile(settings.DYNAMIC_CONFIG_PATH)
                 settings.update(tomllib.loads(ctext))
-                self.baseload = settings.BASELOAD
+                self.baseload = settings.smartmanager.BASELOAD
             except:
                 print(traceback.format_exc())
                 print("dynamic parameter update failed")
@@ -329,8 +328,8 @@ class ZendureManager:
                 # increase injection slowly
                 i = (0.9 + 0.05 * self.generosity) * (i - i_old) + i_old
         
-        if "HARDOUTPUT" in settings:
-            i = settings.HARDOUTPUT
+        if "HARDOUTPUT" in settings.smartmanager:
+            i = settings.smartmanager.HARDOUTPUT
 
         if i != i_old:
             self.zen.outputLimit = i

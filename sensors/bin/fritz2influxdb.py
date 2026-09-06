@@ -1,14 +1,14 @@
+from lib.config import settings
+from lib.toinflux import Iflx
+from lib.ncConnect import myNextcloud
 from fritzconnection import FritzConnection
 from fritzconnection.lib.fritzstatus   import FritzStatus
 from fritzconnection.lib.fritzhomeauto import FritzHomeAutomation
 from fritzconnection.lib.fritzhosts    import FritzHosts
 import json, time, os, re, traceback
-from lib.toinflux import Iflx
-from lib.ncConnect import myNextcloud
 
 DEBUG = False
 
-INTERVAL = int(os.getenv("FRITZ_QUERY_INTERVAL"))
 INFLUX = Iflx()
 DEVICEMAPCACHETIME = 3600
 DEVICEMAP = os.getenv("FRITZ_DEVICEMAP","/cproj/Home-IT/smarthome/device-map.json")
@@ -24,7 +24,7 @@ class Mapdevice:
 
     def readmap(self):
         try:
-            t = json.loads(self.nextcloud.getFile(DEVICEMAP,cachetime = DEVICEMAPCACHETIME - 2))
+            t = json.loads(self.nextcloud.getFile(settings.fritz.devicemap,cachetime = DEVICEMAPCACHETIME - 2))
             self.devices = t["devices"]
             self.alwayson = t["alwayson"]
             self.macmap = {}
@@ -35,7 +35,7 @@ class Mapdevice:
 
         except:
             print(traceback.format_exc())
-            print(f"failed to download DEVICEMAP '{DEVICEMAP}'")
+            print(f"failed to download DEVICEMAP '{settings.fritz.devicemap}'")
             
     def getMappedName(self,mac,default=""):
         if self.read_devicemap_last < time.time() - DEVICEMAPCACHETIME:
@@ -125,17 +125,19 @@ class myFritz:
 
 
 # initialization
-DEVLIST = os.getenv("FRITZ_DEVICELIST")
 devices = []
-for s in DEVLIST.split():
-    i = {}
-    for k in ["HOST","USER","PASSWORD","FEATURES"]:
-        i[k] = os.getenv(f"FRITZ_{s}_{k}",False)
-        
-    devices.append(i)
+for d in settings.fritzdevices.devices:
+    devices.append({
+        "HOST": d.host,
+        "USER": d.user if "user" in d else False,
+        "PASSWORD": d.password,
+        "FEATURES": d.features
+    })
 
 MD = Mapdevice()    
 fritzes = [ myFritz(dev,MD) for dev in devices ]
+
+print(settings.MQTT_USERNAME)
 
 while True:
     hosts = {}
@@ -154,7 +156,7 @@ while True:
 
         INFLUX.write("fritz",h,1,{"domain": domain, "mac": macmap[h]})
         
-    time.sleep(INTERVAL)
+    time.sleep(settings.fritz.query_interval)
     
 
 

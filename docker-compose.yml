@@ -80,4 +80,5 @@ services:
     volumes:
       - ./data/sensors:/app/sensors
       - ./data/secrets:/etc/smarthome-secrets
+      - ./sensors-config.toml:/app/sensors-config.toml
     restart: unless-stopped

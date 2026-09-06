@@ -1,3 +1,4 @@
+sensors-config.toml
 ignore
 env.sh
 .env

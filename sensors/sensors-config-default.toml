@@ -1,9 +1,11 @@
 QUERY_INTERVAL = 60
+DYNAMIC_CONFIG_PATH = '/cproj/Home-IT/smarthome/PV-PARAMETER.md'
+
+MQTT_USERNAME = 'mqtt-username'
+MQTT_PASSWORD = 'mqtt-password'
+
+[smartmanager]
 SMART_MANAGER_INTERVAL = 90
-
-DYNAMIC_CONFIG_PATH = '/georg/cproj/Home-IT/smarthome/PV-PARAMETER.md'
-
-# --- Smart Manager ---
 SMART_MANAGER_DATADIR = '/app/sensors'
 INJECTION_MAX = 800
 BASELOAD = 97
@@ -11,12 +13,20 @@ BATT_MIN = 10
 BATT_MAX = 99
 BATT_CAPACITY = 4000
 
-# if you wanna set green injection to a hard value
+# if you wanna set green injection to a fixed value
 #HARDOUTPUT = 100
 
-# --- MQTT to INflux ---
-MQTT_BROKER   = 'mqtt'
-MQTT_PORT     = 1883
-MQTT_USERNAME = 'mqtt-username'
-MQTT_PASSWORD = 'mqtt-password'
-MQTT_TOPIC    = 'tele/+/SENSOR'
+[mqtt]
+broker   = 'mqtt'
+port     = 1883
+topic    = 'tele/+/SENSOR'
+
+# --- Fritzbox ---
+[fritz]
+query_interval = 300
+devicemap = '/cproj/Home-IT/smarthome/device-map.json'
+
+[fritzdevices]
+devices = [
+    { host = 'fritz.box', user = 'username', password = 'password', features = 'hosts transmission_rate ha' },
+]
