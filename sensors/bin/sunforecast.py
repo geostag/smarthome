@@ -169,58 +169,50 @@ class HistoryMaker:
     @dataToday.setter
     def dataToday(self,pv):
         self.db.set("dataToday",pv)
-
-    def _normalizedEnergyProfile(self,dim):
-        # returns an hourly array of energy under perfect conditions in specified dimenson
-        if dim not in self._normalizedEnergyProfileData:
-            if self.dataHistory:
-                # transpose data: [h][day]
-                pvenergy_h_d = [ [] for i in range(0,24) ]
-                value_h_d = [ [] for i in range(0,24) ]
-                for ddata in self.dataHistory.values():                    
-                    for i,hdata in enumerate(ddata):
-                        pvenergy_h_d[i].append(hdata.get("pvenergy",0))
-                        value_h_d[i].append(hdata.get(dim,0))
-
-                energy = []
-                for h in range(0,24):
-                    maxpower = max(pvenergy_h_d[h]) / 3600
-                    norm_energy = 0
-                    # loop over days and get normalized values
-                    for p,c in zip(pvenergy_h_d[h],value_h_d[h]):
-                        if c > 0:
-                            norm_energy += min(maxpower,p/c)
-
-                    energy.append(norm_energy/len(pvenergy_h_d[h]))
-
-                self._normalizedEnergyProfileData[dim] = energy
-
-            else:
-                self._normalizedEnergyProfileData[dim] = [ 0 for i in range(0,24)]
+        
+    def _predictedPowerDim(self,dim,start="today"):
+        if not self.dataHistory:
+            return [ 0 for i in range(0,24)]
+            
+        if start == "now":
+            now = datetime.datetime.now()
+            now_hour = now.hour
+            now_minute = now.minute
+            ratio = (60-now_minute)/60
+        else:
+            now_hour = 0
+            ratio = 1
+            
+        fc = self.sunforecast.getHourlyValues(dim)
+        energy = 0
+        for h in range(0,24):
+            v = fc[h]
+            energy_h = 0
+            number_h = 0
+            for ddata in self.dataHistory.values():
+                try:
+                    z = ddata[h]["pvenergy"]
+                    n = ddata[h][dim]
+                    number_h += 1
+                    if n > 0:
+                        energy_h += z * v/n
+                    else:
+                        energy_h += z
+                except (IndexError, KeyError):
+                    print(f"sunforecast: no key or index {h}, {dim}")
+                    
+            if number_h > 0 and h == now_hour:
+                energy += ratio * energy_h / number_h
+            elif number_h > 0 and h > now_hour:
+                energy += energy_h / number_h
                 
-        return self._normalizedEnergyProfileData[dim]
+        return energy
 
     def _predictedTodaysPowerDim(self,dim):
-        # scalarproduct of normalizedEnergyProfile with recent forecast - based on selected dimension
-        e = 0
-        for p,c in zip(self._normalizedEnergyProfile(dim),self.sunforecast.getHourlyValues(dim)):
-            e += p * c
-            
-        return e
-
+        return self._predictedPowerDim(dim)
+        
     def _predictedFNTMPowerDim(self,dim):
-        # like above, but from now to midnight only
-        e = 0
-        now = datetime.datetime.now()
-        now_hour = now.hour
-        now_minute = now.minute
-        for h,(p,c) in enumerate(zip(self._normalizedEnergyProfile(dim),self.sunforecast.getHourlyValues(dim))):
-            if h == now_hour:
-                e += p * c * (60-now_minute)/60
-            elif h > now_hour:
-                e += p * c
-
-        return e
+        return self._predictedPowerDim(dim,"now")
         
     def purge(self,day):
         if not self.dataToday or not day:
