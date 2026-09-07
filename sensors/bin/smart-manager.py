@@ -161,6 +161,10 @@ class ZendureManager:
     @property
     def isGenerous(self):
         return (self.generosInjection > 0)
+
+    @property
+    def isGreenable(self):
+        return (self.zen.electricLevel > BATT_MIN * 1.5 or self.zen.solarInputPower > BASELOAD)
     
     @property
     def bratio(self):
@@ -343,7 +347,7 @@ ZM  = ZendureManager( Zendure(ZENDURE_HOST, ZENDURE_SN, WB), Tasmota(WB), Foreca
 
 def tasmotaCallback(data):
     p = data.get("Power",0)
-    if ( ZM.isBlue and p < -5 ) or ( ZM.isRed and p > 25 ):
+    if ( ZM.isBlue and p < -5 ) or ( ZM.isRed and p > 25 ) or ZM.isGreenable :
         # we react immediately on significant upstream or downstream
         ZM.controller_update()
 
