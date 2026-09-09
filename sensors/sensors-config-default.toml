@@ -27,6 +27,4 @@ query_interval = 300
 devicemap = '/cproj/Home-IT/smarthome/device-map.json'
 
 [fritzdevices]
-devices = [
-    { host = 'fritz.box', user = 'username', password = 'password', features = 'hosts transmission_rate ha' },
-]
+devices = []

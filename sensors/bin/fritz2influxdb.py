@@ -137,8 +137,6 @@ for d in settings.fritzdevices.devices:
 MD = Mapdevice()    
 fritzes = [ myFritz(dev,MD) for dev in devices ]
 
-print(settings.MQTT_USERNAME)
-
 while True:
     hosts = {}
     macmap = {}
@@ -158,5 +156,3 @@ while True:
         
     time.sleep(settings.fritz.query_interval)
     
-
-
