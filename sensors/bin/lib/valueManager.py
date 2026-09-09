@@ -61,7 +61,7 @@ class memorizedValue:
             s = 0
             n = 0
             for i in l:
-                f = (i["t"]-s)/(e-s)
+                f = (i["t"]-start)/(end-start)
                 s += i["v"] * f
                 n += f
                 
