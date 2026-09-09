@@ -128,7 +128,7 @@ class ZendureManager:
         self.forecast = forecast
         self.gridpower = memorizedValue(60 * 10)
         self.solarInputPower = memorizedValue(60 * 15)
-        self.neededPower = memorizedValue(60 * 60 * 6)
+        self.neededPower = memorizedValue(60 * 60 * 4)
         self.baseload = BASELOAD
         self.chargefrombase = True
         self.paramterlast = 0
@@ -201,7 +201,7 @@ class ZendureManager:
         
     @property
     def energyExcessToCome(self):
-        avgLoad = self.neededPower.get("avg")
+        avgLoad = self.neededPower.get("avglinweighted")
         if not avgLoad:
             avgLoad = self.baseload
             

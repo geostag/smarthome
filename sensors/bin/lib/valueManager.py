@@ -54,5 +54,17 @@ class memorizedValue:
             return min(l)
         elif cf == "avg":
             return sum(l)/len(l)
+        elif cf == "avglinweighted":
+            l = sorted(filter(lambda x: x["t"] >= threshould,self.values), key=lambda x: x["t"])
+            start = l[0]["t"]
+            end   = l[-1]["t"]
+            s = 0
+            n = 0
+            for i in l:
+                f = (i["t"]-s)/(e-s)
+                s += i["v"] * f
+                n += f
+                
+            return s/n
         else:
             return None
