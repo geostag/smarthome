@@ -58,13 +58,17 @@ class memorizedValue:
             l = sorted(filter(lambda x: x["t"] >= threshould,self.values), key=lambda x: x["t"])
             start = l[0]["t"]
             end   = l[-1]["t"]
-            s = 0
-            n = 0
-            for i in l:
-                f = (i["t"]-start)/(end-start)
-                s += i["v"] * f
-                n += f
-                
-            return s/n
+            if end > start:
+                s = 0
+                n = 0
+                for i in l:
+                    f = (i["t"]-start)/(end-start)
+                    s += i["v"] * f
+                    n += f
+
+                return s/n
+            else:
+                return l[0]["v"]
+            
         else:
             return None
