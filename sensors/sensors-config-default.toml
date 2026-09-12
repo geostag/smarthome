@@ -40,3 +40,8 @@ apitoken = 'nc-password'
 
 [schatzkiste]
 logdir = ''
+
+[remoteweather]
+url = "https://api.openweathermap.org/data/2.5/weather?lat=48.09581237201164&lon=11.491786786342457"
+interval = 300
+

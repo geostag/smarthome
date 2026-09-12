@@ -1,15 +1,14 @@
+from lib.config import settings
 from lib.toinflux import Iflx
-import requests, json, time, os
+import requests, json, time
 
 DEBUG = False
 
-REMOTEWEATHER_INTERVAL = int(os.getenv("REMOTEWEATHER_INTERVAL"))
-REMOTEWEATHER_URL = os.getenv("REMOTEWEATHER_URL")
-
+URL = f"{settings.remoteweather.url}&appid={settings.remoteweather.appid}"
 INFLUX = Iflx()
 
 def measure():
-    r = requests.get(REMOTEWEATHER_URL)
+    r = requests.get(URL)
     
     if r.status_code == 200:
         d = json.loads(r.text)
@@ -39,5 +38,5 @@ while True:
         print("measure and write failed")
         time.sleep(240)
         
-    time.sleep(REMOTEWEATHER_INTERVAL)
+    time.sleep(settings.remoteweather.interval)
     
