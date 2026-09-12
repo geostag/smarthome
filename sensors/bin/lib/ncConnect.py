@@ -1,11 +1,12 @@
 # module to connect to nextcloud
-import os, requests, time
+from lib.config import settings
+import requests, time
 
 class myNextcloud:
     def __init__(self, **kwargs):
-        self.url      = kwargs.get("url",os.getenv("NEXTCLOUD_URL"))
-        self.user     = kwargs.get("user",os.getenv("NEXTCLOUD_USER"))
-        self.apitoken = kwargs.get("apitoken",os.getenv("NEXTCLOUD_APITOKEN"))
+        self.url      = kwargs.get("url",settings.nextcloud.url)
+        self.user     = kwargs.get("user",settings.nextcloud.user)
+        self.apitoken = kwargs.get("apitoken",settings.nextcloud.apitoken)
         self.cache    = {}
         
     def getFile(self,path,**kwargs):

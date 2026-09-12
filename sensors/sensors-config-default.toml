@@ -33,3 +33,10 @@ devices = []
 [mystromdevices]
 devices = []
 
+[nextcloud]
+url = ''
+user = 'nc-user'
+apitoken = 'nc-password'
+
+[schatzkiste]
+logdir = ''

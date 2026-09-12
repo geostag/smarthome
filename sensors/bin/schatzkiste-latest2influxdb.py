@@ -1,3 +1,4 @@
+from lib.config import settings
 from os import listdir
 from os.path import isfile, join
 from datetime import datetime
@@ -18,7 +19,7 @@ import re, os, time
 # df /var/nc-data/. > $TDIR/stats/log-`date +%Y%m%d`
 
 TOKEN = os.getenv("INFLUX_LONGRANGE_TOKEN")
-srcdir = os.getenv("SCHATZKISTE_LOGDIR")
+srcdir = settings.schatzkiste.logdir
 
 def logSK():
     files = [f for f in listdir(srcdir) if isfile(join(srcdir, f))]
@@ -35,14 +36,14 @@ def logSK():
                 m = re.match(r'^schatzkiste.*\s(\d+)\s+(\d+)\s+([,.0-9]+)\%\s', line)
                 if m:
                     used = m.group(1)
-                    percent = m.group(3)
+                    #percent = m.group(3)
                     dt = datetime.strptime(d,"%Y-%m-%d")
                     dt = dt.replace(tzinfo=ZoneInfo("Europe/Berlin"))
                     INFLUX.write("schatzkiste","used",int(used),{"domain": "storage"},dt)
 
 while True:
     if not os.path.isdir(srcdir):
-        print(f"stats directory for schatzkiste das not exist. Waiting one day.")
+        print("stats directory for schatzkiste das not exist. Waiting one day.")
     else:
         logSK()
 

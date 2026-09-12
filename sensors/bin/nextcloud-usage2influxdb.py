@@ -1,20 +1,17 @@
+from lib.config import settings
 from xml.etree import ElementTree
 from zoneinfo import ZoneInfo
 from datetime import datetime
 from lib.toinflux import Iflx
 import requests, os, time, traceback
 
-NEXTCLOUD_URL = os.getenv("NEXTCLOUD_URL")
-ADMIN_USER    = os.getenv("NEXTCLOUD_USER")
-APP_PASSWORD  = os.getenv("NEXTCLOUD_APITOKEN")
 TOKEN         = os.getenv("INFLUX_LONGRANGE_TOKEN")
-
 
 def queryNc():
     # Liste aller Benutzer abrufen
     r_users = requests.get(
-        f"{NEXTCLOUD_URL}/ocs/v1.php/cloud/users",
-        auth=(ADMIN_USER, APP_PASSWORD),
+        f"{settings.nextcloud.url}/ocs/v1.php/cloud/users",
+        auth=(settings.nextcloud.user, settings.nextcloud.apitoken),
         headers={"OCS-APIRequest": "true"}
     )
     r_users.raise_for_status()
@@ -30,8 +27,8 @@ def queryNc():
     for user in user_list:
         time.sleep(5)
         r = requests.get(
-            f"{NEXTCLOUD_URL}/ocs/v1.php/cloud/users/{user}",
-            auth=(ADMIN_USER, APP_PASSWORD),
+            f"{settings.nextcloud.url}/ocs/v1.php/cloud/users/{user}",
+            auth=(settings.nextcloud.user, settings.nextcloud.apitoken),
             headers={"OCS-APIRequest": "true"}
         )
         tree = ElementTree.fromstring(r.content)
