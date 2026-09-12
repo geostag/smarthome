@@ -1,17 +1,18 @@
-import requests, json, time, datetime, os, traceback
+from lib.config import settings
+import requests, json, time, traceback
 from lib.toinflux import Iflx
 
 DEBUG = False
 
-INTERVAL = int(os.getenv("QUERY_INTERVAL"))
-SWITCHLIST = os.getenv("MYSTROM_SWITCHLIST")
 devices = []
-for s in SWITCHLIST.split():
-    i = {}
-    for k in ["HOST","TOKEN","room","electric","DEVICELABEL"]:
-        i[k] = os.getenv(f"MYSTROM_{s}_{k}")
-        
-    devices.append(i)
+for s in settings.mystromdevices.devices:
+    devices.append({
+        "HOST": s.host,
+        "TOKEN": s.token,
+        "room": s.room,
+        "electric": s.electric,
+        "DEVICELABEL": s.devicelabel
+    })
     
 INFLUX = Iflx()
 
@@ -66,4 +67,4 @@ while True:
             print("measure and write failed")
             pass
             
-    time.sleep(INTERVAL)
+    time.sleep(settings.query_interval)

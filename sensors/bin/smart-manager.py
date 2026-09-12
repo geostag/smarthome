@@ -10,13 +10,11 @@ DEBUG = False
 ZENDURE_HOST = os.getenv("ZENDURE_HOST")
 ZENDURE_SN   = os.getenv("ZENDURE_SN")
 
-INJECTION_MAX = settings.smartmanager.INJECTION_MAX
-BATT_MIN      = settings.smartmanager.BATT_MIN
-BATT_MAX      = settings.smartmanager.BATT_MAX
-BATT_CAPACITY = settings.smartmanager.BATT_CAPACITY
-BASELOAD      = settings.smartmanager.BASELOAD
-DATADIR       = settings.smartmanager.SMART_MANAGER_DATADIR
-INTERVAL      = settings.smartmanager.SMART_MANAGER_INTERVAL
+INJECTION_MAX = settings.smartmanager.injection_max
+BATT_MIN      = settings.smartmanager.batt_min
+BATT_MAX      = settings.smartmanager.batt_max
+BATT_CAPACITY = settings.smartmanager.batt_capacity
+BASELOAD      = settings.smartmanager.baseload
 
 # https://github.com/Zendure/zenSDK/issues/5
 ZENDURE_MIN_LIMIT_INTERVAL = int(os.getenv("ZENDURE_MIN_LIMIT_INTERVAL","10"))
@@ -138,10 +136,10 @@ class ZendureManager:
         self.influx = influx
 
     def dynamicParameterUpdate(self):
-        if time.time() > self.paramterlast + 900 and settings.DYNAMIC_CONFIG_PATH:
+        if time.time() > self.paramterlast + 900 and settings.dynamic_config_path:
             self.paramterlast = time.time()
             try:
-                ctext = self.nextcloud.getFile(settings.DYNAMIC_CONFIG_PATH)
+                ctext = self.nextcloud.getFile(settings.dynamic_config_path)
                 settings.update(tomllib.loads(ctext))
                 self.baseload = settings.smartmanager.BASELOAD
             except:
@@ -278,7 +276,7 @@ class ZendureManager:
             i = 0
             self.chargefrombase = True
             
-        elif self.chargefrombase and b < 1.5 * BATT_MIN:
+        elif self.chargefrombase and b < BATT_MIN + settings.smartmanager.hysterese_low_percent:
             # we were discharged, first charge significant
             i = 0
 
@@ -355,6 +353,6 @@ def tasmotaCallback(data):
 WB.addDeviceListener("tasmota",tasmotaCallback)
 
 while True:
-    time.sleep(INTERVAL)
+    time.sleep(settings.smartmanager.interval)
     ZM.controller_update()
     

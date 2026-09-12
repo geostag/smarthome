@@ -62,7 +62,16 @@ class MqttConn:
     def __init__(self, **kwargs):
         self.topic    = kwargs.get("topic",'#')
         def onMessage(client, userdata, msg):
-            payload = msg.payload.decode()
+            try:
+                payload = msg.payload.decode()
+            except UnicodeDecodeError as e:
+                print(f"mqttonMessage: UnicodeDecodeError: {e}")
+                print(f"Position: {e.start}")
+                print("msg as Hex:")
+                print(msg.hex(" "))
+                print("msg as repr:")
+                print(repr(msg))
+
             if DEBUG:
                 print(payload)   
                 
