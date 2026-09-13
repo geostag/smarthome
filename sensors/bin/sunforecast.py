@@ -1,16 +1,12 @@
+from lib.config import settings
 from lib.toinflux import Iflx
 from lib.myDatabase import mDb
 from lib.ncConnect import myNextcloud
 from lib.mqttconn import WhiteBoard, MqttConn
-import os, requests, json, datetime, re, time, traceback
+import requests, json, datetime, re, time, traceback
 
-FORECASTURL = os.getenv("SUNFORECASTURL")
-FORECAST_QUERY_INTERVAL = int(os.getenv("SUNFORECAST_INTERVAL","1800"))
-APPDIR = os.getenv("SMART_MANAGER_DATADIR","/app/sensors")
-INTERVAL = int(os.getenv("QUERY_INTERVAL"))
-DRYRUN = (os.getenv("DRYRUN","FALSE") == "TRUE")
-if DRYRUN:
-    print("------- DRYRUN (sunforecast) --------")
+APPDIR = settings.appdir
+INTERVAL = settings.query_interval
 
 # days back we remember measured pv values
 DAYSBACK = 10
@@ -28,7 +24,7 @@ class SunForecast:
         self.rawdata = None
         self.today = None
         self.lastquery = 0
-        self.url = kwargs.get("url",FORECASTURL)
+        self.url = settings.sunforecast.url
         self.db = mDb(f"{APPDIR}/smart-manager-sunforecast2.json")
         
     def parse(self):
@@ -69,7 +65,7 @@ class SunForecast:
         
     def query(self,**kwargs):
         now = time.time()
-        if self.lastquery < now - FORECAST_QUERY_INTERVAL or kwargs.get("forced",False):
+        if self.lastquery < now - settings.sunforecast.interval or kwargs.get("forced",False):
             if DEBUG:
                 print("SF: query")
 
@@ -247,12 +243,11 @@ class HistoryMaker:
         self.db.write()
 
         # log to nextcloud
-        if not DRYRUN:
-            try:
-                self.nextcloud.putFileFromFile("/cproj/Home-IT/smarthome/smart-manager-solarhistory2.json",f"{APPDIR}/smart-manager-solarhistory2.json")
-                self.nextcloud.putFileFromFile("/cproj/Home-IT/smarthome/smart-manager-sunforecast2.json",f"{APPDIR}/smart-manager-sunforecast2.json")
-            except:
-                pass
+        try:
+            self.nextcloud.putFileFromFile("/cproj/Home-IT/smarthome/smart-manager-solarhistory2.json",f"{APPDIR}/smart-manager-solarhistory2.json")
+            self.nextcloud.putFileFromFile("/cproj/Home-IT/smarthome/smart-manager-sunforecast2.json",f"{APPDIR}/smart-manager-sunforecast2.json")
+        except:
+            pass
 
     def storeSolarValue(self,s):
         n = datetime.datetime.now()

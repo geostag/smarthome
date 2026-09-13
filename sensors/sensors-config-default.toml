@@ -1,5 +1,6 @@
 query_interval = 60
 dynamic_config_path = '/cproj/Home-IT/smarthome/PV-PARAMETER.md'
+appdir = '/app/sensors'
 
 MQTT_USERNAME = 'mqtt-username'
 MQTT_PASSWORD = 'mqtt-password'
@@ -47,3 +48,7 @@ interval = 300
 interval = 120
 token = 'api-token'
 devices = []
+
+[sunforecast]
+url = 'https://api.open-meteo.com/v1/forecast?latitude=48.137&longitude=11.575&daily=sunrise,sunset&hourly=temperature_2m,weather_code,cloud_cover,sunshine_duration,direct_radiation,diffuse_radiation,direct_normal_irradiance&timezone=Europe%2FBerlin&forecast_days=1'
+interval = 3600
