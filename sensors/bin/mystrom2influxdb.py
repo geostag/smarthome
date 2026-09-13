@@ -5,7 +5,7 @@ from lib.toinflux import Iflx
 DEBUG = False
 
 devices = []
-for s in settings.mystromdevices.devices:
+for s in settings.mystrom.devices:
     devices.append({
         "HOST": s.host,
         "TOKEN": s.token,

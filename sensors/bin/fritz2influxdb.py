@@ -5,13 +5,12 @@ from fritzconnection import FritzConnection
 from fritzconnection.lib.fritzstatus   import FritzStatus
 from fritzconnection.lib.fritzhomeauto import FritzHomeAutomation
 from fritzconnection.lib.fritzhosts    import FritzHosts
-import json, time, os, re, traceback
+import json, time, re, traceback
 
 DEBUG = False
 
 INFLUX = Iflx()
 DEVICEMAPCACHETIME = 3600
-DEVICEMAP = os.getenv("FRITZ_DEVICEMAP","/cproj/Home-IT/smarthome/device-map.json")
 
 class Mapdevice:
     def __init__(self):
@@ -126,7 +125,7 @@ class myFritz:
 
 # initialization
 devices = []
-for d in settings.fritzdevices.devices:
+for d in settings.fritz.devices:
     devices.append({
         "HOST": d.host,
         "USER": d.user if "user" in d else False,

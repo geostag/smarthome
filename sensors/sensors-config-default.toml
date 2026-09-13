@@ -26,11 +26,9 @@ topic    = 'tele/+/SENSOR'
 [fritz]
 query_interval = 300
 devicemap = '/cproj/Home-IT/smarthome/device-map.json'
-
-[fritzdevices]
 devices = []
 
-[mystromdevices]
+[mystrom]
 devices = []
 
 [nextcloud]
@@ -45,3 +43,7 @@ logdir = ''
 url = "https://api.openweathermap.org/data/2.5/weather?lat=48.09581237201164&lon=11.491786786342457"
 interval = 300
 
+[smartthings]
+interval = 120
+token = 'api-token'
+devices = []
