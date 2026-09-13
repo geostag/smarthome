@@ -5,8 +5,6 @@ from lib.toinflux import Iflx
 
 DEBUG = False
 
-INTERVAL = settings.query_interval
-
 REPORT_PROPERTIES = settings.zendure.report_properties.split()
 REPORT_PACK_PROPERTIES = settings.zendure.report_pack_properties.split()
 
@@ -88,4 +86,4 @@ while True:
             
         time.sleep(240)
         
-    time.sleep(INTERVAL)
+    time.sleep(settings.query_interval)
