@@ -1,7 +1,6 @@
 #!/bin/sh
 
 PWFILE=/mosquitto/pwfile
-echo ">> $SENSORS_MQTT_USERNAME // $SENSORS_MQTT_PASSWORD <<"
 
 rm $PWFILE
 touch $PWFILE
