@@ -1,17 +1,14 @@
+from lib.config import settings
 from lib.mqttconn import MqttConn
-import requests, json, time, os
+import requests, json, time
 from lib.toinflux import Iflx
 
 DEBUG = False
 
-INTERVAL = int(os.getenv("QUERY_INTERVAL"))
+INTERVAL = settings.query_interval
 
-HOST   = os.getenv("ZENDURE_HOST")
-REPORT_PROPERTIES = os.getenv("ZENDURE_REPORT_PROPERTIES").split()
-REPORT_PACK_PROPERTIES = os.getenv("ZENDURE_REPORT_PACK_PROPERTIES").split()
-
-# we may send Zendure data-copies to MQTT broken
-SEND_DATA_TO_MQTT_BROKER = (os.getenv("ZENDURE_SEND_DATA_TO_MQTT_BROKER","no") == "yes")
+REPORT_PROPERTIES = settings.zendure.report_properties.split()
+REPORT_PACK_PROPERTIES = settings.zendure.report_pack_properties.split()
 
 INFLUX = Iflx()
 
@@ -75,7 +72,7 @@ def measure(host,mqttconnection):
             mqttconnection.publish(topic,json.dumps(dcopy))
 
 
-if SEND_DATA_TO_MQTT_BROKER:
+if "send_data_to_mqtt_broker" in settings.zendure and settings.zendure.send_data_to_mqtt_broker == "yes":
     M = MqttConn()
     
 else:
@@ -83,7 +80,7 @@ else:
     
 while True:
     try:
-        measure(HOST,M)
+        measure(settings.zendure.host,M)
     except:
         print("measure and write failed")
         if M:

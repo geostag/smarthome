@@ -52,3 +52,11 @@ devices = []
 [sunforecast]
 url = 'https://api.open-meteo.com/v1/forecast?latitude=48.137&longitude=11.575&daily=sunrise,sunset&hourly=temperature_2m,weather_code,cloud_cover,sunshine_duration,direct_radiation,diffuse_radiation,direct_normal_irradiance&timezone=Europe%2FBerlin&forecast_days=1'
 interval = 3600
+
+[zendure]
+host = "http://zendure.fritz.box"
+sn = ""
+report_properties = "solarPower1 solarPower2 solarPower3 solarPower4 electricLevel gridInputPower solarInputPower outputLimit gridOffPower BatVolt packInputPower outputPackPower packState remainOutTime hyperTmp outputHomePower"
+report_pack_properties = "socLevel state power"
+send_data_to_mqtt_broker = "yes"
+min_limit_interval = 10

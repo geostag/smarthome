@@ -7,8 +7,8 @@ import datetime, time, os, requests, tomllib, traceback
 
 DEBUG = False
 
-ZENDURE_HOST = os.getenv("ZENDURE_HOST")
-ZENDURE_SN   = os.getenv("ZENDURE_SN")
+ZENDURE_HOST = settings.zendure.host
+ZENDURE_SN   = settings.zendure.sn
 
 INJECTION_MAX = settings.smartmanager.injection_max
 BATT_MIN      = settings.smartmanager.batt_min
@@ -17,7 +17,7 @@ BATT_CAPACITY = settings.smartmanager.batt_capacity
 BASELOAD      = settings.smartmanager.baseload
 
 # https://github.com/Zendure/zenSDK/issues/5
-ZENDURE_MIN_LIMIT_INTERVAL = int(os.getenv("ZENDURE_MIN_LIMIT_INTERVAL","10"))
+ZENDURE_MIN_LIMIT_INTERVAL = settings.zendure.min_limit_interval
 
 DRYRUN = (os.getenv("DRYRUN","FALSE") == "TRUE")
 if DRYRUN:
