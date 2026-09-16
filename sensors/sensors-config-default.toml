@@ -5,6 +5,7 @@ appdir = '/app/sensors'
 MQTT_USERNAME = 'mqtt-username'
 MQTT_PASSWORD = 'mqtt-password'
 
+secret_dir = '/etc/smarthome-secrets'
 
 [smartmanager]
 interval = 90

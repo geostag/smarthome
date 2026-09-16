@@ -144,6 +144,8 @@ class HistoryMaker:
         self.db = kwargs.get("database",mDb(f"{APPDIR}/smart-manager-solarhistory2.json",autoflush=False))
         self._normalizedEnergyProfileData = {}
         self.lastwrite = 0
+        self.histMem = None
+        self.histMemLastUpdate = 0
         self.nextcloud = myNextcloud()
         self.mqttconnection = MqttConn()
         
@@ -165,7 +167,17 @@ class HistoryMaker:
     @dataToday.setter
     def dataToday(self,pv):
         self.db.set("dataToday",pv)
-        
+
+    def _historicEnergyMaxData(self,hour):
+        now = time.time()
+        if not self.histMem or self.histMemLastUpdate < now - 3600:
+            self.histMem = []
+            for h in range(0,24):
+                pl = [ x[h]["pvenergy"] for x in self.dataHistory.values() ]
+                self.histMem.append(max(pl))
+
+        return self.histMem[hour]
+                    
     def _predictedPowerDim(self,dim,start="today"):
         if not self.dataHistory:
             return [ 0 for i in range(0,24)]
@@ -185,13 +197,14 @@ class HistoryMaker:
             v = fc[h]
             energy_h = 0
             number_h = 0
+            pmax = self._historicEnergyMaxData(h)
             for ddata in self.dataHistory.values():
                 try:
                     z = ddata[h]["pvenergy"]
                     n = ddata[h][dim]
                     number_h += 1
                     if n > 0:
-                        energy_h += z * v/n
+                        energy_h += min(z * v/n,pmax)
                     else:
                         energy_h += z
                 except (IndexError, KeyError):
