@@ -311,7 +311,7 @@ class ZendureManager:
             minj = (2 + 2 * self.generosity) * self.baseload
             maxj = self.bratio * (INJECTION_MAX - minj) + minj
             maxtotal = max(maxj,s10)
-            i = min(maxtotal,needed + 5 * self.generosity )
+            i = min(maxtotal,needed + 15 * (self.generosity-1) )
             
         # round and limit to INJECTION_MAX
         i = int(min(INJECTION_MAX,i) + 0.5) * 1.0
