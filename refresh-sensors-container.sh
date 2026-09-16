@@ -14,6 +14,11 @@ update_file()
 # update dockerfile
 update_file docker-compose-prod.yml
 
+# update mqtt files
+test -d mqtt/config || mkdir -p mqtt/config
+update_file mqtt/config/entrypoint-mqtt.sh
+update_file mqtt/config/mosquitto.conf
+
 # read logs
 docker compose -f docker-compose-prod.yml logs sensors
 
