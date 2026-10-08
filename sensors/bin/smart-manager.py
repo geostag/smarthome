@@ -32,8 +32,7 @@ class Forecast:
 
     @property
     def energyToCome(self):
-        return self.wb.dataGet("sunforecast","FNTM_cc_by_sd")
-    
+        return self.wb.dataGet("sunforecast","FNTM_mix")    
     
     @property
     def sunrise(self):
@@ -131,7 +130,7 @@ class ZendureManager:
         self.chargefrombase = True
         self.paramterlast = 0
         self.nextcloud = myNextcloud()
-        self.generosityHistory = []
+        self.generosityHistory = memorizedValue(60 * 30)
         self.generosInjection = 0
         self.influx = influx
 
@@ -226,11 +225,8 @@ class ZendureManager:
             gnow = max(0,gnow)
 
         # average g over last 30min
-        nowsecs = time.time()
-        self.generosityHistory.append({ "t": nowsecs, "v": gnow })
-        self.generosityHistory = [ x for x in self.generosityHistory if x["t"] > nowsecs - 1800 ]
-        vs = [ x["v"] for x in self.generosityHistory ]
-        g = sum(vs)/len(vs)
+        self.generosityHistory.add(gnow)
+        g = self.generosityHistory.get("avg")
 
         if now < sunrise:
             g = self.bratio + 0.5 * g

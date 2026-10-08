@@ -61,3 +61,18 @@ report_properties = "solarPower1 solarPower2 solarPower3 solarPower4 electricLev
 report_pack_properties = "socLevel state power"
 send_data_to_mqtt_broker = "yes"
 min_limit_interval = 10
+
+[grafana]
+userid = 1000
+
+[influx]
+# influx setup
+org='smarthome'
+bucket='smarthome'
+retention='366d'
+derived_bucket='smarthomederived'
+derived_retention='1830d'
+longrange_bucket='longrange'
+longrange_retention=''
+url = 'http://influxdb:8086'
+fake = 'q'
