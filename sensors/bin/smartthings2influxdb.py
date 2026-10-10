@@ -15,7 +15,11 @@ def geturl(deviceid):
 
 def measure(device):
     url = geturl(device.id)
-    r = requests.get(url, headers = {"Authorization": f"Bearer {settings.smartthings.token}"})
+    try:
+        r = requests.get(url, headers = {"Authorization": f"Bearer {settings.smartthings.token}"})
+    except:
+        print(f"could not get ST data from '{url}'")
+        return False
     
     if r.status_code == 200:
         d = json.loads(r.text)
