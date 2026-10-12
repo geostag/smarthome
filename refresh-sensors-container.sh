@@ -22,6 +22,14 @@ update_file mqtt/config/mosquitto.conf
 # read logs
 docker compose -f docker-compose-prod.yml logs sensors
 
+# update grafana and mqtt once a week
+if [ `date +%u` = "3" ]; then
+    docker compose -f docker-compose-prod.yml pull grafana
+    docker compose -f docker-compose-prod.yml pull mqtt
+    docker compose -f docker-compose-prod.yml restart grafana
+    docker compose -f docker-compose-prod.yml restart mqtt
+fi
+
 # update containers
 docker compose -f docker-compose-prod.yml up -d --pull always --force-recreate sensors
 
