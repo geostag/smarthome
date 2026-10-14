@@ -219,8 +219,9 @@ class ZendureManager:
             gnow = min(2, 1 + 2 * self.energyOverBattToCome / self.battCapacityNeeded)
 
         else:
-            energy = self.forecast.energyToCome + self.battCapacityNeeded * self.bratio
-            needed = self.baseload * 24
+            energy = self.forecast.energyToCome + self.battCapacityNeeded * self.bratio / 100
+            hoursTilNextSunrise = 24.0 - self._timeFloat(now) + self._timeFloat(sunrise)
+            needed = self.baseload * hoursTilNextSunrise
             gnow = energy / needed
             gnow = min(1,gnow)
             gnow = max(0,gnow)
