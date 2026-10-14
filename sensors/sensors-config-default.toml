@@ -14,7 +14,8 @@ baseload = 97
 batt_min = 10
 batt_max = 99
 batt_capacity = 3800
-hysterese_low_percent = 4
+hysterese_low_percent = 2
+reserved_power = 8
 
 # if you wanna set green injection to a fixed value
 #HARDOUTPUT = 100
