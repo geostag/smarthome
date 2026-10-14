@@ -15,6 +15,8 @@ BATT_MIN      = settings.smartmanager.batt_min
 BATT_MAX      = settings.smartmanager.batt_max
 BATT_CAPACITY = settings.smartmanager.batt_capacity
 BASELOAD      = settings.smartmanager.baseload
+RESW          = settings.smartmanager.reserved_power
+
 
 # https://github.com/Zendure/zenSDK/issues/5
 ZENDURE_MIN_LIMIT_INTERVAL = settings.zendure.min_limit_interval
@@ -23,8 +25,6 @@ DRYRUN = (os.getenv("DRYRUN","FALSE") == "TRUE")
 if DRYRUN:
     print("------- smart-manager: DRYRUN --------")
 
-# how many watt to reserve for zendure itself
-RESW = 8
 
 class Forecast:
     def __init__(self,wb):
@@ -127,6 +127,7 @@ class ZendureManager:
         self.solarInputPower = memorizedValue(60 * 15)
         self.neededPower = memorizedValue(60 * 60 * 4)
         self.baseload = BASELOAD
+        self.resw = RESW
         self.chargefrombase = True
         self.paramterlast = 0
         self.nextcloud = myNextcloud()
@@ -277,7 +278,7 @@ class ZendureManager:
             i = 0
 
         elif self.chargefrombase:
-            i = min(s,needed)
+            i = min(0,min(s,needed) - 2 * self.resw)
                         
         elif b >= BATT_MAX:
             # batt full, still charging
@@ -297,7 +298,7 @@ class ZendureManager:
                 gi = min(INJECTION_MAX,gi)
                 self.generosInjection = self.generosInjection * 0.85 + gi * 0.15
                 i = max(self.generosInjection,needed)
-                i = min(s10 - RESW,i)
+                i = min(s10 - self.resw,i)
 
             else:
                 self.generosInjection = 0
