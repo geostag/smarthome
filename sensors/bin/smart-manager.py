@@ -279,7 +279,7 @@ class ZendureManager:
             i = 0
 
         elif self.chargefrombase:
-            i = min(0,min(s,needed) - 2 * self.resw)
+            i = max(0,min(s,needed) - 2 * self.resw)
                         
         elif b >= BATT_MAX:
             # batt full, still charging
