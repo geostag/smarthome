@@ -1,7 +1,7 @@
 services:
   influxdb:
     container_name: sh-influxdb
-    image: reg.mini.dev/influxdb:v2.9
+    image: influxdb:2
     ports:
       - "8086:8086"
     environment:
@@ -25,7 +25,7 @@ services:
     restart: unless-stopped
 
   grafana:
-    image: reg.mini.dev/grafana
+    image: grafana/grafana
     container_name: sh-grafana
     user: "${USERID}"
     ports:
@@ -46,7 +46,7 @@ services:
 
   mqtt:
     container_name: sh-mqtt
-    image: reg.mini.dev/eclipse-mosquitto:latest
+    image: eclipse-mosquitto
     env_file:
       - .env
     ports:
