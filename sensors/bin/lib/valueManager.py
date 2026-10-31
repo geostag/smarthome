@@ -38,14 +38,32 @@ class memorizedValue:
 
         self.values = l
 
+    def _getTrend(self,data):
+        n = len(data)
+        if n < 2:
+            return 0.0
+
+        t0 = data[0]["t"]
+        x = [p["t"] - t0 for p in data]
+        y = [p["v"] for p in data]
+        xm = sum(x) / n
+        ym = sum(y) / n
+        numerator = sum((x[i] - xm) * (y[i] - ym) for i in range(n))
+        denominator = sum((xi - xm) ** 2 for xi in x)
+        if denominator == 0:
+            return 0.0
+
+        return numerator / denominator
+
     def get(self,cf,backsecs=None):
         self._purge()
         if backsecs:
             threshould = time.time() - backsecs
         else:
             threshould = 0
-        
-        l = [ x["v"] for x in filter(lambda x: x["t"] >= threshould,self.values) ]
+
+        lf = sorted(filter(lambda x: x["t"] >= threshould,self.values), key=lambda x: x["t"])
+        l = [ x["v"] for x in lf ]
         if len(l) < 1:
             return None
         elif cf == "max":
@@ -55,20 +73,22 @@ class memorizedValue:
         elif cf == "avg":
             return sum(l)/len(l)
         elif cf == "avglinweighted":
-            l = sorted(filter(lambda x: x["t"] >= threshould,self.values), key=lambda x: x["t"])
-            start = l[0]["t"]
-            end   = l[-1]["t"]
+            start = lf[0]["t"]
+            end   = lf[-1]["t"]
             if end > start:
                 s = 0
                 n = 0
-                for i in l:
+                for i in lf:
                     f = (i["t"]-start)/(end-start)
                     s += i["v"] * f
                     n += f
 
                 return s/n
             else:
-                return l[0]["v"]
+                return lf[0]["v"]
+
+        elif cf == "trend":
+            return self._getTrend(lf)
             
         else:
             return None

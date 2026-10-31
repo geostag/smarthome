@@ -125,7 +125,8 @@ class ZendureManager:
         self.forecast = forecast
         self.gridpower = memorizedValue(60 * 10)
         self.solarInputPower = memorizedValue(60 * 15)
-        self.neededPower = memorizedValue(60 * 60 * 4)
+        self.neededPower  = memorizedValue(60 * 60 * 4)
+        self.batteryLevel = memorizedValue(60 * 60 * 2)
         self.baseload = BASELOAD
         self.resw = RESW
         self.chargefrombase = True
@@ -246,6 +247,10 @@ class ZendureManager:
         #self.dynamicParameterUpdate()
         
         b = self.zen.electricLevel
+        self.batteryLevel.add(b)
+        if self.batteryLevel.get("trend") != None:
+            self.influx.write("smart-manager","betteryLevelTrend",1.0 * self.batteryLevel.get("trend"),{"synthetic": "yes", "debug": 1})
+
         i = self.zen.outputLimit
         i_old = int(i)
 
@@ -257,6 +262,7 @@ class ZendureManager:
         
         p = self.tasmota.Power
         self.gridpower.add(p)
+
 
         if p < 0 and not self.isGenerous and self.bratio > 0.6:
             # we deliver upstream. react slowly in some cases
@@ -280,6 +286,10 @@ class ZendureManager:
 
         elif self.chargefrombase:
             i = max(0,min(s,needed) - 2 * self.resw)
+
+        elif self.batteryLevel.get("trend") < 0.0 and b < BATT_MIN + settings.smartmanager.hysterese_low_percent:
+            # discharging, low batt, inject only ~baseload
+            i = max(self.baseload * 0.8, min(needed,s10))
                         
         elif b >= BATT_MAX:
             # batt full, still charging
