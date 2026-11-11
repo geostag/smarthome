@@ -49,7 +49,14 @@ def on_message(client, userdata, msg):
     if DEBUG:
         print(d)
     
-    if "ENERGY" in d:
+    if msg.topic == "tele/smartthings/SENSOR":
+        room = d.get("label","unknown")
+        if "temperature" in d:
+            INFLUX.write("smarthings","temperature",d["temperature"],{"room": room, "domain": "temperature"})
+        elif "humidity" in d:
+            INFLUX.write("smarthings","humidity",d["humidity"],{"room": room, "domain": "humidity"})
+            
+    elif "ENERGY" in d:
         try:
             for k,v in d["ENERGY"].items():
                 INFLUX.write("tasmota",k,v,{"room": "keller", "domain": "electricity", "electric": "swm" })
