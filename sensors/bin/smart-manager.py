@@ -207,7 +207,7 @@ class ZendureManager:
         
     @property
     def blowdischarging(self):
-        return (self.zen.electricLevel < BATT_MIN + settings.smartmanager.falling_blevel_reduce_threshold and self.self.batteryLevel.get("trend") < 0.0)
+        return (self.zen.electricLevel < BATT_MIN + settings.smartmanager.falling_blevel_reduce_threshold and self.self.batteryLevel.get("trend") <= 0.0)
         
     @property
     def energyExcessToCome(self):
@@ -290,14 +290,14 @@ class ZendureManager:
             # we were discharged, first charge significant
             i = 0
 
-        elif self.blowchargingAboveHyst:
-            i = max(0,min(s,needed) - 2 * self.resw)
-
         elif self.blowdischarging:
             # discharging, low batt, recude injection slowly
             i = needed - self.resw
             i = max(10,(b - BATT_MIN) / settings.smartmanager.falling_blevel_reduce_threshold) * i
                         
+        elif self.blowchargingAboveHyst:
+            i = max(0,min(s,needed) - 2 * self.resw)
+
         elif b >= BATT_MAX:
             # batt full, still charging
             # approach: input = output; slow changes; at least needed power
