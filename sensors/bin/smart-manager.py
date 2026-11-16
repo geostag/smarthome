@@ -129,7 +129,6 @@ class ZendureManager:
         self.batteryLevel = memorizedValue(60 * 60 * 2)
         self.baseload = BASELOAD
         self.resw = RESW
-        self.chargefrombase = True
         self.paramterlast = 0
         self.nextcloud = myNextcloud()
         self.generosityHistory = memorizedValue(60 * 30)
@@ -155,7 +154,7 @@ class ZendureManager:
     @property
     def isRed(self):
         # we use grid downstream but could do better
-        return (self.tasmota.Power > 2 and not self.zen.isMaxOutput and not self.chargefrombase)
+        return (self.tasmota.Power > 2 and not self.zen.isMaxOutput and not self.blowcharging)
         
     @property
     def isGenerous(self):
@@ -197,6 +196,18 @@ class ZendureManager:
     @property
     def battCapacityNeeded(self):
         return BATT_CAPACITY * 1.2
+
+    @property
+    def blowcharging(self):
+        return (self.zen.electricLevel < BATT_MIN + settings.smartmanager.hysterese_low_percent and self.self.batteryLevel.get("trend") >= 0.0)
+    
+    @property
+    def blowchargingAboveHyst(self):
+        return (self.zen.electricLevel < BATT_MIN + 2 * settings.smartmanager.hysterese_low_percent and self.self.batteryLevel.get("trend") >= 0.0)
+        
+    @property
+    def blowdischarging(self):
+        return (self.zen.electricLevel < BATT_MIN + settings.smartmanager.falling_blevel_reduce_threshold and self.self.batteryLevel.get("trend") < 0.0)
         
     @property
     def energyExcessToCome(self):
@@ -263,7 +274,6 @@ class ZendureManager:
         p = self.tasmota.Power
         self.gridpower.add(p)
 
-
         if p < 0 and not self.isGenerous and self.bratio > 0.6:
             # we deliver upstream. react slowly in some cases
             p = max(self.gridpower.get("max",1 + 60*self.generosity),self.gridpower.get("avg",1 + 180*self.generosity))
@@ -271,26 +281,22 @@ class ZendureManager:
         needed = i+p
         self.neededPower.add(needed)
 
-        if b >= 2.0 * BATT_MIN:
-            self.chargefrombase = False
-        
         # values ready, lets do logic
         if b <= BATT_MIN:
             # first load battery
             i = 0
-            self.chargefrombase = True
             
-        elif self.chargefrombase and b < BATT_MIN + settings.smartmanager.hysterese_low_percent:
+        elif self.blowcharging:
             # we were discharged, first charge significant
             i = 0
 
-        elif self.chargefrombase:
+        elif self.blowchargingAboveHyst:
             i = max(0,min(s,needed) - 2 * self.resw)
 
-        elif self.batteryLevel.get("trend") < 0.0 and s10 < 10 and b < BATT_MIN + settings.smartmanager.falling_blevel_reduce_threshold:
-            # discharging, low batt, inject slowly less
+        elif self.blowdischarging:
+            # discharging, low batt, recude injection slowly
             i = needed - self.resw
-            i = max(0,(b - BATT_MIN) / settings.smartmanager.falling_blevel_reduce_threshold) * i
+            i = max(10,(b - BATT_MIN) / settings.smartmanager.falling_blevel_reduce_threshold) * i
                         
         elif b >= BATT_MAX:
             # batt full, still charging
