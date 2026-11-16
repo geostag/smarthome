@@ -198,16 +198,20 @@ class ZendureManager:
         return BATT_CAPACITY * 1.2
 
     @property
+    def batteryLevelTrend(self):
+        return (self.batteryLevel.get("trend") or 0.0)
+    
+    @property
     def blowcharging(self):
-        return (self.zen.electricLevel < BATT_MIN + settings.smartmanager.hysterese_low_percent and self.batteryLevel.get("trend") >= 0.0)
+        return (self.zen.electricLevel < BATT_MIN + settings.smartmanager.hysterese_low_percent and self.batteryLevelTrend >= 0.0)
     
     @property
     def blowchargingAboveHyst(self):
-        return (self.zen.electricLevel < BATT_MIN + 2 * settings.smartmanager.hysterese_low_percent and self.batteryLevel.get("trend") >= 0.0)
+        return (self.zen.electricLevel < BATT_MIN + 2 * settings.smartmanager.hysterese_low_percent and self.batteryLevelTrend >= 0.0)
         
     @property
     def blowdischarging(self):
-        return (self.zen.electricLevel < BATT_MIN + settings.smartmanager.falling_blevel_reduce_threshold and self.batteryLevel.get("trend") <= 0.0)
+        return (self.zen.electricLevel < BATT_MIN + settings.smartmanager.falling_blevel_reduce_threshold and self.batteryLevelTrend <= 0.0)
         
     @property
     def energyExcessToCome(self):
