@@ -287,9 +287,10 @@ class ZendureManager:
         elif self.chargefrombase:
             i = max(0,min(s,needed) - 2 * self.resw)
 
-        elif self.batteryLevel.get("trend") < 0.0 and b < BATT_MIN + settings.smartmanager.hysterese_low_percent:
-            # discharging, low batt, inject only ~baseload
-            i = max(self.baseload * 0.8, min(needed,s10))
+        elif self.batteryLevel.get("trend") < 0.0 and s10 < 10 and b < BATT_MIN + settings.smartmanager.falling_blevel_reduce_threshold:
+            # discharging, low batt, inject slowly less
+            i = needed - self.resw
+            i = max(0,(b - BATT_MIN) / settings.smartmanager.falling_blevel_reduce_threshold) * i
                         
         elif b >= BATT_MAX:
             # batt full, still charging

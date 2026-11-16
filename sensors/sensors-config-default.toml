@@ -15,6 +15,8 @@ batt_min = 10
 batt_max = 99
 batt_capacity = 3800
 hysterese_low_percent = 2
+# when battery level is *falling* lower this percent over batt_min, reduced injection to take care of battery
+falling_blevel_reduce_threshold = 5
 reserved_power = 8
 
 # if you wanna set green injection to a fixed value
