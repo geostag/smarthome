@@ -296,8 +296,8 @@ class ZendureManager:
 
         elif self.blowdischarging:
             # discharging, low batt, recude injection slowly
-            i = max(0,needed - self.resw)
-            i = max(10,(b - BATT_MIN) / settings.smartmanager.falling_blevel_reduce_threshold * i)
+            #i = max(0,needed - self.resw)
+            i = max(10,(b - BATT_MIN) / settings.smartmanager.falling_blevel_reduce_threshold * self.baseload)
                         
         elif self.blowchargingAboveHyst:
             i = max(0,min(s,needed) - 2 * self.resw)
