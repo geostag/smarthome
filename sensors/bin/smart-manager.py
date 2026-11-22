@@ -153,7 +153,7 @@ class ZendureManager:
     @property
     def isRed(self):
         # we use grid downstream but could do better
-        return (self.tasmota.Power > 2 and not self.zen.isMaxOutput and not self.blowcharging)
+        return (self.tasmota.Power > 2 and not self.zen.isMaxOutput and not self.zen.electricLevel < settings.smartmanager.batt_min)
         
     @property
     def isGenerous(self):
