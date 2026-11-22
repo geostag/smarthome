@@ -126,7 +126,6 @@ class ZendureManager:
         self.gridpower = memorizedValue(60 * 10)
         self.solarInputPower = memorizedValue(60 * 15)
         self.neededPower  = memorizedValue(60 * 60 * 4)
-        self.batteryLevel = memorizedValue(60 * 60 * 2)
         self.baseload = BASELOAD
         self.resw = RESW
         self.paramterlast = 0
@@ -198,22 +197,6 @@ class ZendureManager:
         return BATT_CAPACITY * 1.2
 
     @property
-    def batteryLevelTrend(self):
-        return (self.batteryLevel.get("trend") or 0.0)
-    
-    @property
-    def blowcharging(self):
-        return (self.zen.electricLevel < BATT_MIN + settings.smartmanager.hysterese_low_percent and self.batteryLevelTrend >= 0.0)
-    
-    @property
-    def blowchargingAboveHyst(self):
-        return (self.zen.electricLevel < BATT_MIN + 2 * settings.smartmanager.hysterese_low_percent and self.batteryLevelTrend >= 0.0)
-        
-    @property
-    def blowdischarging(self):
-        return (self.zen.electricLevel < BATT_MIN + settings.smartmanager.falling_blevel_reduce_threshold and self.batteryLevelTrend <= 0.0)
-        
-    @property
     def energyExcessToCome(self):
         avgLoad = self.neededPower.get("avglinweighted")
         if not avgLoad:
@@ -262,9 +245,6 @@ class ZendureManager:
         #self.dynamicParameterUpdate()
         
         b = self.zen.electricLevel
-        self.batteryLevel.add(b)
-        if self.batteryLevel.get("trend") != None:
-            self.influx.write("smart-manager","betteryLevelTrend",1.0 * self.batteryLevel.get("trend"),{"synthetic": "yes", "debug": 1})
 
         i = self.zen.outputLimit
         i_old = int(i)
@@ -289,19 +269,14 @@ class ZendureManager:
         if b <= BATT_MIN:
             # first load battery
             i = 0
+
+        elif b <= settings.smartmanager.batt_min + settings.smartmanager.hysterese_low_percent:
+            si = min(needed,s10 - self.resw)
+            bhi = settings.smartmanager.batt_min + settings.smartmanager.hysterese_low_percent
+            blo = settings.smartmanager.batt_min
+            bi = max(0,self.baseload * (b - blo) / (bhi - blo))
+            i = max(si,bi)
             
-        elif self.blowcharging:
-            # we were discharged, first charge significant
-            i = 0
-
-        elif self.blowdischarging:
-            # discharging, low batt, recude injection slowly
-            i = max(0,needed - self.resw)
-            i = max(10,(b - BATT_MIN) / settings.smartmanager.falling_blevel_reduce_threshold * i)
-                        
-        elif self.blowchargingAboveHyst:
-            i = max(0,min(s,needed) - 2 * self.resw)
-
         elif b >= BATT_MAX:
             # batt full, still charging
             # approach: input = output; slow changes; at least needed power
