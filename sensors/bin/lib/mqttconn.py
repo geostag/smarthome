@@ -103,8 +103,9 @@ class MqttConn:
             print("MQTT connect failed")
             self.client = None
             time.sleep(60)
-            
-        self.client.loop_start()
+
+        if self.client:
+            self.client.loop_start()
 
     @property
     def healthy(self):

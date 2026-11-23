@@ -1,6 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
+# prepare configuration env files for different sensors and containters
+python "/app/bin/config-init.py"
+
+test -f /etc/smarthome-secrets/env-sensors.sh && . /etc/smarthome-secrets/env-sensors.sh
+
 while true; do
   if [ -f /etc/smarthome-secrets/.env ]; then
     . /etc/smarthome-secrets/.env

@@ -1,7 +1,7 @@
 from lib.config import settings
 from lib.toinflux import Iflx
 import paho.mqtt.client as mqtt
-import dateutil.parser, datetime, json, re, traceback
+import dateutil.parser, datetime, json, re, traceback, time
 
 DEBUG = False
 
@@ -79,5 +79,9 @@ client = mqtt.Client( mqtt.CallbackAPIVersion.VERSION2 )
 client.username_pw_set(settings.MQTT_USERNAME, settings.MQTT_PASSWORD)
 client.on_connect = on_connect
 client.on_message = on_message
-client.connect(settings.mqtt.broker, settings.mqtt.port, keepalive=60)
-client.loop_forever()
+try:
+    client.connect(settings.mqtt.broker, settings.mqtt.port, keepalive=60)
+    client.loop_forever()
+except Exception as e:
+    print(f"mqtt2influxdb error occurred: {e}")
+    time.sleep(30)
