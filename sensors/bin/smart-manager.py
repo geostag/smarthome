@@ -262,6 +262,10 @@ class ZendureManager:
             # we deliver upstream. react slowly in some cases
             p = max(self.gridpower.get("max",1 + 60*self.generosity),self.gridpower.get("avg",1 + 180*self.generosity))
 
+        if self.generosity <= 1:
+            # we are not in situation to give generous; ignore ultra-short term power usage
+            p = self.gridpower.get("min",120)
+
         needed = i+p
         self.neededPower.add(needed)
 
